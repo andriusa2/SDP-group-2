@@ -5,7 +5,7 @@ from util import convert_distance, convert_angle
 class Arduino(object):
     """ Basic class for Arduino communications. """
     
-    def __init__(self, port='/dev/ttyUSB0', rate=115200, timeOut=1, comms=1, debug=False):
+    def __init__(self, port='/dev/ttyUSB0', rate=9600, timeOut=1, comms=1, debug=False):
         self.serial = None
         self.comms = comms
         self.port = port
@@ -18,7 +18,7 @@ class Arduino(object):
         self.comms = 1
         assert self.serial is None, "Serial connection is already established."
         try:
-            self.serial = serial.Serial(self.port, self.rate, timeout=self.timeout)
+            self.serial = serial.Serial(self.port, self.rate)
         except Exception:
             print("No Arduino detected, dying!")
             self.comms = 0
@@ -34,8 +34,11 @@ class Arduino(object):
 
             
 class TestController(Arduino):
+    def consume_input(self):
+        print(self.serial.readline())
+        
     def blink(self):
-        self._write("A_BLINK\n");
+        self._write("A_BLINK\r");
             
             
 class Controller(Arduino):

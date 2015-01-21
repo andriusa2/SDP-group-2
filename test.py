@@ -15,6 +15,7 @@ def sleep(seconds):
 def blink_test():
     # just use default parameters
     tc = TestController(**params)
+    # tc.consume_input()
     print("Trying to blink")
     tc.blink()
     sleep(40.)
