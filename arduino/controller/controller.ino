@@ -33,26 +33,28 @@ void setup() {
   // format A_SET_ENGINE ENG_ID float
   comm.addCommand("A_SET_ENGINE", set_engine_parse);
   comm.addCommand("A_RUN_ENGINE", run_engine_parse);
-  comm.addDefaultHandler(invalid_command);
   
+  comm.setDefaultHandler(invalid_command);
   // for LED
   pinMode(13, OUTPUT);
 }
 
-void invalid_command() {
+void invalid_command(const char* name) {
 }
 
 void my_blink() {
   int timeout = 1000;
   for (int i = 0; i < 10; i++) {
     digitalWrite(13, HIGH);
-    delay(timeout);
+    delay(1000);
     digitalWrite(13, LOW);
-    delay(timeout);
+    delay(1000);
   }
 }
 
 void loop() {
+  
+   //Serial.flush();
   if (IS_KICKING) {
     Serial.flush();
   } else {
