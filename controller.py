@@ -1,11 +1,11 @@
 import serial
 
-from util import convert_distance, convert_angle
+from util import convert_angle, get_duration
 
 class Arduino(object):
     """ Basic class for Arduino communications. """
     
-    def __init__(self, port='/dev/ttyUSB0', rate=9600, timeOut=1, comms=1, debug=False):
+    def __init__(self, port='/dev/ttyUSB0', rate=115200, timeOut=1, comms=1, debug=False):
         self.serial = None
         self.comms = comms
         self.port = port
@@ -18,7 +18,7 @@ class Arduino(object):
         self.comms = 1
         assert self.serial is None, "Serial connection is already established."
         try:
-            self.serial = serial.Serial(self.port, self.rate)
+            self.serial = serial.Serial(self.port, self.rate, timeout=self.timeout)
         except Exception:
             print("No Arduino detected, dying!")
             self.comms = 0
@@ -34,11 +34,8 @@ class Arduino(object):
 
             
 class TestController(Arduino):
-    def consume_input(self):
-        print(self.serial.readline())
-        
     def blink(self):
-        self._write("A_BLINK\r");
+        self._write("A_BLINK\n");
             
             
 class Controller(Arduino):
@@ -48,16 +45,15 @@ class Controller(Arduino):
     ENDL = '\r'  # at least the lib believes so
     
     COMMANDS = {
-        'kick': 'A_KICK{term}',
-        'move': 'A_SET_MOVE {left_speed:.5} {right_speed:.5}{term}A_RUN_MOVE {left_dist:.5} {right_dist:.5}{term}',
-        'set_engine': 'A_SET_ENGINE {engine_id} {speed:.5}{term}',
-        'run_engine': 'A_RUN_ENGINE {engine_id} {dist:.5}{term}',
+        'kick': 'KICK{term}',
+        'move': 'MOVE {left_power:.5} {right_power:.5} {left_duration:.5} {right_duration:.5}{term}',
+        'run_engine': 'RUN_ENGINE {engine_id} {power:.5} {duration:.5}{term}',
     }
     
     RADIUS = 1.
     """ Radius of the robot, used to determine what distance should it cover when turning. """
     
-    MAX_SPEED = 1.
+    MAX_POWER = 1.
     """ Max speed of any engine. """
     
     def kick(self):
@@ -67,45 +63,46 @@ class Controller(Arduino):
         """ Turns robot over 'angle' radians in place. """
         angle = convert_angle(angle)  # so it's in [-pi;pi] range
         # if angle is positive move clockwise, otw just inverse it
-        speed = self.MAX_SPEED if angle >= 0 else -self.MAX_SPEED
+        power = self.MAX_POWER if angle >= 0 else -self.MAX_POWER
         
         angle = abs(angle)
         distance = angle * self.RADIUS
-        
+        duration = get_duration(distance, abs(power))  # magic...
         self.complex_movement(
-            left_speed=speed,
-            right_speed=-speed,
-            left_dist=distance
+            left_power=power,
+            right_power=-power,
+            left_duration=duration
         )
     
-    def go(self, distance):
-        """ Makes robot go in a straight line for a distance. """
+    def go(self, duration, power=None):
+        """ Makes robot go in a straight line for a given duration. """
+        if power is None:
+            power = self.MAX_POWER
         self.complex_movement(
-            left_speed=self.MAX_SPEED,
-            # right_speed=-speed,  # might need this if the second motor is "inversed"
-            left_dist=distance
+            left_power=min(power, self.MAX_POWER),
+            # right_power=-power,  # might need this if the second motor is "inversed"
+            left_duration=duration
         )
     
-    def complex_movement(self, left_speed, left_dist, right_speed=None, right_dist=None):
+    def complex_movement(self, left_power, left_duration, right_power=None, right_duration=None):
         """ Moves robot with given parameters, if "right" aren't given, will copy over "left". """
-        def fix_pair(speed, dist):
+        def fix_pair(power, duration):
             """ Helper for making sure everything is nice and in correct units. """
-            # positive distances
-            if dist < 0:
-                speed *= -1.0
-                dist *= -1.0
-            dist = convert_distance(dist)
-            speed = min(max(speed, -self.MAX_SPEED), self.MAX_SPEED)
-            return speed, dist
+            # positive durations
+            if duration < 0:
+                power *= -1.0
+                duration *= -1.0
+            power = min(max(power, -self.MAX_POWER), self.MAX_POWER)
+            return power, duration
             
-        assert (left_speed is not None) and (left_dist is not None)
+        assert (left_power is not None) and (left_duration is not None)
         
-        if right_speed is None:
-            right_speed = left_speed
-        if right_dist is None:
-            right_dist = left_dist
-        
-        left_speed, left_dist = fix_pair(left_speed, left_dist)
-        right_speed, right_dist = fix_pair(right_speed, right_dist)
+        if right_power is None:
+            right_power = left_power
+        if right_duration is None:
+            right_duration = left_duration
+            
+        left_power, left_duration = fix_pair(left_power, left_duration)
+        right_power, right_duration = fix_pair(right_power, right_duration)
         command = self.COMMANDS['move'].format(term=self.ENDL, **locals())
         self._write(command)
