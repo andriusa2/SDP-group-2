@@ -98,11 +98,11 @@ void MotorBoard::diagnostics(uint8_t bitmask) {
   for (int i = 0, m = 1; i < MAX_ENGINES_BOARD; i++, m <<= 1) {
     if (bitmask & m) {
       stop_motor(i);
-      run_motor(i, 0.1, 100);
-      delay(100);
+      run_motor(i, 0.5, 500);
+      delay(500);
       stop_motor(i);
-      run_motor(i, -0.1, 100);
-      delay(100);
+      run_motor(i, -0.5, 500);
+      delay(500);
       stop_motor(i);
     }
   }

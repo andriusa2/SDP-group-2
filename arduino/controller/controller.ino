@@ -77,7 +77,7 @@ void setup() {
   setup_pins();
   Wire.begin();  // need this s.t. arduino is mastah
   
-  motors.diagnostics((1 << LEFT_ENGINE) | (1 << RIGHT_ENGINE) | (1 << KICKER)); // small twitches should happen
+  //motors.diagnostics(1); // small twitches should happen
   motors.stop_all();
   
   // test function
@@ -87,7 +87,7 @@ void setup() {
   comm.addCommand("KICK", kick);
   
   // sets two speed/accel values for movement engines
-  comm.addCommand("MOVE", move);
+  comm.addCommand("MOVE", move_bot);
   
   // sets speed/accel values for a given engine
   // format A_SET_ENGINE ENG_ID float
@@ -149,7 +149,7 @@ void kick() {
 }
 
 /* MOVE LEFT_POWER RIGHT_POWER LEFT_DURATION [RIGHT_DURATION=LEFT_DURATION] */
-void move() {
+void move_bot() {
   float left, right;
   uint16_t l_time, r_time;
   if (!get_float(left) || !get_float(right) || !get_uint16(l_time)) {
@@ -166,7 +166,10 @@ void move() {
 void run_engine() {
   float power;
   uint16_t id, time;
-  if (!get_uint16(id) || !get_float(power) || !get_uint16(time)) {
+  if (!get_uint16(id)) {Serial.println("failed to get id"); return;}
+  if (!get_float(power)) {Serial.println("failed to get power");return;}
+  if (!get_uint16(time)) {
+    Serial.println("failed to get time");
     return;
   }
   if (id == KICKER) {
@@ -182,4 +185,5 @@ void run_engine() {
 }
 
 void invalid_command(const char * command) {
+  Serial.println(command);
 }

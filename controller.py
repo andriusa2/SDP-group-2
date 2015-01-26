@@ -42,7 +42,7 @@ class Controller(Arduino):
     """ Implements an interface for Arduino device. """
     
     # TODO: get signs on turning right. Depends on wiring. :/
-    ENDL = '\r'  # at least the lib believes so
+    ENDL = '\n'  # at least the lib believes so
     
     COMMANDS = {
         'kick': 'KICK{term}',
@@ -106,3 +106,9 @@ class Controller(Arduino):
         right_power, right_duration = fix_pair(right_power, right_duration)
         command = self.COMMANDS['move'].format(term=self.ENDL, **locals())
         self._write(command)
+        
+    def run_engine(self, id, power, duration):
+        assert (-1.0 <= power <= 1.0) and (0 <= id <= 5)
+        command = self.COMMANDS['run_engine'].format(engine_id=id, power=power, duration=duration, term=self.ENDL)
+        self._write(command)
+        print(self.serial.readline())
