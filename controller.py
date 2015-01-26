@@ -70,7 +70,7 @@ class Controller(Arduino):
         duration = get_duration(distance, abs(power))  # magic...
         self.complex_movement(
             left_power=power,
-            right_power=-power,
+            right_power=power,
             left_duration=duration
         )
     
@@ -80,7 +80,7 @@ class Controller(Arduino):
             power = self.MAX_POWER
         self.complex_movement(
             left_power=min(power, self.MAX_POWER),
-            # right_power=-power,  # might need this if the second motor is "inversed"
+            right_power=-power,  # might need this if the second motor is "inversed"
             left_duration=duration
         )
     
