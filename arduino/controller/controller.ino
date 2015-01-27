@@ -2,9 +2,9 @@
 #include "SDPMotors.h"
 #include <Wire.h>
 // test purposes, change to 1 when confident with timings
-#define KICK_POWER 0.5
+#define KICK_POWER 1
 // 100 ms
-#define KICK_DURATION 100
+#define KICK_DURATION 250
 
 #define KICK_HAPPENING 1
 #define KICK_COOLDOWN 2
@@ -141,8 +141,8 @@ void kick() {
       power = KICK_POWER;
     // if we use 1/2 power the kick should take 2 times as long, no?
     kick_power = power;
-    kick_duration = KICK_DURATION / power;
-    motors.run_motor(KICKER, power, kick_duration);
+    kick_duration = KICK_DURATION / (power);
+    motors.run_motor(KICKER, -power, kick_duration);
     IS_KICKING = KICK_HAPPENING;
   }
 }
