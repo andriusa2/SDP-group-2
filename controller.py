@@ -46,10 +46,10 @@ class Controller(Arduino):
     """ Implements an interface for Arduino device. """
     
     # TODO: get signs on turning right. Depends on wiring. :/
-    ENDL = '\n'  # at least the lib believes so
+    ENDL = '\r\n'  # at least the lib believes so
     
     COMMANDS = {
-        'kick': 'KICK{term}',
+        'kick': 'KICK {power:.5}{term}',
         'move': 'MOVE {left_power:.5} {right_power:.5} {left_duration} {right_duration}{term}',
         'run_engine': 'RUN_ENGINE {engine_id} {power:.5} {duration}{term}',
     }
@@ -60,8 +60,10 @@ class Controller(Arduino):
     MAX_POWER = 1.
     """ Max speed of any engine. """
     
-    def kick(self):
-        self._write(self.COMMANDS['kick'].format(term=self.ENDL));
+    def kick(self, power=None):
+        if power is None:
+            power = self.MAX_POWER
+        self._write(self.COMMANDS['kick'].format(power=float(power), term=self.ENDL));
         
     def turn(self, angle):
         """ Turns robot over 'angle' radians in place. """
