@@ -12,10 +12,10 @@ MotorBoard motors;
 SerialCommand comm;
 
 enum MOTORS {
-  LEFT_ENGINE = 0,
-  RIGHT_ENGINE,
-  KICKER,
-  MAX_ENGINES
+  LEFT_ENGINE = 4,
+  RIGHT_ENGINE = 0,
+  KICKER = 3,
+  MAX_ENGINES = 6
 };
 
 float MAX_SPEED = 1; // TODO: get real value, etc
@@ -76,7 +76,7 @@ void setup() {
   Serial.begin(115200);  // 115kb
   setup_pins();
   Wire.begin();  // need this s.t. arduino is mastah
-  
+  Serial.println("Team2GO");
   //motors.diagnostics(1); // small twitches should happen
   motors.stop_all();
   
@@ -90,7 +90,6 @@ void setup() {
   comm.addCommand("MOVE", move_bot);
   
   // sets speed/accel values for a given engine
-  // format A_SET_ENGINE ENG_ID float
   comm.addCommand("RUN_ENGINE", run_engine);
   
   comm.setDefaultHandler(invalid_command);
@@ -119,9 +118,9 @@ void loop() {
   
   // if kicker is running, it will be ignored, all other commands won't be blocked
   comm.readSerial();
-  
+  Serial.flush();  // flushing stuff out just in case
   // parsing stuff out every 100ms for debug
-  delay(100);
+//  delay(100);
 }
 
 void my_blink() {

@@ -1,5 +1,5 @@
 // well... Might be more, but easiest to implement now
-#define MAX_ENGINES_BOARD 5
+#define MAX_ENGINES_BOARD 6
 
 //#define DEBUG
 

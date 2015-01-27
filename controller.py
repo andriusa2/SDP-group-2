@@ -28,7 +28,11 @@ class Arduino(object):
     def _write(self, string):
         print("Trying to run command: '{0}'".format(string));
         if self.comms == 1:
-            self.serial.write(string)
+            self.serial.write(string)            
+            a = self.serial.readline()
+            while a:
+                print(a)
+                a = self.serial.readline()
         elif not self.debug:
             raise Exception("No comm link established, but trying to send command.")
 
@@ -46,8 +50,8 @@ class Controller(Arduino):
     
     COMMANDS = {
         'kick': 'KICK{term}',
-        'move': 'MOVE {left_power:.5} {right_power:.5} {left_duration:.5} {right_duration:.5}{term}',
-        'run_engine': 'RUN_ENGINE {engine_id} {power:.5} {duration:.5}{term}',
+        'move': 'MOVE {left_power:.5} {right_power:.5} {left_duration} {right_duration}{term}',
+        'run_engine': 'RUN_ENGINE {engine_id} {power:.5} {duration}{term}',
     }
     
     RADIUS = 1.
@@ -93,7 +97,7 @@ class Controller(Arduino):
                 power *= -1.0
                 duration *= -1.0
             power = min(max(power, -self.MAX_POWER), self.MAX_POWER)
-            return power, duration
+            return float(power), int(duration)
             
         assert (left_power is not None) and (left_duration is not None)
         
@@ -109,6 +113,5 @@ class Controller(Arduino):
         
     def run_engine(self, id, power, duration):
         assert (-1.0 <= power <= 1.0) and (0 <= id <= 5)
-        command = self.COMMANDS['run_engine'].format(engine_id=id, power=power, duration=duration, term=self.ENDL)
+        command = self.COMMANDS['run_engine'].format(engine_id=int(id), power=float(power), duration=int(duration), term=self.ENDL)
         self._write(command)
-        print(self.serial.readline())
