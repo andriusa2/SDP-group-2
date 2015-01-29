@@ -12,19 +12,19 @@ kick to pass
 
 class ControllerM1(Controller):
     def fwd_short(self):
-        self.go(420, power=-1.0)  # TODO: test!
+        self.go(380, power=-1.0)  # TODO: test!
     
     def fwd_long(self):
-        self.go(1550, power=-1.0)  # TODO: test!
+        self.go(1500, power=-1.0)  # TODO: test!
         
     def bwd_short(self):
-        self.go(540)
+        self.go(560)
     
     def kick_goal(self):
-        self.kick(0.5)
+        self.kick(0.48)
     
     def kick_pass(self):
-        self.kick(0.5)  # maybe
+        self.kick(0.48)  # maybe
 
 
 def sam_main():
@@ -34,8 +34,8 @@ def sam_main():
     # m1.fwd_long()
     # m1.bwd_short()
 
-    m1.kick_goal()
-    # m1.kick_pass()
+    # m1.kick_goal()
+    m1.kick_pass()
 
 if __name__ == '__main__':
     sam_main()

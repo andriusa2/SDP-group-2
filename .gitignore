@@ -52,3 +52,11 @@ docs/_build/
 
 # PyBuilder
 target/
+
+.idea/.name
+
+*.xml
+
+*.iml
+
+venv/bin/activate
