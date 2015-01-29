@@ -4,7 +4,7 @@
 // test purposes, change to 1 when confident with timings
 #define KICK_POWER 1
 // 100 ms
-#define KICK_DURATION 250
+#define KICK_DURATION 300
 
 #define KICK_HAPPENING 1
 #define KICK_COOLDOWN 2
@@ -103,6 +103,8 @@ void loop() {
   switch(IS_KICKING) {
   case KICK_HAPPENING:
     if (!motors.is_running(KICKER)) {
+      motors.stop_motor(KICKER);
+      kick_duration = kick_duration / 10 * 9;
       motors.run_motor(KICKER, -kick_power, kick_duration);
       IS_KICKING = KICK_COOLDOWN;
     }
@@ -140,8 +142,8 @@ void kick() {
     if (!get_float(power))
       power = KICK_POWER;
     // if we use 1/2 power the kick should take 2 times as long, no?
-    kick_power = power;
-    kick_duration = KICK_DURATION / (power);
+    kick_power = -power;
+    kick_duration = KICK_DURATION / abs(power);
     motors.run_motor(KICKER, -power, kick_duration);
     IS_KICKING = KICK_HAPPENING;
   }
@@ -151,7 +153,10 @@ void kick() {
 void move_bot() {
   float left, right;
   uint16_t l_time, r_time;
-  if (!get_float(left) || !get_float(right) || !get_uint16(l_time)) {
+  if (!get_float(left)) { Serial.println("Can't get left");return;}
+  if (!get_float(right)) { Serial.println("Can't get right");return;}
+  if (!get_uint16(l_time)) {
+    Serial.println("Can't get left time");
     //TODO: signal error?
     return;
   }
