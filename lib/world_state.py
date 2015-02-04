@@ -15,6 +15,12 @@ class _WorldObject(object):
         self.velocity = velocity
         
 class Robot(_WorldObject):
+    """
+    Robot object.
+    Contains all position/velocity data and also:
+    - direction it can shoot at (or could drive towards? hm...).
+    - whether it's an enemy robot or not. << might not be needed!
+    """
     def __init__(self, direction, position, velocity, enemy):
         self.enemy = enemy if enemy else False
         self.direction = direction
@@ -31,9 +37,14 @@ class Robot(_WorldObject):
         ).format(**self.__dict__)
     
 class Ball(_WorldObject):
+    """
+    Ball object.
+    in_possession is set to True if some robot currently possesses this ball.
+    """
     def __init__(self, position, velocity, in_possession=None):
         self.in_possession = in_possession if in_possession else False
         super(Ball, self).__init__(position, velocity)
+        
     def __repr__(self):
         return (
             "Ball(position={position!r}, velocity={velocity!r}, "
@@ -70,14 +81,23 @@ class WorldState(object):
         self.fix_robots()
     
     def fix_robots(self):
+        """
+        Converts self.robots to a canonical representation (currently a dict of zone: robot)
+        """
+        # duck-typey check whether it's a dict or not
         try:
             self.robots.keys()
-        except AttributeError:        
+        except AttributeError:
+            # not a dict-like object
             self.set_robots_list(self.robots)
         else:
+            # dict-like object
             self.set_robots_dict(self.robots)        
         
     def get_zone(self, point):
+        """
+        Returns a zone in which the given point should reside
+        """
         x, _ = point
         if not self.zone_boundaries:
             raise TypeError("No zone boundaries are set")
@@ -90,9 +110,22 @@ class WorldState(object):
         self.zone_boundaries = boundaries
         
     def add_robot(self, zone, robot):
+        """ Add a robot to a given zone. Replaces any robot which was there already. """
         self.robots[zone] = robot
     
+    def set_robots(self, robots):
+        """ Initialize all robots from `robots`. """
+        self.robots = robots
+        self.fix_robots()
+    
     def set_robots_list(self, robot_list):
+        """
+        Try to initialize self.robots from a list of robots.
+        If there are no zone boundaries set, it assumes that robot ordering is from left
+        to right. If there aren't 4 robots given, it should error out.
+        
+        If zone boundaries are set, then it tries to allocate robots properly to their zones.
+        """
         if not self.zone_boundaries:
             if len(robot_list) != 4:
                 raise TypeError("Provided robot list of length < 4, but no zone boundary map is found")
