@@ -1,4 +1,4 @@
-from controller import Controller
+from communication import Controller
 
 """
 10cm fwd
