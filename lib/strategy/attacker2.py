@@ -1,7 +1,8 @@
+from generalized_strategy import generalized_strategy
+
 __author__ = 'alex'
 
-
-class attacker2:
+class attacker2(generalized_strategy):
 
     def __init__(self):
         pass
