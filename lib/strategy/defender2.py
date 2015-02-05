@@ -8,7 +8,7 @@ class defender1(generalized_strategy):
         pass
 
     def act(self):
-        pass
+        self.current_state
 
     # is the ball in the attacking zone?
 

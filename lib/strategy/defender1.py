@@ -11,7 +11,7 @@ class defender1(generalized_strategy):
         pass
 
     # is the ball in the attacking zone?
-
+    
         # no:
 
         # wait

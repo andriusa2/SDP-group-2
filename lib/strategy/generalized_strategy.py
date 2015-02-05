@@ -1,6 +1,6 @@
 from lib.world.world_state import WorldState
+from numpy import vectorize
 __author__ = 'alex'
-
 
 class generalized_strategy():
 

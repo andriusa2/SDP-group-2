@@ -9,45 +9,31 @@ class attacker1(generalized_strategy):
         pass
 
     def act(self):
-        pass
-        # is the ball in our zone?
+        zone_ball = self.current_state.getZone(self.ball)
 
-        # yes: (the only option for this ms)
 
-        # are we facing the ball?
+        if zone_ball == self.current_state.Zone.L_ATT: # is the ball in our zone?
 
-            # no:
+            if (!we_have_ball): # do we have the ball?
 
-            # turn towards the the ball
+                if (!we_are_facing_the_ball): # are we facing the ball?
+                    # turn towards the the ball
 
-            # yes:
+                else: # we're not facing the ball
 
-            # start moving towards the ball
+                    if(!we_are_close_to_ball): # are we close enough to the ball?
+                        pass # keep moving
 
-        # are we close enough to the ball?
+                    else: # we are close to the bal
+                        pass # stop and lower cage
 
-            # no:
+            else:# we have the ball
 
-            # keep moving
+                if(!we_are_facing_the_goal): # are we facing the goal?
+                    pass # turn towards the goal
 
-            # yes:
+                else:# we are facing the goal
+                    pass #kick
 
-            # stop and lower cage
-
-        # do we have the ball?
-
-            # no: (need to think more about this)
-
-            # yes:
-
-        # are we facing the goal?
-
-            # no:
-
-            # turn towards goal
-
-            # yes:
-
-            # kick ball
-
-        # Complete
+        else: #the ball is not in our zone
+            pass # hold

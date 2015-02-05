@@ -25,17 +25,17 @@ class Robot(_WorldObject):
         self.enemy = enemy if enemy else False
         self.direction = direction
         super(Robot, self).__init__(position, velocity)
-    
+
     def is_enemy(self):
         return self.enemy
-    
+
     def __repr__(self):
         return (
             "Robot(direction={direction!r}, "
             "position={position!r}, velocity={velocity!r}, "
             "is_enemy={enemy!r})"
         ).format(**self.__dict__)
-    
+
 class Ball(_WorldObject):
     """
     Ball object.
@@ -44,13 +44,14 @@ class Ball(_WorldObject):
     def __init__(self, position, velocity, in_possession=None):
         self.in_possession = in_possession if in_possession else False
         super(Ball, self).__init__(position, velocity)
-        
+
     def __repr__(self):
         return (
             "Ball(position={position!r}, velocity={velocity!r}, "
             "in_possession={in_possession!r})"
         ).format(**self.__dict__)
-    
+
+
 class WorldState(object):
     """
     Object containing:
