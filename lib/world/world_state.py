@@ -1,3 +1,4 @@
+from lib.math.vector import Vector2D
 """
 TODO: convert to numpy arrays instead of tuples
       roll out proper vector/point classes?
@@ -13,8 +14,8 @@ class Zone(object):
 
 class _WorldObject(object):
     def __init__(self, position, velocity):
-        self.position = position
-        self.velocity = velocity
+        self.position = Vector2D.to_vector2d(position)
+        self.velocity = Vector2D.to_vector2d(velocity)
 
 
 class Robot(_WorldObject):
@@ -27,7 +28,7 @@ class Robot(_WorldObject):
 
     def __init__(self, direction, position, velocity, enemy):
         self.enemy = enemy if enemy else False
-        self.direction = direction
+        self.direction = Vector2D.to_vector2d(direction)
         super(Robot, self).__init__(position, velocity)
 
     def is_enemy(self):
@@ -39,6 +40,20 @@ class Robot(_WorldObject):
             "position={position!r}, velocity={velocity!r}, "
             "is_enemy={enemy!r})"
         ).format(**self.__dict__)
+
+    def can_see(self, point, threshold=0.05):
+        """
+        Return true if robot can "see" a given point.
+        """
+        # create a vector from robot origin to a point
+        # if angle between that and robot direction is more than threshold
+        # then robot needs to correct its angle to "see" that point
+        point = Vector2D.to_vector2d(point)
+        d = point - self.position
+        if d.is_null():
+            return False
+        angle = d.get_angle(self.direction)
+        return -threshold <= angle <= threshold
 
 
 class Ball(_WorldObject):
