@@ -10,17 +10,18 @@ class Attacker1(GeneralizedStrategy):
         self.robot_tag = robot_tag
         self.world = world
         
-        self.capture_threshold_x = 0  # we need to define these (based on kicker)
-        self.capture_threshold_y = 0
+        self.grab_threshold_x = 2  # we need to define these (based on kicker)
+        self.grab_threshold_y = 2
 
-        self.hold_threshold_x = 0
-        self.hold_threshold_y = 0
+        self.is_grabber_down = True
 
         # initialise state attributes
         self.robot_loc_x = 0
         self.robot_loc_y = 0
         self.ball_loc_x = 0
         self.ball_loc_y = 0
+
+        # fetch the attributes from the world
         self.fetch_world_state()
 
     def act(self):
@@ -78,6 +79,6 @@ class Attacker1(GeneralizedStrategy):
         # check if the balls is in close enough to the robot to be grabbed
         ball_robot_dist = (np.abs(self.robot_loc_x-self.ball_loc_x), np.abs(self.robot_loc_y-self.ball_loc_y))
         (ball_robot_dist_x, ball_robot_dist_y) = ball_robot_dist
-        ball_close_x = ball_robot_dist_x < self.hold_threshold_x
-        ball_close_y = ball_robot_dist_y < self.hold_threshold_y
+        ball_close_x = ball_robot_dist_x < self.grab_threshold_x
+        ball_close_y = ball_robot_dist_y < self.grab_threshold_y
         return ball_close_x and ball_close_y
