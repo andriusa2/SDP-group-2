@@ -29,9 +29,9 @@ class TestAttacker1(unittest.TestCase):
         # set the list of robots
         robots = [robot_1, robot_2, robot_3, robot_4]
 
-        a_world_state = WorldState(robots=robots, ball=ball, zone_boundaries=None)
+        self.world_state = WorldState(robots=robots, ball=ball, zone_boundaries=None)
         actual_robot = None
-        self.attacker1 = Attacker1(a_world_state, Zone.L_ATT, actual_robot)
+        self.attacker1 = Attacker1(self.world_state, Zone.L_ATT, actual_robot)
 
     # ensure that the world state is fetched
     def test_fetch_world_state(self):
@@ -41,6 +41,14 @@ class TestAttacker1(unittest.TestCase):
         self.assertEquals((self.attacker1.ball_loc_x, self.attacker1.ball_loc_y), (10, 10))
 
     # ensure that a close ball is found to be close
+    def test_close_ball(self):
+        # change the balls location
+        ball = Ball(position=(21, 21), velocity=(0, 0), in_possession=False)
+        self.world_state.set_ball(ball)
+        # refresh the robot's world
+        self.attacker1.fetch_world_state()
+        # check that the ball is close
+        self.assertTrue(self.attacker1.is_ball_close())
 
     # ensure that a non close ball is found to be not close
 
