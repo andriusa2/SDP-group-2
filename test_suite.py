@@ -42,15 +42,21 @@ class TestAttacker1(unittest.TestCase):
 
     # ensure that a close ball is found to be close
     def test_close_ball(self):
-        # change the balls location
-        ball = Ball(position=(21, 21), velocity=(0, 0), in_possession=False)
-        self.world_state.set_ball(ball)
-        # refresh the robot's world
-        self.attacker1.fetch_world_state()
+        self.change_ball_location(21, 21)
         # check that the ball is close
         self.assertTrue(self.attacker1.is_ball_close())
 
+    def change_ball_location(self, new_ball_x, new_ball_y):
+        ball = Ball(position=(new_ball_x, new_ball_y), velocity=(0, 0), in_possession=False)
+        self.world_state.set_ball(ball)
+        # refresh the robot's world
+        self.attacker1.fetch_world_state()
+
     # ensure that a non close ball is found to be not close
+    def test_non_close_ball(self):
+        self.change_ball_location(23, 23)
+        # check that the ball is close
+        self.assertFalse(self.attacker1.is_ball_close())
 
 if __name__ == '__main__':
     unittest.main()
