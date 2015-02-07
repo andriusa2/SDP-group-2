@@ -5,7 +5,11 @@ __author__ = 'alex'
 
 class Attacker1(GeneralizedStrategy):
 
-    def __init__(self):
+    def __init__(self, world, robot_tag, actual_robot):
+        self.actual_robot = actual_robot
+        self.robot_tag = robot_tag
+        self.world = world
+        
         self.capture_threshold_x = 0  # we need to define these (based on kicker)
         self.capture_threshold_y = 0
 
@@ -20,9 +24,9 @@ class Attacker1(GeneralizedStrategy):
         self.fetch_world_state()
 
     def act(self):
-        zone_ball = self.current_state.getZone(self.ball)
+        zone_ball = self.world.current_state.getZone(self.ball)
 
-        if zone_ball == self.current_state.Zone.L_ATT:  # is the ball in our zone?
+        if zone_ball == self.world.current_state.Zone.L_ATT:  # is the ball in our zone?
 
             if not self.is_ball_close():
 
@@ -57,8 +61,8 @@ class Attacker1(GeneralizedStrategy):
         grab the latest state of the world and set this objects attribute
         :return: nothing
         """
-        (robot_loc_x, robot_loc_y) = self.current_state.robot.position
-        (ball_loc_x, ball_loc_y) = self.current_state.ball.position
+        (robot_loc_x, robot_loc_y) = self.world.get_robot(self.robot_tag).position
+        (ball_loc_x, ball_loc_y) = self.world.get_ball().position
 
         self.robot_loc_x = robot_loc_x
         self.robot_loc_y = robot_loc_y
