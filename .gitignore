@@ -13,8 +13,6 @@ develop-eggs/
 dist/
 downloads/
 eggs/
-lib/
-lib64/
 parts/
 sdist/
 var/
@@ -52,3 +50,11 @@ docs/_build/
 
 # PyBuilder
 target/
+
+.idea/.name
+
+*.xml
+
+*.iml
+
+venv/bin/activate
