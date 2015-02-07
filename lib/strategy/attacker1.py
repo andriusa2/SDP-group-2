@@ -1,9 +1,9 @@
-from generalized_strategy import generalized_strategy
+from generalized_strategy import GeneralizedStrategy
 import numpy as np
 __author__ = 'alex'
 
 
-class Attacker1(generalized_strategy):
+class Attacker1(GeneralizedStrategy):
 
     def __init__(self):
         self.capture_threshold_x = 0  # we need to define these (based on kicker)
