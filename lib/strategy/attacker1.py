@@ -25,18 +25,17 @@ class Attacker1(GeneralizedStrategy):
         self.fetch_world_state()
 
     def act(self):
-        zone_ball = self.world.current_state.getZone(self.ball)
+        zone_ball = self.world.getZone(self.world.get_ball())
+        zone_robot = self.world.getZone(self.world.get_robot(self.robot_tag))
 
-        if zone_ball == self.world.current_state.Zone.L_ATT:  # is the ball in our zone?
+        if zone_ball == zone_robot:  # is the ball in our zone?
 
             if not self.is_ball_close():
 
-                we_are_facing_the_ball = True
-
-                if not we_are_facing_the_ball:  # are we facing the ball?
+                if not self.is_robot_facing_ball():  # are we facing the ball?
                     pass  # turn towards the the ball
 
-                else:  # we're not facing the ball
+                else:  # we're facing the ball
 
                     if not self.is_ball_close():  # are we close enough to the ball?
                         pass  # keep moving forward
@@ -46,9 +45,7 @@ class Attacker1(GeneralizedStrategy):
 
             else:  # we have the ball
 
-                we_are_facing_the_ball = True
-
-                if not we_are_facing_the_ball:  # are we facing the goal?
+                if not self.is_robot_facing_ball():  # are we facing the goal?
                     pass  # turn towards the goal
 
                 else:  # we are facing the goal
@@ -56,6 +53,29 @@ class Attacker1(GeneralizedStrategy):
 
         else:  # the ball is not in our zone
             pass  # hold
+
+    def is_robot_facing_goal(self):
+        """
+        Check if the angle between the robot and
+        the centre of the goal is less than a threshold
+        :return: whether or not the robot is facing the ball
+        """
+        pass  # TODO
+
+    def is_robot_facing_ball(self):
+        """
+        Check if the angle between the robot and
+        the ball is less than a threshold
+        :return: whether or not the robot is facing the ball
+        """
+        pass  # TODO
+
+    def angle_between_robot_and_point(self):
+        """calc the angle between:
+        the line through the robots position at the angle of the robots direction
+        the line through the robots position and the balls position
+        """
+        pass  # TODO
 
     def fetch_world_state(self):
         """

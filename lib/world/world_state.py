@@ -32,6 +32,12 @@ class Robot(_WorldObject):
     def is_enemy(self):
         return self.enemy
 
+    def is_moving(self):
+        """
+        are any movement commands currently being executed
+        """
+        pass  # TODO
+
     def __repr__(self):
         return (
             "Robot(direction={direction!r}, "
