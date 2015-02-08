@@ -52,8 +52,9 @@ class Vector2D(object):
         return Vector2D(self.x - v.x, self.y - v.y)
 
     def scale(self, size):
-        self.x *= size
-        self.y *= size
+        new_x = self.x * size
+        new_y = self.y * size
+        return Vector2D(float(new_x), float(new_y))
 
     def get_angle(self, base_vector):
         assert base_vector is not None
@@ -64,4 +65,9 @@ class Vector2D(object):
 
     def is_null(self):
         return self.x == 0.0 and self.y == 0.0
+
+    def unit_vector(self):
+        magnitude = self.length()
+        unit_vector = Vector2D(float(self.x / magnitude), float(self.y / magnitude))
+        return unit_vector
 

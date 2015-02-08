@@ -1,5 +1,6 @@
 from generalized_strategy import GeneralizedStrategy
 import numpy as np
+from lib.math.vector import Vector2D
 __author__ = 'alex'
 
 
@@ -12,6 +13,7 @@ class Attacker1(GeneralizedStrategy):
         
         self.grab_threshold_x = 2  # we need to define these (based on kicker)
         self.grab_threshold_y = 2
+        self.dist_kicker_robot = 2
 
         self.is_grabber_down = True
 
@@ -43,18 +45,24 @@ class Attacker1(GeneralizedStrategy):
                 else:  # we're facing the ball
 
                     if not self.is_ball_close():  # are we close enough to the ball?
-                        pass  # keep moving forward
+                        dist_to_ball = self.distance_from_kicker_to_ball()
+                        self.actual_robot.go(dist_to_ball)
 
                     else:  # we are close to the ball
-                        pass  # stop and lower cage
+                        self.actual_robot.lower_cage  # lower the cage
 
-            else:  # we have the ball
+            else:  # the ball can be held
 
-                if not self.is_robot_facing_ball():  # are we facing the goal?
-                    pass  # turn towards the goal
+                if self.is_grabber_down:  # we must be holding the ball
 
-                else:  # we are facing the goal
-                    pass   # kick
+                    if not self.is_robot_facing_ball():  # are we facing the goal?
+                        pass  # turn towards the goal
+
+                    else:  # we are facing the goal
+                        pass   # kick
+
+                else:  # lower the cage
+                    self.actual_robot.lower_cage
 
         else:  # the ball is not in our zone
             print "ball not in robot's zone"
@@ -88,13 +96,30 @@ class Attacker1(GeneralizedStrategy):
 
     def is_ball_close(self):
         """
-        checks whether the ball is in close proximity to the robot
+        checks whether the ball is in close proximity to the robot's kicker
         :return:
         """
         self.fetch_world_state()
+
+        # use the direction and position of the robot to find the position of the kicker
+        direction_unit_vector = self.robot.direction.unit_vector()
+        kicker_vector = direction_unit_vector.scale(self.dist_kicker_robot)
+        kicker_pos = self.robot.position + kicker_vector
+
         # check if the balls is in close enough to the robot to be grabbed
-        ball_robot_dist_x = np.abs(self.robot.position.x-self.ball.position.x)
-        ball_robot_dist_y = np.abs(self.robot.position.y-self.ball.position.y)
-        ball_close_x = ball_robot_dist_x < self.grab_threshold_x
-        ball_close_y = ball_robot_dist_y < self.grab_threshold_y
+        ball_kicker_dist_x = np.abs(kicker_pos.x-self.ball.position.x)
+        ball_kicker_dist_y = np.abs(kicker_pos.y-self.ball.position.y)
+        ball_close_x = ball_kicker_dist_x < self.grab_threshold_x
+        ball_close_y = ball_kicker_dist_y < self.grab_threshold_y
         return ball_close_x and ball_close_y
+
+    def distance_from_kicker_to_ball(self):
+        """
+        This assumes that the robot is facing the ball.
+        :return: distance from the kicker to the ball
+        """
+
+        vectors = [[self.robot.position.x, self.robot.position.y], [self.ball.position.x,  self.ball.position.y]]
+        dist_robot_ball = np.linalg.norm(vectors)
+        dist_kicker_ball = dist_robot_ball - self.dist_kicker_robot
+        return dist_kicker_ball
