@@ -29,6 +29,7 @@ class Robot(_WorldObject):
     def __init__(self, direction, position, velocity, enemy):
         self.enemy = enemy if enemy else False
         self.direction = Vector2D.to_vector2d(direction)
+        self.is_moving = False
         super(Robot, self).__init__(position, velocity)
 
     def is_enemy(self):
@@ -40,6 +41,7 @@ class Robot(_WorldObject):
             "position={position!r}, velocity={velocity!r}, "
             "is_enemy={enemy!r})"
         ).format(**self.__dict__)
+
 
     def can_see(self, point, threshold=0.05):
         """
@@ -188,4 +190,3 @@ class WorldState(object):
             "WorldState(robots={robots!r}, ball={ball!r}, "
             "zone_boundaries={zone_boundaries!r})"
         ).format(**self.__dict__)
-

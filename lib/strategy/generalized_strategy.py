@@ -1,8 +1,9 @@
 from lib.world.world_state import WorldState
+from numpy import vectorize
 __author__ = 'alex'
 
 
-class generalized_strategy():
+class GeneralizedStrategy():
 
     def __init__(self):
         self.current_state = None
@@ -11,6 +12,6 @@ class generalized_strategy():
         pass
 
     def update_state(self, world_state):
-        if (type(world_state) != type(WorldState)):
+        if type(world_state) != type(WorldState):
             raise Exception
         self.current_state = world_state
