@@ -12,6 +12,9 @@ class Vector2D(object):
     def __iter__(self):
         return self.x, self.y
 
+    def __eq__(self, other):
+        return (self.x == other.x) & (self.y == other.y)
+
     @staticmethod
     def to_vector2d(args):
         if isinstance(args, Vector2D):
