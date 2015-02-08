@@ -1,6 +1,7 @@
 import serial
 
-from lib.util import convert_angle, get_duration
+from lib.world.util import convert_angle, get_duration
+
 
 class Arduino(object):
     """ Basic class for Arduino communications. """
