@@ -78,21 +78,7 @@ class TestAttacker1(unittest.TestCase):
         # check that robot if facing the ball
         self.assertTrue(self.attacker1.is_robot_facing_ball())
 
-    # ensure that a robot won't turn if ball already in line
-    def test_robot_stays_looking_at_ball(self):
-        # set up the world so that the robot does not have to turn
-        ball = Ball(position=(15, 15), velocity=(0, 0), in_possession=False)
-        robot_2 = Robot(direction=(0, 1), position=(15, 0), velocity=(0, 0), enemy=False)
-        self.world_state.set_ball(ball)
-        self.world_state.add_robot(Zone.L_ATT, robot_2)
-        # do the next action
-        self.attacker1.act()
-        # refresh the robot's world
-        self.attacker1.fetch_world_state()
-        # check that robot if facing the ball
-        self.assertTrue(self.attacker1.is_robot_facing_ball())
-
-    # ensure that the robot will move towrads the ball when facing it
+    # ensure that the robot will move towards the ball when facing it
     def test_robot_moves_to_ball(self):
         # set up the world so that the robot does not have to turn
         ball = Ball(position=(15, 15), velocity=(0, 0), in_possession=False)
