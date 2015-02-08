@@ -22,16 +22,16 @@ class TestAttacker1(unittest.TestCase):
     def setUp(self):
         # create a robot and a ball
         robot_1 = Robot(direction=pi, position=(8, 8), velocity=(0, 0), enemy=True)
-        robot_2 = Robot(direction=pi, position=(20, 20), velocity=(0, 0), enemy=True)
-        robot_3 = Robot(direction=pi, position=(30, 30), velocity=(0, 0), enemy=True)
-        robot_4 = Robot(direction=pi, position=(40, 40), velocity=(0, 0), enemy=True)
-        ball = Ball(position=(10, 10), velocity=(0, 0), in_possession=False)
+        robot_2 = Robot(direction=pi, position=(15, 15), velocity=(0, 0), enemy=True)
+        robot_3 = Robot(direction=pi, position=(25, 25), velocity=(0, 0), enemy=True)
+        robot_4 = Robot(direction=pi, position=(35, 35), velocity=(0, 0), enemy=True)
+        ball = Ball(position=(5, 5), velocity=(0, 0), in_possession=False)
 
         # set the list of robots
         robots = [robot_1, robot_2, robot_3, robot_4]
 
         # create a world object
-        self.world_state = WorldState(robots=robots, ball=ball, zone_boundaries=None)
+        self.world_state = WorldState(robots=robots, ball=ball, zone_boundaries=[10, 20, 30, 40])
         # make a dummy robot which can change the world
         actual_robot = DummyRobot(self.world_state)
         # give the strategy the world the dummy and the zone of the dummy
@@ -41,12 +41,12 @@ class TestAttacker1(unittest.TestCase):
     def test_fetch_world_state(self):
         self.attacker1.fetch_world_state()
         # check that the correct location is fetched for robot and ball
-        self.assertEquals((self.attacker1.robot_loc_x, self.attacker1.robot_loc_y), (20, 20))
-        self.assertEquals((self.attacker1.ball_loc_x, self.attacker1.ball_loc_y), (10, 10))
+        self.assertEquals((self.attacker1.robot_loc_x, self.attacker1.robot_loc_y), (15, 15))
+        self.assertEquals((self.attacker1.ball_loc_x, self.attacker1.ball_loc_y), (5, 5))
 
     # ensure that a close ball is found to be close
     def test_close_ball(self):
-        self.change_ball_location(21, 21)
+        self.change_ball_location(16, 16)
         # check that the ball is close
         self.assertTrue(self.attacker1.is_ball_close())
 
@@ -58,7 +58,7 @@ class TestAttacker1(unittest.TestCase):
 
     # ensure that a non close ball is found to be not close
     def test_non_close_ball(self):
-        self.change_ball_location(23, 23)
+        self.change_ball_location(19, 19)
         # check that the ball is close
         self.assertFalse(self.attacker1.is_ball_close())
 
