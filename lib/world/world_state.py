@@ -27,16 +27,11 @@ class Robot(_WorldObject):
     def __init__(self, direction, position, velocity, enemy):
         self.enemy = enemy if enemy else False
         self.direction = direction
+        self.is_moving = False
         super(Robot, self).__init__(position, velocity)
 
     def is_enemy(self):
         return self.enemy
-
-    def is_moving(self):
-        """
-        are any movement commands currently being executed
-        """
-        pass  # TODO
 
     def __repr__(self):
         return (

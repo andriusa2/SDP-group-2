@@ -74,14 +74,9 @@ class Attacker1(GeneralizedStrategy):
         the ball is less than a threshold
         :return: whether or not the robot is facing the ball
         """
-        pass  # TODO
-
-    def angle_to_point(self, point):
-        """calc the angle between:
-        the line through the robots position at the angle of the robots direction
-        the line through the robots position and the balls position
-        """
-        pass  # TODO
+        robot = self.world.get_robot(self.robot_tag)
+        ball_pos = self.world.get_ball()
+        robot.can_see(point=ball_pos, threshold=0.05)
 
     def fetch_world_state(self):
         """

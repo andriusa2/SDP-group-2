@@ -4,6 +4,7 @@ from lib.world.world_state import Robot, Ball, WorldState, Zone
 from lib.strategy.attacker1 import Attacker1
 from communication.dummy_robot import DummyRobot
 from numpy import pi
+import time
 
 
 class TestWorldState(unittest.TestCase):
@@ -65,11 +66,11 @@ class TestAttacker1(unittest.TestCase):
     # ensure that a robot will turn towards the ball
     def test_robot_turns_towards_ball(self):
         # set up the world so that the robot has to turn
-        ball = Ball(position=(10.0, 10.0), velocity=(0, 0), in_possession=False)
-        robot_2 = Robot(direction=pi, position=(20, 20), velocity=(0, 0), enemy=True)
+        ball = Ball(position=(15, 15), velocity=(0, 0), in_possession=False)
+        robot_2 = Robot(direction=pi/2, position=(15, 0), velocity=(0, 0), enemy=True)
         self.world_state.set_ball(ball)
         self.world_state.add_robot(Zone.L_ATT, robot_2)
-        #
+        # do the next action
         self.attacker1.act()
         # check that robot if facing the ball
         self.assertTrue(self.attacker1.is_robot_facing_ball())

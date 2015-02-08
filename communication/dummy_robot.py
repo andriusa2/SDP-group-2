@@ -8,14 +8,22 @@ class DummyRobot():
         self.world = world
 
     def kick(self, power=None):
-        time.sleep(1000)
+        pass
         # artificially set the world state
 
     def turn(self, angle):
         """ Turns robot over 'angle' radians in place. """
-        time.sleep(1000)
+        pass
         # artificially set the world state
 
     def go(self, duration, power=None):
-        time.sleep(1000)
+        pass
+        # artificially set the world state
+
+    def raise_cage(self):
+        pass
+        # artificially set the world state
+
+    def lower_cage(self):
+        pass
         # artificially set the world state
