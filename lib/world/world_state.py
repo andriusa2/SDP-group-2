@@ -61,6 +61,7 @@ class Robot(_WorldObject):
         if d.is_null():
             return False
         angle = d.get_angle(self.direction)
+        print "angle to point: " + str(angle)
         return angle
 
 

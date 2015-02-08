@@ -23,11 +23,12 @@ class Attacker1(GeneralizedStrategy):
         self.fetch_world_state()
 
     def act(self):
+        self.fetch_world_state()
         zone_ball = self.world.get_zone(self.ball.position)
         zone_robot = self.world.get_zone(self.robot.position)
 
         if zone_ball == zone_robot:  # is the ball in our zone?
-
+            print "ball in robot's zone"
             if not self.is_ball_close():
 
                 # raise the cage
@@ -36,6 +37,7 @@ class Attacker1(GeneralizedStrategy):
                 if not self.is_robot_facing_ball():  # are we facing the ball?
 
                     to_turn = self.robot.angle_to_point(self.ball.position)
+                    print "rotating robot " + str(to_turn) + " radians"
                     self.actual_robot.turn(to_turn)  # turn towards the the ball
 
                 else:  # we're facing the ball
@@ -55,6 +57,7 @@ class Attacker1(GeneralizedStrategy):
                     pass   # kick
 
         else:  # the ball is not in our zone
+            print "ball not in robot's zone"
             pass  # hold
 
     def is_robot_facing_goal(self):
@@ -73,7 +76,7 @@ class Attacker1(GeneralizedStrategy):
         """
         robot = self.world.get_robot(self.robot_tag)
         ball_pos = self.world.get_ball().position
-        robot.can_see(point=ball_pos, threshold=0.05)
+        return robot.can_see(point=ball_pos, threshold=0.05)
 
     def fetch_world_state(self):
         """

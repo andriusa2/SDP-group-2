@@ -35,7 +35,7 @@ class TestAttacker1(unittest.TestCase):
         # create a world object
         self.world_state = WorldState(robots=robots, ball=ball, zone_boundaries=[10, 20, 30, 40])
         # make a dummy robot which can change the world
-        actual_robot = DummyRobot(self.world_state)
+        actual_robot = DummyRobot(self.world_state, Zone.L_ATT)
         # give the strategy the world the dummy and the zone of the dummy
         self.attacker1 = Attacker1(self.world_state, Zone.L_ATT, actual_robot)
 
@@ -68,11 +68,13 @@ class TestAttacker1(unittest.TestCase):
     def test_robot_turns_towards_ball(self):
         # set up the world so that the robot has to turn
         ball = Ball(position=(15, 15), velocity=(0, 0), in_possession=False)
-        robot_2 = Robot(direction=(1, 0), position=(15, 0), velocity=(0, 0), enemy=True)
+        robot_2 = Robot(direction=(1, 0), position=(15, 0), velocity=(0, 0), enemy=False)
         self.world_state.set_ball(ball)
         self.world_state.add_robot(Zone.L_ATT, robot_2)
         # do the next action
         self.attacker1.act()
+        # refresh the robot's world
+        self.attacker1.fetch_world_state()
         # check that robot if facing the ball
         self.assertTrue(self.attacker1.is_robot_facing_ball())
 
