@@ -42,20 +42,26 @@ class Robot(_WorldObject):
             "is_enemy={enemy!r})"
         ).format(**self.__dict__)
 
-
     def can_see(self, point, threshold=0.05):
         """
         Return true if robot can "see" a given point.
         """
-        # create a vector from robot origin to a point
         # if angle between that and robot direction is more than threshold
         # then robot needs to correct its angle to "see" that point
+        angle = self.angle_to_point(point)
+        return -threshold <= angle <= threshold
+
+    def angle_to_point(self, point):
+        """
+        calculates the angle from the robots direction to a point
+        """
+        # create a vector from robot origin to a point
         point = Vector2D.to_vector2d(point)
         d = point - self.position
         if d.is_null():
             return False
         angle = d.get_angle(self.direction)
-        return -threshold <= angle <= threshold
+        return angle
 
 
 class Ball(_WorldObject):
@@ -122,11 +128,10 @@ class WorldState(object):
         """
         Returns a zone in which the given point should reside
         """
-        x, _ = point
         if not self.zone_boundaries:
             raise TypeError("No zone boundaries are set")
         for zone_id, right_bound in zip(Zone.zone_order, self.zone_boundaries):
-            if x <= right_bound:
+            if point.x <= right_bound:
                 return zone_id
         raise Exception("Point does not fit into any zone")
 

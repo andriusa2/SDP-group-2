@@ -16,17 +16,15 @@ class Attacker1(GeneralizedStrategy):
         self.is_grabber_down = True
 
         # initialise state attributes
-        self.robot_loc_x = 0
-        self.robot_loc_y = 0
-        self.ball_loc_x = 0
-        self.ball_loc_y = 0
+        self.robot = None
+        self.ball = None
 
         # fetch the attributes from the world
         self.fetch_world_state()
 
     def act(self):
-        zone_ball = self.world.get_zone(self.world.get_ball().position)
-        zone_robot = self.world.get_zone(self.world.get_robot(self.robot_tag).position)
+        zone_ball = self.world.get_zone(self.ball.position)
+        zone_robot = self.world.get_zone(self.robot.position)
 
         if zone_ball == zone_robot:  # is the ball in our zone?
 
@@ -37,8 +35,7 @@ class Attacker1(GeneralizedStrategy):
 
                 if not self.is_robot_facing_ball():  # are we facing the ball?
 
-                    ball_pos = self.world.get_ball().position
-                    to_turn = self.angle_to_point(ball_pos)
+                    to_turn = self.robot.angle_to_point(self.ball.position)
                     self.actual_robot.turn(to_turn)  # turn towards the the ball
 
                 else:  # we're facing the ball
@@ -75,7 +72,7 @@ class Attacker1(GeneralizedStrategy):
         :return: whether or not the robot is facing the ball
         """
         robot = self.world.get_robot(self.robot_tag)
-        ball_pos = self.world.get_ball()
+        ball_pos = self.world.get_ball().position
         robot.can_see(point=ball_pos, threshold=0.05)
 
     def fetch_world_state(self):
@@ -83,13 +80,8 @@ class Attacker1(GeneralizedStrategy):
         grab the latest state of the world and set this objects attribute
         :return: nothing
         """
-        (robot_loc_x, robot_loc_y) = self.world.get_robot(self.robot_tag).position
-        (ball_loc_x, ball_loc_y) = self.world.get_ball().position
-
-        self.robot_loc_x = robot_loc_x
-        self.robot_loc_y = robot_loc_y
-        self.ball_loc_x = ball_loc_x
-        self.ball_loc_y = ball_loc_y
+        self.robot = self.world.get_robot(self.robot_tag)
+        self.ball = self.world.get_ball()
 
     def is_ball_close(self):
         """
@@ -98,8 +90,8 @@ class Attacker1(GeneralizedStrategy):
         """
         self.fetch_world_state()
         # check if the balls is in close enough to the robot to be grabbed
-        ball_robot_dist = (np.abs(self.robot_loc_x-self.ball_loc_x), np.abs(self.robot_loc_y-self.ball_loc_y))
-        (ball_robot_dist_x, ball_robot_dist_y) = ball_robot_dist
+        ball_robot_dist_x = np.abs(self.robot.position.x-self.ball.position.x)
+        ball_robot_dist_y = np.abs(self.robot.position.y-self.ball.position.y)
         ball_close_x = ball_robot_dist_x < self.grab_threshold_x
         ball_close_y = ball_robot_dist_y < self.grab_threshold_y
         return ball_close_x and ball_close_y
