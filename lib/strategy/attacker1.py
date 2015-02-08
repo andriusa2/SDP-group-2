@@ -1,7 +1,7 @@
 from generalized_strategy import GeneralizedStrategy
 import numpy as np
 from lib.math.vector import Vector2D
-__author__ = 'alex'
+__author__ = 'Sam and alex'
 
 
 class Attacker1(GeneralizedStrategy):
@@ -37,18 +37,20 @@ class Attacker1(GeneralizedStrategy):
                 self.actual_robot.raise_cage()
 
                 if not self.is_robot_facing_ball():  # are we facing the ball?
-
+                    print "robot not facing ball"
                     to_turn = self.robot.angle_to_point(self.ball.position)
                     print "rotating robot " + str(to_turn) + " radians"
                     self.actual_robot.turn(to_turn)  # turn towards the the ball
 
                 else:  # we're facing the ball
-
+                    print "robot facing ball"
                     if not self.is_ball_close():  # are we close enough to the ball?
+                        print "ball is far away"
                         dist_to_ball = self.distance_from_kicker_to_ball()
-                        self.actual_robot.go(dist_to_ball)
+                        self.actual_robot.move_forward(dist_to_ball)
 
                     else:  # we are close to the ball
+                        print "ball is close"
                         self.actual_robot.lower_cage  # lower the cage
 
             else:  # the ball can be held
@@ -118,8 +120,8 @@ class Attacker1(GeneralizedStrategy):
         This assumes that the robot is facing the ball.
         :return: distance from the kicker to the ball
         """
-
-        vectors = [[self.robot.position.x, self.robot.position.y], [self.ball.position.x,  self.ball.position.y]]
-        dist_robot_ball = np.linalg.norm(vectors)
+        x_dist = self.robot.position.x-self.ball.position.x
+        y_dist = self.robot.position.y-self.ball.position.y
+        dist_robot_ball = np.sqrt(x_dist ** 2 + y_dist ** 2)
         dist_kicker_ball = dist_robot_ball - self.dist_kicker_robot
         return dist_kicker_ball
