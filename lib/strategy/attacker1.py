@@ -25,22 +25,28 @@ class Attacker1(GeneralizedStrategy):
         self.fetch_world_state()
 
     def act(self):
-        zone_ball = self.world.getZone(self.world.get_ball())
-        zone_robot = self.world.getZone(self.world.get_robot(self.robot_tag))
+        zone_ball = self.world.get_zone(self.world.get_ball().position)
+        zone_robot = self.world.get_zone(self.world.get_robot(self.robot_tag).position)
 
         if zone_ball == zone_robot:  # is the ball in our zone?
 
             if not self.is_ball_close():
 
+                # raise the cage
+                self.actual_robot.raise_cage()
+
                 if not self.is_robot_facing_ball():  # are we facing the ball?
-                    pass  # turn towards the the ball
+
+                    ball_pos = self.world.get_ball().position
+                    to_turn = self.angle_to_point(ball_pos)
+                    self.actual_robot.turn(to_turn)  # turn towards the the ball
 
                 else:  # we're facing the ball
 
                     if not self.is_ball_close():  # are we close enough to the ball?
                         pass  # keep moving forward
 
-                    else:  # we are close to the bal
+                    else:  # we are close to the ball
                         pass  # stop and lower cage
 
             else:  # we have the ball
@@ -70,7 +76,7 @@ class Attacker1(GeneralizedStrategy):
         """
         pass  # TODO
 
-    def angle_between_robot_and_point(self):
+    def angle_to_point(self, point):
         """calc the angle between:
         the line through the robots position at the angle of the robots direction
         the line through the robots position and the balls position
