@@ -4,16 +4,19 @@ TODO: convert to numpy arrays instead of tuples
       maybe permit two robots in one zone?
 """
 
+
 class Zone(object):
     """ Zone enum. """
     L_DEF, L_ATT, R_ATT, R_DEF = range(4)
     zone_order = (L_DEF, L_ATT, R_ATT, R_DEF)
 
+
 class _WorldObject(object):
     def __init__(self, position, velocity):
         self.position = position
         self.velocity = velocity
-        
+
+
 class Robot(_WorldObject):
     """
     Robot object.
@@ -24,6 +27,7 @@ class Robot(_WorldObject):
     def __init__(self, direction, position, velocity, enemy):
         self.enemy = enemy if enemy else False
         self.direction = direction
+        self.is_moving = False
         super(Robot, self).__init__(position, velocity)
 
     def is_enemy(self):
@@ -35,6 +39,7 @@ class Robot(_WorldObject):
             "position={position!r}, velocity={velocity!r}, "
             "is_enemy={enemy!r})"
         ).format(**self.__dict__)
+
 
 class Ball(_WorldObject):
     """
@@ -167,5 +172,3 @@ class WorldState(object):
             "WorldState(robots={robots!r}, ball={ball!r}, "
             "zone_boundaries={zone_boundaries!r})"
         ).format(**self.__dict__)
-    
-         
