@@ -105,32 +105,28 @@ class TestAttacker1(unittest.TestCase):
     # ensure the the robot will lower cage on a close ball
     def test_will_lower_cage(self):
         # set up the world so that the robot does not have to turn or move
-        ball = Ball(position=(15, 15), velocity=(0, 0), in_possession=False)
-        robot_2 = Robot(direction=(1, 0), position=(15, 12.5), velocity=(0, 0), enemy=False)
-        self.world_state.set_ball(ball)
-        self.world_state.add_robot(Zone.L_ATT, robot_2)
+        self.change_ball_location(15.0, 15.0+self.attacker1.dist_kicker_robot)
+        # check that the ball is close
+        self.assertTrue(self.attacker1.is_ball_close())
         # do the next action
         self.attacker1.act()
         # refresh the robot's world
         self.attacker1.fetch_world_state()
         # check that the robot has reached the ball
-        self.assertTrue(self.attacker1.is_ball_close())
         self.assertTrue(self.attacker1.is_grabber_down)
 
-
     # ensure that a robot not facing goal is false
-
 
     # ensure that a robot facing goal is true
 
     # ensure that robot will turn towards the goal
     def test_turn_to_goal(self):
-        ball = Ball(position=(15, 15), velocity=(0, 0), in_possession=False)
-        robot_2 = Robot(direction=(1, 0), position=(15, 13), velocity=(0, 0), enemy=False)
-        self.world_state.set_ball(ball)
-        self.world_state.add_robot(Zone.L_ATT, robot_2)
-        self.attacker1.is_grabber_down = True
-        # do the next action
+        self.change_ball_location(15.0, 15.0+self.attacker1.dist_kicker_robot)
+        # check that the ball is close
+        self.assertTrue(self.attacker1.is_ball_close())
+        # lower cage
+        self.attacker1.act()
+        # turn to goal
         self.attacker1.act()
         # refresh the robot's world
         self.attacker1.fetch_world_state()
