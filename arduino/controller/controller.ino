@@ -3,11 +3,13 @@
 #include <Wire.h>
 // test purposes, change to 1 when confident with timings
 #define KICK_POWER 1
-// 100 ms
-#define KICK_DURATION 250
+#define KICK_DURATION 230
+
+#define KICK_TO_GRAB 90
 
 #define KICK_HAPPENING 1
 #define KICK_COOLDOWN 2
+#define GRAB_HAPPENING 3
 MotorBoard motors;
 SerialCommand comm;
 
@@ -22,8 +24,6 @@ float MAX_SPEED = 1; // TODO: get real value, etc
 
 // 0 -> not kicking, 1 -> kicking, 2 -> getting back to position
 byte IS_KICKING = 0;
-float kick_power;
-uint16_t kick_duration;
 
 void setup_pins() {
   pinMode(2,INPUT);
@@ -86,6 +86,9 @@ void setup() {
   // performs a kick
   comm.addCommand("KICK", kick);
   
+  comm.addCommand("GRAB", grab);
+  
+  
   // sets two speed/accel values for movement engines
   comm.addCommand("MOVE", move_bot);
   
@@ -103,8 +106,11 @@ void loop() {
   switch(IS_KICKING) {
   case KICK_HAPPENING:
     if (!motors.is_running(KICKER)) {
-      motors.run_motor(KICKER, -kick_power, kick_duration);
+      Serial.println("Retracting kicker");
       IS_KICKING = KICK_COOLDOWN;
+      motors.stop_motor(KICKER);  // should be stopped by design, but w/e
+      delay(5);  // give it some time to stop properly
+      motors.run_motor(KICKER, -1.0, KICK_TO_GRAB);
     }
     break;
   case KICK_COOLDOWN:
@@ -112,6 +118,10 @@ void loop() {
       IS_KICKING = 0;
     }
     break;
+  case GRAB_HAPPENING:
+    if (!motors.is_running(KICKER)) {
+        IS_KICKING = 0;
+    }
   default:
     break; // do nothing
   }
@@ -120,7 +130,7 @@ void loop() {
   comm.readSerial();
   Serial.flush();  // flushing stuff out just in case
   // parsing stuff out every 100ms for debug
-//  delay(100);
+  delay(10);
 }
 
 void my_blink() {
@@ -133,25 +143,32 @@ void my_blink() {
   }
 }
 
-/* KICK [POWER(0;1]=1] */
-void kick() {
+void kick_master(int flag, uint16_t duration) {  
   if (IS_KICKING == 0) {
     float power;
     if (!get_float(power))
       power = KICK_POWER;
     // if we use 1/2 power the kick should take 2 times as long, no?
-    kick_power = power;
-    kick_duration = KICK_DURATION / (power);
-    motors.run_motor(KICKER, -power, kick_duration);
-    IS_KICKING = KICK_HAPPENING;
+    motors.run_motor(KICKER, power, uint16_t(float(duration) / abs(power)));
+    IS_KICKING = flag;
   }
 }
 
+/* KICK [POWER(0;1]=1] */
+void kick() {
+  kick_master(KICK_HAPPENING, KICK_DURATION);
+}
+void grab() {
+  kick_master(GRAB_HAPPENING, KICK_TO_GRAB);
+}
 /* MOVE LEFT_POWER RIGHT_POWER LEFT_DURATION [RIGHT_DURATION=LEFT_DURATION] */
 void move_bot() {
   float left, right;
   uint16_t l_time, r_time;
-  if (!get_float(left) || !get_float(right) || !get_uint16(l_time)) {
+  if (!get_float(left)) { Serial.println("Can't get left");return;}
+  if (!get_float(right)) { Serial.println("Can't get right");return;}
+  if (!get_uint16(l_time)) {
+    Serial.println("Can't get left time");
     //TODO: signal error?
     return;
   }
@@ -171,16 +188,9 @@ void run_engine() {
     Serial.println("failed to get time");
     return;
   }
-  if (id == KICKER) {
-    if (IS_KICKING == 0) {
-      motors.run_motor(id, power, time);
-      IS_KICKING = KICK_HAPPENING;
-      kick_power = power;
-      kick_duration = time;
-    }
-  } else {
-    motors.run_motor(id, power, time);
-  }
+  
+  motors.run_motor(id, power, time);
+  
 }
 
 void invalid_command(const char * command) {

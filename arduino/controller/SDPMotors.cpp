@@ -3,7 +3,8 @@
 #include "SDPMotors.h"
 
 #define MotorBoardI2CAddress 4
-
+// get these manually
+static uint16_t ENGINE_ACTIVATION[] = {110, 0, 0, 50, 90, 0};
 MotorBoard::MotorBoard(): stop_timers() {
   last_check = millis();
 }
@@ -15,6 +16,8 @@ void MotorBoard::run_motor(uint8_t id, float power, uint16_t duration) {
     Serial.print(id);
     Serial.print(", power ");
     Serial.print(power);
+    Serial.print(", stops in ");
+    Serial.print(duration + ENGINE_ACTIVATION[id]);
     Serial.print(", duration ");
     Serial.println(duration);
 #endif
@@ -36,7 +39,7 @@ void MotorBoard::run_motor(uint8_t id, float power, uint16_t duration) {
     // send 2B of data
     Wire.write(send, 2);
     Wire.endTransmission();  // retval ignored
-    stop_timers[id] = duration;
+    stop_timers[id] = duration + ENGINE_ACTIVATION[id];
 #ifdef DEBUG
     Serial.println("Done");
 #endif
@@ -87,7 +90,9 @@ void MotorBoard::scan_motors() {
     if (stop_timers[i] > 0) {
       if (stop_timers[i] > diff)
         stop_timers[i] -= diff;
-      else stop_motor(i);
+      else {
+        stop_motor(i);
+      }
     }
 }
 
