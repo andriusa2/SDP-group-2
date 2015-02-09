@@ -1,7 +1,6 @@
 import serial
 
-from lib.world.util import convert_angle, get_duration
-
+from lib.math.util import convert_angle, get_duration
 
 class Arduino(object):
     """ Basic class for Arduino communications. """
@@ -27,7 +26,7 @@ class Arduino(object):
                 raise
 
     def _write(self, string):
-        print("Trying to run command: '{0}'".format(string));
+        print("Trying to run command: '{0}'".format(string))
         if self.comms == 1:
             self.serial.write(string)            
             a = self.serial.readline()
@@ -40,7 +39,7 @@ class Arduino(object):
             
 class TestController(Arduino):
     def blink(self):
-        self._write("A_BLINK\n");
+        self._write("A_BLINK\n")
             
             
 class Controller(Arduino):
@@ -53,6 +52,7 @@ class Controller(Arduino):
         'kick': 'KICK {power:.5}{term}',
         'move': 'MOVE {left_power:.5} {right_power:.5} {left_duration} {right_duration}{term}',
         'run_engine': 'RUN_ENGINE {engine_id} {power:.5} {duration}{term}',
+        'grab': 'GRAB {power:.5}{term}',
     }
     
     RADIUS = 1.
@@ -64,7 +64,7 @@ class Controller(Arduino):
     def kick(self, power=None):
         if power is None:
             power = self.MAX_POWER
-        self._write(self.COMMANDS['kick'].format(power=float(power), term=self.ENDL));
+        self._write(self.COMMANDS['kick'].format(power=float(power), term=self.ENDL))
         
     def turn(self, angle):
         """ Turns robot over 'angle' radians in place. """
@@ -118,3 +118,9 @@ class Controller(Arduino):
         assert (-1.0 <= power <= 1.0) and (0 <= id <= 5)
         command = self.COMMANDS['run_engine'].format(engine_id=int(id), power=float(power), duration=int(duration), term=self.ENDL)
         self._write(command)
+
+    def grab(self, power=None):
+        """ power is negative atm """
+        if power is None:
+            power = -self.MAX_POWER
+        self._write(self.COMMANDS['grab'].format(power=float(power), term=self.ENDL))

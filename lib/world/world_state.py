@@ -1,3 +1,4 @@
+from lib.math.vector import Vector2D
 """
 TODO: convert to numpy arrays instead of tuples
       roll out proper vector/point classes?
@@ -13,8 +14,8 @@ class Zone(object):
 
 class _WorldObject(object):
     def __init__(self, position, velocity):
-        self.position = position
-        self.velocity = velocity
+        self.position = Vector2D.to_vector2d(position)
+        self.velocity = Vector2D.to_vector2d(velocity)
 
 
 class Robot(_WorldObject):
@@ -24,9 +25,10 @@ class Robot(_WorldObject):
     - direction it can shoot at (or could drive towards? hm...).
     - whether it's an enemy robot or not. << might not be needed!
     """
+
     def __init__(self, direction, position, velocity, enemy):
         self.enemy = enemy if enemy else False
-        self.direction = direction
+        self.direction = Vector2D.to_vector2d(direction)
         self.is_moving = False
         super(Robot, self).__init__(position, velocity)
 
@@ -40,12 +42,35 @@ class Robot(_WorldObject):
             "is_enemy={enemy!r})"
         ).format(**self.__dict__)
 
+    def can_see(self, point, threshold=0.05):
+        """
+        Return true if robot can "see" a given point.
+        """
+        # if angle between that and robot direction is more than threshold
+        # then robot needs to correct its angle to "see" that point
+        angle = self.angle_to_point(point)
+        return -threshold <= angle <= threshold
+
+    def angle_to_point(self, point):
+        """
+        calculates the angle from the robots direction to a point
+        """
+        # create a vector from robot origin to a point
+        point = Vector2D.to_vector2d(point)
+        d = point - self.position
+        if d.is_null():
+            return False
+        angle = d.get_angle(self.direction)
+        print "angle to point: " + str(angle) + " radians"
+        return angle
+
 
 class Ball(_WorldObject):
     """
     Ball object.
     in_possession is set to True if some robot currently possesses this ball.
     """
+
     def __init__(self, position, velocity, in_possession=None):
         self.in_possession = in_possession if in_possession else False
         super(Ball, self).__init__(position, velocity)
@@ -74,7 +99,7 @@ class WorldState(object):
     
     Should be filled by vision component of our system.
     """
-    
+
     def __init__(self, robots=None, ball=None, zone_boundaries=None):
         """
         :param robots: A list of robots (if zone_boundaries is supplied) or
@@ -85,7 +110,7 @@ class WorldState(object):
         self.zone_boundaries = zone_boundaries
         self.robots = dict() if not robots else robots
         self.fix_robots()
-    
+
     def fix_robots(self):
         """
         Converts self.robots to a canonical representation (currently a dict of zone: robot)
@@ -98,32 +123,31 @@ class WorldState(object):
             self.set_robots_list(self.robots)
         else:
             # dict-like object
-            self.set_robots_dict(self.robots)        
-        
+            self.set_robots_dict(self.robots)
+
     def get_zone(self, point):
         """
         Returns a zone in which the given point should reside
         """
-        x, _ = point
         if not self.zone_boundaries:
             raise TypeError("No zone boundaries are set")
         for zone_id, right_bound in zip(Zone.zone_order, self.zone_boundaries):
-            if x <= right_bound:
+            if point.x <= right_bound:
                 return zone_id
         raise Exception("Point does not fit into any zone")
-    
+
     def set_zone_boundaries(self, boundaries):
         self.zone_boundaries = boundaries
-        
+
     def add_robot(self, zone, robot):
         """ Add a robot to a given zone. Replaces any robot which was there already. """
         self.robots[zone] = robot
-    
+
     def set_robots(self, robots):
         """ Initialize all robots from `robots`. """
         self.robots = robots
         self.fix_robots()
-    
+
     def set_robots_list(self, robot_list):
         """
         Try to initialize self.robots from a list of robots.
@@ -140,33 +164,33 @@ class WorldState(object):
             # no dict comprehensions in 2.6 :/
             self.robots = dict()
             for key, val in zip(Zone.zone_order, robot_list):
-                self.robots[key] = val            
+                self.robots[key] = val
         else:
             self.robots = dict()
             for robot in robot_list:
                 self.robots[self.get_zone(robot.position)] = robot
-                
+
     def set_robots_dict(self, robot_dict):
         unknown_keys = set(robot_dict.keys()) - set(Zone.zone_order)
         if unknown_keys:
             raise TypeError("robot_dict contains some unknown keys: {0!r}".format(unknown_keys))
         self.robots = robot_dict
-        
+
     def get_robot(self, zone):
         return self.robots[zone]
-    
+
     def get_robots_list(self):
         return [self.robots[zone] for zone in Zone.zone_order if zone in self.robots]
-    
+
     def get_robots_dict(self):
         return self.robots
-    
+
     def set_ball(self, ball):
         self.ball = ball
-        
+
     def get_ball(self):
         return self.ball
-        
+
     def __repr__(self):
         return (
             "WorldState(robots={robots!r}, ball={ball!r}, "
