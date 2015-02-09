@@ -6,9 +6,10 @@ from cv2 import waitKey
 import cv2
 import warnings
 import time
+from math import sin, cos, sqrt
 
 from lib.strategy.attacker1 import Attacker1
-from lib.world.world_state import WorldState, Zone
+from lib.world.world_state import WorldState, Zone, Robot, Ball
 
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -96,7 +97,7 @@ class VisionController:
                 model_positions = self.postprocessing.analyze(model_positions)
 
                 #---------------------- PLANNER ---------------------------
-                self.update_world_state()
+                self.update_world_state(model_positions)
                 self.attacker1.act()
                 #----------------------------------------------------------
 
@@ -117,21 +118,38 @@ class VisionController:
             # Write the new calibrations to a file.
             tools.save_colors(self.pitch, self.calibration)
 
-    def update_world_state(self):
+    def update_world_state(self, model_positions):
         """
         Change the state of the world based on the current frame
         :param world: the world which has to be chaged
         :return: none
         """
+
         # create a robot and a ball
-        robot_1 = Robot(direction=(0, 1), position=(8.0, 8.0), velocity=(0.0, 0.0), enemy=True)
-        robot_2 = Robot(direction=(0, 1), position=(15.0, 15.0), velocity=(0.0, 0.0), enemy=True)
-        robot_3 = Robot(direction=(0, 1), position=(25, 25), velocity=(0, 0), enemy=True)
-        robot_4 = Robot(direction=(0, 1), position=(35, 35), velocity=(0, 0), enemy=True)
-        ball = Ball(position=(5, 5), velocity=(0, 0), in_possession=False)
+        keys = ['our_defender', 'our_attacker', 'their_defender', 'their_attacker']
+
+        robots = []
+        for i, key in enumerate(keys):
+            robots[i] = model_positions[key]
+
+        robot_dict = {}
+        enemy = [True if 'their' in x else False for x in keys]
+        for i, key in enumerate(keys):
+            robot_dict['robot_%d' % (i + 1)] = Robot(direction=(sqrt(robots[i].x * robots[i].x + robots[i].y * robots[i].y),
+                                                                robots[i].angle),
+                                                     position=(robots[i].x * 0.8, robots[i].y * 0.8),
+                                                     velocity=(robots[i].velocity * cos(robots[i].angle),
+                                                               robots[i].velocity * sin(robots[i].angle)),
+                                                     enemy=enemy[i])
+
+        model_ball = model_positions['ball']
+        ball = Ball(position=(model_ball.x * 0.8, model_ball.y * 0.8),
+                    velocity=(model_ball.velocity * cos(model_ball.angle),
+                              model_ball.velocity * sin(model_ball.angle)),
+                    in_possession=False)
 
         # set the list of robots
-        robots = [robot_1, robot_2, robot_3, robot_4]
+        robots = [robot_dict[key] for key in list(sorted(robot_dict.keys()))]
 
         # change the states of the robots in the world
         self.world.set_robots_list(robots)
