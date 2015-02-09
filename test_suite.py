@@ -48,9 +48,15 @@ class TestAttacker1(unittest.TestCase):
 
     # ensure that a close ball is found to be close
     def test_close_ball(self):
-        self.change_ball_location(16, 16)
+        self.change_ball_location(15.0, 15.0+self.attacker1.dist_kicker_robot)
         # check that the ball is close
         self.assertTrue(self.attacker1.is_ball_close())
+
+    def test_vector_ball_kicker(self):
+        self.change_ball_location(15.0, 15.0+self.attacker1.dist_kicker_robot)
+        vec = self.attacker1.vector_from_kicker_to_ball()
+        self.assertEquals(vec.x, 0.0)
+        self.assertEquals(vec.y, 0.0)
 
     def change_ball_location(self, new_ball_x, new_ball_y):
         ball = Ball(position=(new_ball_x, new_ball_y), velocity=(0, 0), in_possession=False)
@@ -71,7 +77,9 @@ class TestAttacker1(unittest.TestCase):
         robot_2 = Robot(direction=(1, 0), position=(15, 0), velocity=(0, 0), enemy=False)
         self.world_state.set_ball(ball)
         self.world_state.add_robot(Zone.L_ATT, robot_2)
-        # do the next action
+        # raise cage
+        self.attacker1.act()
+        # turn
         self.attacker1.act()
         # refresh the robot's world
         self.attacker1.fetch_world_state()
@@ -85,7 +93,9 @@ class TestAttacker1(unittest.TestCase):
         robot_2 = Robot(direction=(0, 1), position=(15, 0), velocity=(0, 0), enemy=False)
         self.world_state.set_ball(ball)
         self.world_state.add_robot(Zone.L_ATT, robot_2)
-        # do the next action
+        # raise cage
+        self.attacker1.act()
+        # move
         self.attacker1.act()
         # refresh the robot's world
         self.attacker1.fetch_world_state()
@@ -96,7 +106,7 @@ class TestAttacker1(unittest.TestCase):
     def test_will_lower_cage(self):
         # set up the world so that the robot does not have to turn or move
         ball = Ball(position=(15, 15), velocity=(0, 0), in_possession=False)
-        robot_2 = Robot(direction=(1, 0), position=(15, 13), velocity=(0, 0), enemy=False)
+        robot_2 = Robot(direction=(1, 0), position=(15, 12.5), velocity=(0, 0), enemy=False)
         self.world_state.set_ball(ball)
         self.world_state.add_robot(Zone.L_ATT, robot_2)
         # do the next action
@@ -104,7 +114,14 @@ class TestAttacker1(unittest.TestCase):
         # refresh the robot's world
         self.attacker1.fetch_world_state()
         # check that the robot has reached the ball
+        self.assertTrue(self.attacker1.is_ball_close())
         self.assertTrue(self.attacker1.is_grabber_down)
+
+
+    # ensure that a robot not facing goal is false
+
+
+    # ensure that a robot facing goal is true
 
     # ensure that robot will turn towards the goal
     def test_turn_to_goal(self):
@@ -118,7 +135,7 @@ class TestAttacker1(unittest.TestCase):
         # refresh the robot's world
         self.attacker1.fetch_world_state()
         # check that the robot has reached the ball
-        self.assertTrue(self.attacker1.is_grabber_down)
+        self.assertTrue(self.attacker1.is_robot_facing_goal())
 
 
 
