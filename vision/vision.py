@@ -6,7 +6,7 @@ from colors import BGR_COMMON
 from collections import namedtuple
 import numpy as np
 from findHSV import CalibrationGUI
-from lib.world.world_state import Robot, Ball, Zone
+from lib.world.world_state import Robot, Ball
 
 
 TEAM_COLORS = set(['yellow', 'blue'])
@@ -152,7 +152,7 @@ class Vision:
         from the center of the lens.
         """
         plane_height = 250.0
-        #Needs to be amended
+        # Needs to be amended
         robot_height = 0.0
         coefficient = robot_height/plane_height
 
@@ -310,15 +310,13 @@ class GUI(object):
     def __init__(self, calibration, arduino, pitch):
         self.zones = None
         self.calibration_gui = CalibrationGUI(calibration)
-        # self.arduino = arduino
         self.pitch = pitch
 
         cv2.namedWindow(self.VISION)
 
         cv2.createTrackbar(self.BG_SUB, self.VISION, 0, 1, self.nothing)
         cv2.createTrackbar(self.NORMALIZE, self.VISION, 0, 1, self.nothing)
-        # cv2.createTrackbar(
-            # self.COMMS, self.VISION, self.arduino.comms, 1, lambda x:  self.arduino.setComms(x))
+
 
     def to_info(self, args):
         """
@@ -347,9 +345,6 @@ class GUI(object):
     def cast_binary(self, x):
         return x == 1
 
-    # def draw(self, frame, model_positions, actions, regular_positions, fps,
-    #          aState, dState, a_action, d_action, grabbers, our_color, our_side,
-    #          key=None, preprocess=None):
     def draw(self, frame, model_positions, actions, regular_positions, fps,
              our_color, our_side, key=None, preprocess=None):
         """
@@ -392,7 +387,6 @@ class GUI(object):
         # Extend image downwards and draw states.
         blank = np.zeros_like(frame)[:200, :, :]
         frame_with_blank = np.vstack((frame, blank))
-        # self.draw_states(frame_with_blank, aState, dState, (frame_width, frame_height))
         self.draw_states(frame_with_blank, (frame_width, frame_height))
 
         if model_positions and regular_positions:
@@ -401,7 +395,6 @@ class GUI(object):
                     self.data_text(
                         frame_with_blank, (frame_width, frame_height), our_side, key,
                         model_positions[key].x, model_positions[key].y,
-                        # model_positions[key].angle, model_positions[key].velocity, a_action, d_action)
                         model_positions[key].angle, model_positions[key].velocity)
                     self.draw_velocity(
                         frame_with_blank, (frame_width, frame_height),
@@ -442,7 +435,7 @@ class GUI(object):
             p2 = (position_dict['front'][1][0], position_dict['front'][1][1])
             cv2.circle(frame, p1, 3, BGR_COMMON['white'], -1)
             cv2.circle(frame, p2, 3, BGR_COMMON['white'], -1)
-            # cv2.line(frame, p1, p2, BGR_COMMON['red'], 2)
+            cv2.line(frame, p1, p2, BGR_COMMON['red'], 2)
 
         if position_dict['dot']:
             cv2.circle(
@@ -458,7 +451,6 @@ class GUI(object):
         if points is not None:
             cv2.line(frame, points[0], points[1], BGR_COMMON['red'], thickness)
 
-    # def data_text(self, frame, frame_offset, our_side, text, x, y, angle, velocity, a_action, d_action):
     def data_text(self, frame, frame_offset, our_side, text, x, y, angle, velocity):
 
         if x is not None and y is not None:
@@ -492,10 +484,6 @@ class GUI(object):
 
             if velocity is not None:
                 self.draw_text(frame, 'velocity: %.2f' % velocity, draw_x, y_offset + 40)
-        # if text == 'our_attacker':
-        #     self.draw_actions(frame, a_action, draw_x, y_offset+50)
-        # elif text == 'our_defender':
-        #     self.draw_actions(frame, d_action, draw_x, y_offset+50)
 
     def draw_text(self, frame, text, x, y, color=BGR_COMMON['green'], thickness=1.3, size=0.3,):
         if x is not None and y is not None:
@@ -527,20 +515,7 @@ class GUI(object):
             end_point = (x + r * np.cos(angle), y - r * np.sin(angle))
             self.draw_line(frame, (start_point, end_point))
 
-    # def draw_states(self, frame, aState, dState, frame_offset):
     def draw_states(self, frame, frame_offset):
-        # frame_width, frame_height = frame_offset
-        # x_main = lambda zz: (frame_width/4)*zz
-        # x_offset = 20
-        # y_offset = frame_height+140
-
-        # self.draw_text(frame, "Attacker State:", x_main(1) - x_offset, y_offset, size=0.6)
-        # self.draw_text(frame, aState[0], x_main(1) - x_offset, y_offset + 15, size=0.6)
-        # self.draw_text(frame, aState[1], x_main(1) - x_offset, y_offset + 30, size=0.6)
-
-        # self.draw_text(frame, "Defender State:", x_main(2) + x_offset, y_offset, size=0.6)
-        # self.draw_text(frame, dState[0], x_main(2) + x_offset, y_offset + 15, size=0.6)
-        # self.draw_text(frame, dState[1], x_main(2)+x_offset, y_offset + 30, size=0.6)
         pass
 
     def draw_actions(self, frame, action, x, y):
