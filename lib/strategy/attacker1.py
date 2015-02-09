@@ -76,7 +76,9 @@ class Attacker1(GeneralizedStrategy):
         the centre of the goal is less than a threshold
         :return: whether or not the robot is facing the ball
         """
-        pass  # TODO
+        goal = self.world.goal
+        robot = self.world.get_robot(self.robot_tag)
+        return robot.can_see(point=goal, threshold=0.05)
 
     def is_robot_facing_ball(self):
         """
