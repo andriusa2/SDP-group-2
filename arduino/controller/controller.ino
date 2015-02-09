@@ -3,9 +3,9 @@
 #include <Wire.h>
 // test purposes, change to 1 when confident with timings
 #define KICK_POWER 1
-#define KICK_DURATION 230
+#define KICK_DURATION 350
 
-#define KICK_TO_GRAB 90
+#define KICK_TO_GRAB 130
 
 #define KICK_HAPPENING 1
 #define KICK_COOLDOWN 2
