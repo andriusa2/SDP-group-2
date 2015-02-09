@@ -1,4 +1,5 @@
 from lib.math.vector import Vector2D
+from math import sin, cos, sqrt
 """
 TODO: convert to numpy arrays instead of tuples
       roll out proper vector/point classes?
@@ -26,11 +27,17 @@ class Robot(_WorldObject):
     - whether it's an enemy robot or not. << might not be needed!
     """
 
-    def __init__(self, direction, position, velocity, enemy):
+    def __init__(self, direction=(0, 0), position=(0, 0), velocity=(0, 0), enemy=False):
         self.enemy = enemy if enemy else False
         self.direction = Vector2D.to_vector2d(direction)
         self.is_moving = False
         super(Robot, self).__init__(position, velocity)
+
+    def convert_from_model(self, model_robot, scale_factor):
+        direction = sqrt(model_robot.x * model_robot.x + model_robot.y * model_robot.y), model_robot.angle
+        position = model_robot.x * scale_factor, model_robot.y * scale_factor
+        velocity = model_robot.velocity * cos(model_robot.angle), model_robot.velocity * sin(model_robot.angle)
+        return Robot(direction, position, velocity, self.enemy)
 
     def is_enemy(self):
         return self.enemy

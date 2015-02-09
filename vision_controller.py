@@ -137,12 +137,8 @@ class VisionController:
         robot_dict = {}
         enemy = [True if 'their' in x else False for x in keys]
         for i, key in enumerate(keys):
-            robot_dict['robot_%d' % (i + 1)] = Robot(direction=(sqrt(robots[i].x * robots[i].x + robots[i].y * robots[i].y),
-                                                                robots[i].angle),
-                                                     position=(robots[i].x * scale_factor, robots[i].y * scale_factor),
-                                                     velocity=(robots[i].velocity * cos(robots[i].angle),
-                                                               robots[i].velocity * sin(robots[i].angle)),
-                                                     enemy=enemy[i])
+
+            robot_dict['robot_%d' % (i + 1)] = Robot().convert_from_model(robots[i], scale_factor)
 
         model_ball = model_positions['ball']
         ball = Ball(position=(model_ball.x * scale_factor, model_ball.y * scale_factor),

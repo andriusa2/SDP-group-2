@@ -133,6 +133,11 @@ class TestAttacker1(unittest.TestCase):
         # check that the robot has reached the ball
         self.assertTrue(self.attacker1.is_robot_facing_goal())
 
+    # ensure that real world values work
+    def test_real_world_values(self):
+        pass
+
+
 
 
 if __name__ == '__main__':
