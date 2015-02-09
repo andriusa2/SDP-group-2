@@ -135,7 +135,13 @@ class TestAttacker1(unittest.TestCase):
 
     # ensure that real world values work
     def test_real_world_values(self):
-        pass
+        robot1 = Robot().convert_from_model(DummyRobot())
+        robot2 = Robot().convert_from_model(DummyRobot())
+        robot3 = Robot().convert_from_model(DummyRobot())
+        robot4 = Robot().convert_from_model(DummyRobot())
+        robots = [robot1, robot2, robot3, robot4]
+
+        ball = None
 
 
 
