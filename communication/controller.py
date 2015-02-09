@@ -2,6 +2,7 @@ import serial
 
 from lib.math.util import convert_angle, get_duration
 
+
 class Arduino(object):
     """ Basic class for Arduino communications. """
     
@@ -54,8 +55,9 @@ class Controller(Arduino):
         'run_engine': 'RUN_ENGINE {engine_id} {power:.5} {duration}{term}',
         'grab': 'GRAB {power:.5}{term}',
     }
-    
-    RADIUS = 1.
+
+    # NB not a real radius, just one that worked
+    RADIUS = 7.2
     """ Radius of the robot, used to determine what distance should it cover when turning. """
     
     MAX_POWER = 1.
@@ -65,7 +67,17 @@ class Controller(Arduino):
         if power is None:
             power = self.MAX_POWER
         self._write(self.COMMANDS['kick'].format(power=float(power), term=self.ENDL))
-        
+
+    def move(self, distance, power=None):
+        if power is not None:
+            print "I don't support different powers, defaulting to 1"
+        if distance < 0:
+            duration = get_duration(-distance, -1)
+        else:
+            duration = get_duration(distance, 1)
+        assert 0 < duration < 6000, 'Something looks wrong in the distance calc'
+        self.go(duration, 1)
+
     def turn(self, angle):
         """ Turns robot over 'angle' radians in place. """
         angle = convert_angle(angle)  # so it's in [-pi;pi] range
@@ -75,9 +87,10 @@ class Controller(Arduino):
         angle = abs(angle)
         distance = angle * self.RADIUS
         duration = get_duration(distance, abs(power))  # magic...
+
         self.complex_movement(
             left_power=power,
-            right_power=power,
+            right_power=-power,
             left_duration=duration
         )
     
@@ -87,7 +100,7 @@ class Controller(Arduino):
             power = self.MAX_POWER
         self.complex_movement(
             left_power=min(power, self.MAX_POWER),
-            right_power=-power,  # might need this if the second motor is "inversed"
+            right_power=power,  # might need this if the second motor is "inversed"
             left_duration=duration
         )
     
