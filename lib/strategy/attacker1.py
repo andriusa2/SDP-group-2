@@ -32,6 +32,7 @@ class Attacker1(GeneralizedStrategy):
         if zone_ball == zone_robot:  # is the ball in our zone?
             print "ball in robot's zone"
             if not self.is_ball_close():
+                print "ball is far away to robot"
 
                 if self.is_grabber_down:  # is the cage down?
                     self.raise_cage()
@@ -46,27 +47,26 @@ class Attacker1(GeneralizedStrategy):
 
                     else:  # we're facing the ball
                         print "robot facing ball"
-                        if not self.is_ball_close():  # are we close enough to the ball?
-                            print "ball is far away"
-                            dist_to_ball = self.distance_from_kicker_to_ball()
-                            print dist_to_ball
-                            self.actual_robot.move_forward(dist_to_ball)
-
-                        else:  # we are close to the ball
-                            print "ball is close"
-                            self.lower_cage()  # lower the cage
+                        dist_to_ball = self.distance_from_kicker_to_ball()
+                        print dist_to_ball
+                        self.actual_robot.move_forward(dist_to_ball)
 
             else:  # the ball can be held
-
+                print "ball is close to robot kicker"
                 if self.is_grabber_down:  # we must be holding the ball
-
-                    if not self.is_robot_facing_ball():  # are we facing the goal?
-                        pass  # turn towards the goal
+                    print "cage is down"
+                    if not self.is_robot_facing_goal():  # are we facing the goal?
+                        print "robot not facing goal"
+                        to_turn = self.robot.angle_to_point(self.world.goal)
+                        print "rotating robot " + str(to_turn) + " radians"
+                        self.actual_robot.turn(to_turn)  # turn towards the the ball
 
                     else:  # we are facing the goal
+                        print "robot is facing goal"
                         pass   # kick
 
                 else:  # lower the cage
+                    print "cage is up"
                     self.lower_cage()
 
         else:  # the ball is not in our zone
@@ -76,10 +76,12 @@ class Attacker1(GeneralizedStrategy):
     def raise_cage(self):
         self.actual_robot.raise_cage()
         self.is_grabber_down = False
+        print "raising cage"
 
     def lower_cage(self):
         self.actual_robot.lower_cage()
         self.is_grabber_down = True
+        print "lowering cage"
 
     def is_robot_facing_goal(self):
         """
