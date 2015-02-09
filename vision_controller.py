@@ -7,6 +7,9 @@ import cv2
 import warnings
 import time
 
+from lib.strategy.attacker1 import Attacker1
+from lib.world.world_state import WorldState, Zone
+
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
@@ -54,6 +57,20 @@ class VisionController:
 
         self.preprocessing = Preprocessing()
 
+        #---------------------- PLANNER ---------------------------
+        boundries = [47, 106, 165, 212]
+        actual_robot = None
+        self.world = WorldState()
+
+        # set the initial state
+        self.update_world_state()
+        # set the boundries
+        self.world.set_zone_boundaries(boundries)
+
+        # this is our chosen strategy
+        self.attacker1 = Attacker1(self.world, Zone.L_ATT, actual_robot)
+
+        #----------------------------------------------------------
 
     def wow(self):
         """
@@ -78,6 +95,10 @@ class VisionController:
                 model_positions, regular_positions = self.vision.locate(frame)
                 model_positions = self.postprocessing.analyze(model_positions)
 
+                #---------------------- PLANNER ---------------------------
+                self.update_world_state()
+                self.attacker1.act()
+                #----------------------------------------------------------
 
                 # Use 'y', 'b', 'r' to change color.
                 c = waitKey(2) & 0xFF
@@ -96,6 +117,26 @@ class VisionController:
             # Write the new calibrations to a file.
             tools.save_colors(self.pitch, self.calibration)
 
+    def update_world_state(self):
+        """
+        Change the state of the world based on the current frame
+        :param world: the world which has to be chaged
+        :return: none
+        """
+        # create a robot and a ball
+        robot_1 = Robot(direction=(0, 1), position=(8.0, 8.0), velocity=(0.0, 0.0), enemy=True)
+        robot_2 = Robot(direction=(0, 1), position=(15.0, 15.0), velocity=(0.0, 0.0), enemy=True)
+        robot_3 = Robot(direction=(0, 1), position=(25, 25), velocity=(0, 0), enemy=True)
+        robot_4 = Robot(direction=(0, 1), position=(35, 35), velocity=(0, 0), enemy=True)
+        ball = Ball(position=(5, 5), velocity=(0, 0), in_possession=False)
+
+        # set the list of robots
+        robots = [robot_1, robot_2, robot_3, robot_4]
+
+        # change the states of the robots in the world
+        self.world.set_robots_list(robots)
+        # change the position of the ball
+        self.world.set_ball(ball)
 
 if __name__ == '__main__':
     import argparse
