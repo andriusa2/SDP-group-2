@@ -127,27 +127,17 @@ class VisionController:
         """
         scale_factor = 0.4
 
-        # create a robot and a ball
-        keys = ['our_defender', 'our_attacker', 'their_defender', 'their_attacker']
+        robot_models = [model_positions['our_defender'], model_positions['our_attacker'], model_positions['their_defender'], model_positions['their_attacker']]
 
-        robots = [model_positions['our_defender'], model_positions['our_attacker'], model_positions['their_defender'], model_positions['their_attacker']]
-        # for i, key in enumerate(keys):
-        #     robots[i] = model_positions[key]
+        robot1 = Robot().convert_from_model(robot_models[0], scale_factor)
+        robot2 = Robot().convert_from_model(robot_models[1], scale_factor)
+        robot3 = Robot().convert_from_model(robot_models[2], scale_factor)
+        robot4 = Robot().convert_from_model(robot_models[3], scale_factor)
 
-        robot_dict = {}
-        enemy = [True if 'their' in x else False for x in keys]
-        for i, key in enumerate(keys):
-
-            robot_dict['robot_%d' % (i + 1)] = Robot().convert_from_model(robots[i], scale_factor)
+        robots = [robot1, robot2, robot3, robot4]
 
         model_ball = model_positions['ball']
-        ball = Ball(position=(model_ball.x * scale_factor, model_ball.y * scale_factor),
-                    velocity=(model_ball.velocity * cos(model_ball.angle),
-                              model_ball.velocity * sin(model_ball.angle)),
-                    in_possession=False)
-
-        # set the list of robots
-        robots = [robot_dict[key] for key in list(sorted(robot_dict.keys()))]
+        ball = Ball().convert_from_model(model_ball, scale_factor)
 
         # change the states of the robots in the world
         self.world.set_robots_list(robots)

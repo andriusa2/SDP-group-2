@@ -4,6 +4,7 @@ from lib.world.world_state import Robot, Ball, WorldState, Zone
 from lib.strategy.attacker1 import Attacker1
 from communication.dummy_robot import DummyRobot
 from lib.math.vector import Vector2D
+from vision.dummy_vision import DummyRobotModel, DummyBallModel
 from numpy import pi
 import time
 
@@ -135,14 +136,25 @@ class TestAttacker1(unittest.TestCase):
 
     # ensure that real world values work
     def test_real_world_values(self):
-        robot1 = Robot().convert_from_model(DummyRobot(22.0, 168.0, 0.04, 0.0))
-        robot2 = Robot().convert_from_model(DummyRobot(172.0, 207.0, 6.21, 0.0))
-        robot3 = Robot().convert_from_model(DummyRobot(336.0, 133.0, 3.33, 1.0))
-        robot4 = Robot().convert_from_model(DummyRobot(436.0, 238.0, 4.3, 0.0))
+        scale_factor = 0.4
+        robot1 = Robot().convert_from_model(DummyRobotModel(22.0, 168.0, 0.04, 0.0), scale_factor)
+        robot2 = Robot().convert_from_model(DummyRobotModel(172.0, 207.0, 6.21, 0.0), scale_factor)
+        robot3 = Robot().convert_from_model(DummyRobotModel(336.0, 133.0, 3.33, 1.0), scale_factor)
+        robot4 = Robot().convert_from_model(DummyRobotModel(436.0, 238.0, 4.3, 0.0), scale_factor)
         robots = [robot1, robot2, robot3, robot4]
 
-        ball = None # values: (355.0, 236.0, 3.14, 1.0)
+        ball = Ball().convert_from_model(DummyBallModel(180.0, 236.0, 3.14, 1.0), scale_factor)
+        boundries = [47, 106, 165, 212]
 
+        self.world_state.set_zone_boundaries(boundries)
+        self.world_state.set_robots(robots)
+        self.world_state.set_ball(ball)
+
+        # raise cage
+        self.attacker1.act()
+        # turn
+        self.attacker1.act()
+        self.assertTrue(self.attacker1.is_robot_facing_ball())
 
 
 

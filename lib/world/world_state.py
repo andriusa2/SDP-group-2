@@ -78,9 +78,14 @@ class Ball(_WorldObject):
     in_possession is set to True if some robot currently possesses this ball.
     """
 
-    def __init__(self, position, velocity, in_possession=None):
+    def __init__(self, position=(0, 0), velocity=(0, 0), in_possession=None):
         self.in_possession = in_possession if in_possession else False
         super(Ball, self).__init__(position, velocity)
+
+    def convert_from_model(self, model_ball, scale_factor):
+        return Ball(position=(model_ball.x * scale_factor, model_ball.y * scale_factor),
+                    velocity=(model_ball.velocity * cos(model_ball.angle), model_ball.velocity * sin(model_ball.angle)),
+                    in_possession=False)
 
     def __repr__(self):
         return (
