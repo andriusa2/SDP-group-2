@@ -90,7 +90,7 @@ void setup() {
   
   // sets speed/accel values for a given engine
   comm.addCommand("RUN_ENGINE", run_engine);
-  
+  comm.addCommand("STOP", stop_engines);
   comm.setDefaultHandler(invalid_command);
 }
 
@@ -127,6 +127,12 @@ void loop() {
   Serial.flush();  // flushing stuff out just in case
   // parsing stuff out every 100ms for debug
   delay(1);
+}
+
+void stop_engines() {
+  // only stops movement engines!
+  motors.stop_motor(LEFT_ENGINE);
+  motors.stop_motor(RIGHT_ENGINE);
 }
 
 void kick_master(int flag, uint16_t duration) {  

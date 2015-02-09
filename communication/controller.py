@@ -54,6 +54,7 @@ class Controller(Arduino):
         'move': 'MOVE {left_power:.5} {right_power:.5} {left_duration} {right_duration}{term}',
         'run_engine': 'RUN_ENGINE {engine_id} {power:.5} {duration}{term}',
         'grab': 'GRAB {power:.5}{term}',
+        'stop': 'STOP{term}',
     }
 
     # NB not a real radius, just one that worked
@@ -77,6 +78,9 @@ class Controller(Arduino):
             duration = get_duration(distance, 1)
         assert 0 < duration < 6000, 'Something looks wrong in the distance calc'
         self.go(duration, 1)
+
+    def stop(self):
+        self._write(self.COMMANDS['stop'].format(term=self.ENDL))
 
     def turn(self, angle):
         """ Turns robot over 'angle' radians in place. """
@@ -121,9 +125,11 @@ class Controller(Arduino):
             right_power = left_power
         if right_duration is None:
             right_duration = left_duration
-            
+
         left_power, left_duration = fix_pair(left_power, left_duration)
         right_power, right_duration = fix_pair(right_power, right_duration)
+        assert 0 <= left_duration <= 6000, "Wrong left duration"
+        assert 0 <= right_duration <= 6000, "Wrong right duration"
         command = self.COMMANDS['move'].format(term=self.ENDL, **locals())
         self._write(command)
         

@@ -70,6 +70,7 @@ void MotorBoard::stop_motor(uint8_t id) {
     Wire.write(&cmd, 1);
     Wire.endTransmission();
     stop_timers[id] = 0;
+    start_timers[id] = -1;
 #ifdef DEBUG
     Serial.print("Stopped motor: ");
     Serial.println(id);

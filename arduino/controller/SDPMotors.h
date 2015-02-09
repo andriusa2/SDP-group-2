@@ -1,7 +1,7 @@
 // well... Might be more, but easiest to implement now
 #define MAX_ENGINES_BOARD 6
 
-#define DEBUG
+//#define DEBUG
 
 // get these manually
 const uint16_t ENGINE_ACTIVATION[] = {125, 0, 0, 50, 105, 0};
