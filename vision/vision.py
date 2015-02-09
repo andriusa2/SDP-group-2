@@ -6,6 +6,7 @@ from colors import BGR_COMMON
 from collections import namedtuple
 import numpy as np
 from findHSV import CalibrationGUI
+from lib.world.world_state import Robot, Ball, Zone
 
 
 TEAM_COLORS = set(['yellow', 'blue'])
@@ -84,6 +85,28 @@ class Vision:
         # Set up trackers
         self.ball_tracker = BallTracker(
             (0, width, 0, height), 0, pitch, calibration)
+
+    def update_world_state(self, world):
+        """
+        Change the state of the world based on the current frame
+        :param world: the world which has to be chaged
+        :return: none
+        """
+        # create a robot and a ball
+        robot_1 = Robot(direction=(0, 1), position=(8.0, 8.0), velocity=(0.0, 0.0), enemy=True)
+        robot_2 = Robot(direction=(0, 1), position=(15.0, 15.0), velocity=(0.0, 0.0), enemy=True)
+        robot_3 = Robot(direction=(0, 1), position=(25, 25), velocity=(0, 0), enemy=True)
+        robot_4 = Robot(direction=(0, 1), position=(35, 35), velocity=(0, 0), enemy=True)
+        ball = Ball(position=(5, 5), velocity=(0, 0), in_possession=False)
+
+        # set the list of robots
+        robots = [robot_1, robot_2, robot_3, robot_4]
+
+        # change the states of the robots in the world
+        world.set_robots_list(robots)
+        # change the position of the ball
+        world.set_ball(ball)
+
 
     def _get_zones(self, width, height):
         return [(val[0], val[1], 0, height) for val in tools.get_zones(width, height, pitch=self.pitch)]
