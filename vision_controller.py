@@ -8,6 +8,7 @@ import warnings
 import time
 from math import sin, cos, sqrt
 
+from communication.dummy_robot import DummyRobot
 from lib.strategy.attacker1 import Attacker1
 from lib.world.world_state import WorldState, Zone, Robot, Ball
 
@@ -60,11 +61,11 @@ class VisionController:
 
         #---------------------- PLANNER ---------------------------
         boundries = [47, 106, 165, 212]
-        actual_robot = None
         self.world = WorldState()
+        actual_robot = DummyRobot(self.world, Zone.L_ATT)
 
         # set the initial state
-        self.update_world_state()
+        # self.update_world_state()
         # set the boundries
         self.world.set_zone_boundaries(boundries)
 
@@ -124,26 +125,27 @@ class VisionController:
         :param world: the world which has to be chaged
         :return: none
         """
+        scale_factor = 0.4
 
         # create a robot and a ball
         keys = ['our_defender', 'our_attacker', 'their_defender', 'their_attacker']
 
-        robots = []
-        for i, key in enumerate(keys):
-            robots[i] = model_positions[key]
+        robots = [model_positions['our_defender'], model_positions['our_attacker'], model_positions['their_defender'], model_positions['their_attacker']]
+        # for i, key in enumerate(keys):
+        #     robots[i] = model_positions[key]
 
         robot_dict = {}
         enemy = [True if 'their' in x else False for x in keys]
         for i, key in enumerate(keys):
             robot_dict['robot_%d' % (i + 1)] = Robot(direction=(sqrt(robots[i].x * robots[i].x + robots[i].y * robots[i].y),
                                                                 robots[i].angle),
-                                                     position=(robots[i].x * 0.8, robots[i].y * 0.8),
+                                                     position=(robots[i].x * scale_factor, robots[i].y * scale_factor),
                                                      velocity=(robots[i].velocity * cos(robots[i].angle),
                                                                robots[i].velocity * sin(robots[i].angle)),
                                                      enemy=enemy[i])
 
         model_ball = model_positions['ball']
-        ball = Ball(position=(model_ball.x * 0.8, model_ball.y * 0.8),
+        ball = Ball(position=(model_ball.x * scale_factor, model_ball.y * scale_factor),
                     velocity=(model_ball.velocity * cos(model_ball.angle),
                               model_ball.velocity * sin(model_ball.angle)),
                     in_possession=False)
