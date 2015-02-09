@@ -1,8 +1,8 @@
-from generalized_strategy import generalized_strategy
+from generalized_strategy import GeneralizedStrategy
 __author__ = 'alex'
 
 
-class defender1(generalized_strategy):
+class Defender1(GeneralizedStrategy):
 
     def __init__(self):
         pass
@@ -11,7 +11,7 @@ class defender1(generalized_strategy):
         pass
 
     # is the ball in the attacking zone?
-
+    
         # no:
 
         # wait
