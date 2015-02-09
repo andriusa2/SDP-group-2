@@ -1,12 +1,23 @@
 from math import pi, sin, cos
 from lib.math.vector import Vector2D
 
-CLICKS_PER_CM = 1.0  # hm...
-
 
 def get_duration(distance, power):
     """ Calculates how long does a bot need to move at power to cover distance. """
-    return distance / power * CLICKS_PER_CM
+    # up to 200 it's nice and 40cm/s
+    # then up to 300 it's faster (60 cm/s)
+    # then again gets to 40cm/s
+    assert power == 1
+    if distance <= 5:
+        # s = (t - 100)/0.04 + 1.0
+        t = (distance + 3) / 0.04
+    elif distance <= 11.3:
+        # s = (t - 200) * 0.063 + 5
+        t = (distance + 7) / 0.063
+    else:
+        # s = (t - 300) * 0.04 + 11.3
+        t = (distance + 1.3) / 0.04
+    return t
 
 
 def convert_angle(radians):
