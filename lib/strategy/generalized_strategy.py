@@ -123,5 +123,11 @@ class GeneralizedStrategy(object):
         side_point = (robot_x, 0)
         return robot.can_see(point=side_point, threshold=0.05)
 
+    def predict_y(self):
+        """
+        Predict the y coordinate the ball will have when it reaches the x coordinate of the robot.
+        """
+        pass
+
 
 

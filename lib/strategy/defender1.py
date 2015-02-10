@@ -64,7 +64,8 @@ class Defender1(GeneralizedStrategy):
             		self.actual_robot.turn(to_turn) # turn towards the sideline
         else: #ball is not in our zone
             if not ball_going_quickly():
-                if not self.alligned(): #we are not in position
+            	# the below is not needed for this milestone as we can't move before the ball is kicked, but may come in useful in general play.
+                """if not self.alligned(): #we are not in position
                     print "robot is not aligned"
                     to_turn = self.robot.angle_to_point(set_position) #need to define a set position in front of goal.
                     print "rotating robot to " + str(to_turn) + " radians"
@@ -80,7 +81,8 @@ class Defender1(GeneralizedStrategy):
                         print = "rotating robot to " + str(to_turn) + " radians"
                         self.actual_robot.turn(to_turn)
                     else:
-                    	pass #hold
+                    	pass #hold"""
+                pass
             else:  #ball is going quickly, block the ball.
             	if not self.sidewards:
             		robot_x = self.robot.x
