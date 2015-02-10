@@ -34,7 +34,7 @@ class Robot(_WorldObject):
         super(Robot, self).__init__(position, velocity)
 
     def convert_from_model(self, model_robot, scale_factor):
-        direction = sqrt(model_robot.x * model_robot.x + model_robot.y * model_robot.y), model_robot.angle
+        direction = Vector2D.from_angle(model_robot.angle, 1, Vector2D(1, 0))
         position = model_robot.x * scale_factor, model_robot.y * scale_factor
         velocity = model_robot.velocity * cos(model_robot.angle), model_robot.velocity * sin(model_robot.angle)
         return Robot(direction, position, velocity, self.enemy)
