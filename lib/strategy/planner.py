@@ -3,6 +3,7 @@ import time
 from lib.strategy.attacker1 import Attacker1
 from lib.strategy.fetch_ball import FetchBall
 from lib.strategy.shoot_for_goal import ShootForGoal
+from lib.strategy.block_goal import BlockGoal
 from lib.strategy.generalized_strategy import GeneralizedStrategy
 
 
@@ -25,10 +26,42 @@ class Planner(GeneralizedStrategy):
 
         # create all the defending strategies
         if not is_attacker:
-            pass
+            self.block_goal = BlockGoal(world, robot_tag, actual_robot)
+            self.fetch_ball = FetchBall(world,robot_tag, actual_robot)
+            self.clear_ball = ShootForGoal(world,robot_tag, actual_robot)
 
     def plan_defence(self):
-        pass
+        self.fetch_world_state()
+
+        if self.can_act:
+
+            zone_ball = self.world.get_zone(self.ball.position)
+            zone_robot = self.world.get_zone(self.robot.position)
+
+            if zone_ball == zone_robot:
+                print "ball in robot's zone"
+                if ball_going_quickly:
+                    print "Ball going quickly. Block the goal"
+                    self.do_strategy(self.block_goal)
+                else:
+                    if not self.is_ball_close():
+                        print "Ball is (near) stationary. Get the ball"
+                        self.do_strategy(self.fetch_ball)
+                    else:
+                        print "Ball is held. Kick ball upfield"
+                        self.do_strategy(self.clear_ball)
+            else:
+                if ball_going_quickly:
+                    print "ball is not in robot's zone but moving quickly. Block the ball"
+                    self.do_strategy(self.block_goal)
+                else:
+                    print "ball is not in robot's zone and stationary. Pass"
+
+            return True
+
+        else:
+            return False
+
 
     def plan_attack(self):
         # update the world
