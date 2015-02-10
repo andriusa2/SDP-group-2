@@ -224,8 +224,8 @@ class PlannerTest(BaseTest):
         # create a world object
         self.world_state = WorldState(robots=robots, ball=ball, zone_boundaries=[10, 20, 30, 40])
         # make a dummy robot which can change the world
-        # actual_robot = DummyRobot(self.world_state, Zone.L_ATT)
-        actual_robot = Controller()
+        actual_robot = DummyRobot(self.world_state, Zone.L_ATT)
+        # actual_robot = Controller("/dev/tty.usbmodem000001")
         # give the strategy the world the dummy and the zone of the dummy
         self.planner = Planner(self.world_state, Zone.L_ATT, actual_robot, True)
 

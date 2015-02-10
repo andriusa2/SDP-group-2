@@ -7,6 +7,7 @@ import cv2
 import warnings
 import time
 
+from communication.controller import Controller
 from communication.dummy_robot import DummyRobot
 from lib.strategy.planner import Planner
 from lib.world.world_state import WorldState, Zone, Robot, Ball
@@ -61,7 +62,7 @@ class VisionController:
         #---------------------- PLANNER ---------------------------
         boundries = [47, 106, 165, 212]
         self.world = WorldState()
-        actual_robot = DummyRobot(self.world)
+        actual_robot = Controller("")
 
         # set the initial state
         # self.update_world_state()
