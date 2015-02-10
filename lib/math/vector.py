@@ -35,7 +35,7 @@ class Vector2D(object):
         assert base_vector is not None
         assert length > 0
 
-        x, y = base_vector
+        x, y = (base_vector.x, base_vector.y)
         _x = x * cos(angle) - y * sin(angle)
         _y = x * sin(angle) + y * cos(angle)
         return Vector2D(_x * sqrt(length), _y * sqrt(length))
@@ -58,18 +58,8 @@ class Vector2D(object):
         return Vector2D(float(new_x), float(new_y))
 
     def get_angle(self, base_vector):
-        v1_u = self.unit_vector()
-        v2_u = base_vector.unit_vector()
-        # convert to numpy representation
-        v1_u = [v1_u.x, v1_u.y]
-        v2_u = [v2_u.x, v2_u.y]
-        angle = np.arccos(np.dot(v1_u, v2_u))
-        if np.isnan(angle):
-            if (v1_u == v2_u).all():
-                return 0.0
-            else:
-                return np.pi
-        return angle
+        angle = np.arctan2(base_vector.y, base_vector.x) - np.arctan2(self.y, self.x)
+        return -angle
 
     def is_null(self):
         return self.x == 0.0 and self.y == 0.0
