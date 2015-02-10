@@ -100,7 +100,7 @@ class GeneralizedStrategy(object):
         kicker_vector = direction_unit_vector.scale(self.dist_kicker_robot)
         return self.robot.position + kicker_vector
 
-    def distance_from_kicker_to_point(self, x, y):
+    def distance_from_robot_to_point(self, x, y):
         return self.vector_from_robot_to_point(x,y).length()
 
     def vector_from_robot_to_point(self, x, y):
