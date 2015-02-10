@@ -3,6 +3,7 @@ import unittest
 from lib.world.world_state import Robot, Ball, WorldState, Zone
 from lib.strategy.attacker1 import Attacker1
 from lib.strategy.fetch_ball import FetchBall
+from lib.strategy.shoot_for_goal import ShootForGoal
 from communication.dummy_robot import DummyRobot
 from lib.math.vector import Vector2D
 from vision.dummy_vision import DummyRobotModel, DummyBallModel
@@ -56,24 +57,6 @@ class TestAttacker1(BaseTest):
         # check that the correct location is fetched for robot and ball
         self.assertEquals(self.attacker1.robot.position, Vector2D(15, 15))
         self.assertEquals(self.attacker1.ball.position, Vector2D(5, 5))
-
-    # ensure that a robot not facing goal is false
-
-    # ensure that a robot facing goal is true
-
-    # ensure that robot will turn towards the goal
-    def test_turn_to_goal(self):
-        self.change_ball_location(15.0, 15.0+self.attacker1.dist_kicker_robot)
-        # check that the ball is close
-        self.assertTrue(self.attacker1.is_ball_close())
-        # lower cage
-        self.attacker1.act()
-        # turn to goal
-        self.attacker1.act()
-        # refresh the robot's world
-        self.attacker1.fetch_world_state()
-        # check that the robot has reached the ball
-        self.assertTrue(self.attacker1.is_robot_facing_goal())
 
     # ensure that real world values work
     def test_real_world_values(self):
@@ -180,6 +163,73 @@ class FetchBallTest(BaseTest):
         self.attacker1.fetch_world_state()
         # check that the robot has reached the ball
         self.assertTrue(self.attacker1.is_grabber_down)
+
+
+class ShootTest(BaseTest):
+
+    def setUp(self):
+        # create a robot and a ball
+        robot_1 = Robot(direction=(0, 1), position=(8.0, 8.0), velocity=(0.0, 0.0), enemy=True)
+        robot_2 = Robot(direction=(0, 1), position=(15.0, 15.0), velocity=(0.0, 0.0), enemy=True)
+        robot_3 = Robot(direction=(0, 1), position=(25, 25), velocity=(0, 0), enemy=True)
+        robot_4 = Robot(direction=(0, 1), position=(35, 35), velocity=(0, 0), enemy=True)
+        ball = Ball(position=(5, 5), velocity=(0, 0), in_possession=False)
+
+        # set the list of robots
+        robots = [robot_1, robot_2, robot_3, robot_4]
+
+        # create a world object
+        self.world_state = WorldState(robots=robots, ball=ball, zone_boundaries=[10, 20, 30, 40])
+        # make a dummy robot which can change the world
+        actual_robot = DummyRobot(self.world_state, Zone.L_ATT)
+        # give the strategy the world the dummy and the zone of the dummy
+        self.attacker1 = ShootForGoal(self.world_state, Zone.L_ATT, actual_robot)
+
+    # ensure that a robot not facing goal is false
+
+    # ensure that a robot facing goal is true
+
+    # ensure that robot will turn towards the goal
+    def test_turn_to_goal(self):
+        self.change_ball_location(15.0, 15.0+self.attacker1.dist_kicker_robot)
+        # check that the ball is close
+        self.assertTrue(self.attacker1.is_ball_close())
+        # lower cage
+        self.attacker1.act()
+        # turn to goal
+        self.attacker1.act()
+        # refresh the robot's world
+        self.attacker1.fetch_world_state()
+        # check that the robot has reached the ball
+        self.assertTrue(self.attacker1.is_robot_facing_goal())
+
+
+class PlannerTest(BaseTest):
+
+    def setUp(self):
+        # create a robot and a ball
+        robot_1 = Robot(direction=(0, 1), position=(8.0, 8.0), velocity=(0.0, 0.0), enemy=True)
+        robot_2 = Robot(direction=(0, 1), position=(15.0, 15.0), velocity=(0.0, 0.0), enemy=True)
+        robot_3 = Robot(direction=(0, 1), position=(25, 25), velocity=(0, 0), enemy=True)
+        robot_4 = Robot(direction=(0, 1), position=(35, 35), velocity=(0, 0), enemy=True)
+        ball = Ball(position=(5, 5), velocity=(0, 0), in_possession=False)
+
+        # set the list of robots
+        robots = [robot_1, robot_2, robot_3, robot_4]
+
+        # create a world object
+        self.world_state = WorldState(robots=robots, ball=ball, zone_boundaries=[10, 20, 30, 40])
+        # make a dummy robot which can change the world
+        actual_robot = DummyRobot(self.world_state, Zone.L_ATT)
+        # give the strategy the world the dummy and the zone of the dummy
+        self.attacker1 = FetchBall(self.world_state, Zone.L_ATT, actual_robot)
+
+    # ensure that the attacker fetches the ball when in own zone
+
+    # ensure that the attacker shoots when it has the ball
+
+    # ensure that the planner moves to centre when ball is away
+
 
 if __name__ == '__main__':
     unittest.main()
