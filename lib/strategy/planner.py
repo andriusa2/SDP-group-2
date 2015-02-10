@@ -37,8 +37,13 @@ class Planner(GeneralizedStrategy):
         self.check_for_re_plan()
 
         if self.can_act():
-            # if ball is in attacker zone and not held, fetch ball
-            self.do_strategy(self.fetch_ball)
+
+            zone_ball = self.world.get_zone(self.ball.position)
+            zone_robot = self.world.get_zone(self.robot.position)
+
+            if zone_ball == zone_robot:  # is the ball in our zone?
+                # if ball is in attacker zone and not held, fetch ball
+                self.do_strategy(self.fetch_ball)
 
             # if ball is close to kicker, shoot for goal
             # self.do_strategy(self.shoot_goal)
