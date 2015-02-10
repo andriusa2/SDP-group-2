@@ -108,6 +108,9 @@ class GeneralizedStrategy(object):
         ball_velocity = self.world.get_ball.velocity
         return ball_velocity > velocity_threshold
 
+    def get_zone_centre(self):
+        return Vector2D(0, 0)  # TODO
+
     def alligned(self):
         """
         Robot is in a position in the middle of the goal.

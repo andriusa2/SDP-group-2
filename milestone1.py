@@ -1,4 +1,4 @@
-from communication import Controller
+from communication.controller import Controller
 
 """
 10cm fwd
@@ -7,7 +7,6 @@ from communication import Controller
 kick to goal
 kick to pass
 """
-
 
 
 class ControllerM1(Controller):
@@ -31,11 +30,11 @@ def sam_main():
     m1 = ControllerM1("/dev/tty.usbmodem000001")
 
     # m1.fwd_short()
-    # m1.fwd_long()
+    m1.fwd_long()
     # m1.bwd_short()
 
     # m1.kick_goal()
-    m1.kick_pass()
+    # m1.kick_pass()
 
 if __name__ == '__main__':
     sam_main()

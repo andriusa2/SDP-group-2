@@ -5,7 +5,7 @@ from lib.math.util import rotate_vector
 
 class DummyRobot():
 
-    def __init__(self, world, robot_tag):
+    def __init__(self, world, robot_tag="L_ATT"):
         self.world = world
         self.robot_tag = robot_tag
 

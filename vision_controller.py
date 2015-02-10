@@ -61,7 +61,7 @@ class VisionController:
         #---------------------- PLANNER ---------------------------
         boundries = [47, 106, 165, 212]
         self.world = WorldState()
-        actual_robot = DummyRobot(self.world, Zone.L_ATT)
+        actual_robot = DummyRobot(self.world)
 
         # set the initial state
         # self.update_world_state()

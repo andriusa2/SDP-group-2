@@ -5,6 +5,8 @@ from lib.strategy.attacker1 import Attacker1
 from lib.strategy.fetch_ball import FetchBall
 from lib.strategy.planner import Planner
 
+from communication.controller import Controller
+
 from lib.strategy.shoot_for_goal import ShootForGoal
 from communication.dummy_robot import DummyRobot
 from lib.math.vector import Vector2D
@@ -222,7 +224,8 @@ class PlannerTest(BaseTest):
         # create a world object
         self.world_state = WorldState(robots=robots, ball=ball, zone_boundaries=[10, 20, 30, 40])
         # make a dummy robot which can change the world
-        actual_robot = DummyRobot(self.world_state, Zone.L_ATT)
+        # actual_robot = DummyRobot(self.world_state, Zone.L_ATT)
+        actual_robot = Controller()
         # give the strategy the world the dummy and the zone of the dummy
         self.planner = Planner(self.world_state, Zone.L_ATT, actual_robot, True)
 
