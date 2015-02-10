@@ -104,6 +104,17 @@ class GeneralizedStrategy(object):
         kicker_vector = direction_unit_vector.scale(self.dist_kicker_robot)
         return self.robot.position + kicker_vector
 
+    def distance_from_robot_to_point(self, x, y):
+        return self.vector_from_robot_to_point(x,y).length()
+
+    def vector_from_robot_to_point(self, x, y):
+        """
+        :return: distance from robot to a given point
+        """
+        robot_point_dist_x = np.abs(self.robot.position.x-x)
+        robot_point_dist_y = np.abs(self.robot.position.y-y)
+        return Vector2D(robot_point_dist_x, robot_point_dist_y)
+
     def ball_going_quickly(self):
         """
         Check is ball is going quicker than a threshold velocity
@@ -130,11 +141,15 @@ class GeneralizedStrategy(object):
         side_point = (robot_x, 0)
         return robot.can_see(point=side_point, threshold=0.05)
 
-    def predict_y(self):
+    def predict_y(self, predict_for_x, ball):
         """
         Predict the y coordinate the ball will have when it reaches the x coordinate of the robot.
         """
-        pass
+        x = ball.x
+        y = ball.y
+        angle = ball.angle
+        predicted_y = (y + tan(angle) * (predict_for_x - x))
+        return predicted_y
 
 
 
