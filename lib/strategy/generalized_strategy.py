@@ -14,6 +14,8 @@ class GeneralizedStrategy(object):
         self.grab_threshold_y = 4
         self.dist_kicker_robot = 12
 
+        self.ROBOT_WIDTH = 7
+
         self.is_grabber_down = False
 
         # initialise state attributes
@@ -44,7 +46,7 @@ class GeneralizedStrategy(object):
         """
         goal = self.world.goal
         robot = self.world.get_robot(self.robot_tag)
-        return robot.can_see(point=goal, threshold=0.1)
+        return robot.can_see(point=goal, beam_width=self.ROBOT_WIDTH)
 
     def is_robot_facing_ball(self):
         """
@@ -54,7 +56,7 @@ class GeneralizedStrategy(object):
         """
         robot = self.world.get_robot(self.robot_tag)
         ball_pos = self.world.get_ball().position
-        return robot.can_see(point=ball_pos, threshold=0.1)
+        return robot.can_see(point=ball_pos, beam_width=self.ROBOT_WIDTH)
 
     def fetch_world_state(self):
         """

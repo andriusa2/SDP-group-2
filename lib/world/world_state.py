@@ -1,5 +1,5 @@
 from lib.math.vector import Vector2D
-from math import sin, cos, sqrt
+from math import sin, cos, sqrt, pi
 """
 TODO: convert to numpy arrays instead of tuples
       roll out proper vector/point classes?
@@ -49,14 +49,19 @@ class Robot(_WorldObject):
             "is_enemy={enemy!r})"
         ).format(**self.__dict__)
 
-    def can_see(self, point, threshold=0.05):
+    def can_see(self, point, threshold=None, beam_width=7):
         """
-        Return true if robot can "see" a given point.
+        Return true if robot can "see" a given point withing a beam.
         """
-        # if angle between that and robot direction is more than threshold
-        # then robot needs to correct its angle to "see" that point
-        angle = self.angle_to_point(point)
-        return -threshold <= angle <= threshold
+        # vector from robot to point
+        assert not threshold
+        dpoint = point - self.position
+        # sanity check
+        if abs(dpoint.get_angle(self.direction)) >= pi / 2:
+            return False
+        projection = self.direction.scale(dpoint.dot(self.direction))
+        dist_vector = dpoint - projection
+        return dist_vector.dot(dist_vector) <= beam_width * beam_width
 
     def angle_to_point(self, point):
         """
