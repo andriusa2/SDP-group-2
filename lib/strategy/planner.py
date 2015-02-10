@@ -41,7 +41,7 @@ class Planner(GeneralizedStrategy):
             self.do_strategy(self.fetch_ball)
 
             # if ball is close to kicker, shoot for goal
-            self.do_strategy(self.shoot_goal)
+            # self.do_strategy(self.shoot_goal)
 
             # if ball is out of zone, return to middle and turn to face ball
             return True
@@ -63,7 +63,7 @@ class Planner(GeneralizedStrategy):
         :return: nothing
         """
         cool_down_time_period = strategy.act()
-        self.can_act_after = time.time() + cool_down_time_period
+        self.can_act_after = time.time() + (cool_down_time_period/1000.0)
 
     def check_for_re_plan(self):
         # if ball moves while collecting the ball, re-plan

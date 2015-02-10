@@ -236,10 +236,13 @@ class PlannerTest(BaseTest):
         # raise cage
         did_act = self.planner.plan_attack()
         self.assertTrue(did_act)
-        # turn
+        # prevent action
         did_act = self.planner.plan_attack()
         # make sure that the planner could not act
         self.assertFalse(did_act)
+        time.sleep(1)
+        did_act = self.planner.plan_attack()
+        self.assertTrue(did_act)
 
 
     # ensure that the attacker fetches the ball when in own zone
