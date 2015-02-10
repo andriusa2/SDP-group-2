@@ -164,24 +164,35 @@ class WorldState(object):
     def set_robots_list(self, robot_list):
         """
         Try to initialize self.robots from a list of robots.
+        It assumes that robot ordering is from left to right.
+        """
+        self.robots = dict()
+        for key, val in zip(Zone.zone_order, robot_list):
+            self.robots[key] = val
+
+        """
+        Removed since there won't be 4 robots on pitch during milestone.
+        """
+        """
+        Try to initialize self.robots from a list of robots.
         If there are no zone boundaries set, it assumes that robot ordering is from left
         to right. If there aren't 4 robots given, it should error out.
-        
+
         If zone boundaries are set, then it tries to allocate robots properly to their zones.
         """
-        if not self.zone_boundaries:
-            if len(robot_list) != 4:
-                raise TypeError("Provided robot list of length < 4, but no zone boundary map is found")
-            # assume that robots are listed in turn from left to right
-            # probably we would need to recalculate that
-            # no dict comprehensions in 2.6 :/
-            self.robots = dict()
-            for key, val in zip(Zone.zone_order, robot_list):
-                self.robots[key] = val
-        else:
-            self.robots = dict()
-            for robot in robot_list:
-                self.robots[self.get_zone(robot.position)] = robot
+        # if not self.zone_boundaries:
+        #     if len(robot_list) != 4:
+        #         raise TypeError("Provided robot list of length < 4, but no zone boundary map is found")
+        #     # assume that robots are listed in turn from left to right
+        #     # probably we would need to recalculate that
+        #     # no dict comprehensions in 2.6 :/
+        #     self.robots = dict()
+        #     for key, val in zip(Zone.zone_order, robot_list):
+        #         self.robots[key] = val
+        # else:
+        #     self.robots = dict()
+        #     for robot in robot_list:
+        #         self.robots[self.get_zone(robot.position)] = robot
 
     def set_robots_dict(self, robot_dict):
         unknown_keys = set(robot_dict.keys()) - set(Zone.zone_order)

@@ -76,6 +76,8 @@ class Vector2D(object):
 
     def unit_vector(self):
         magnitude = self.length()
-        unit_vector = Vector2D(float(self.x / magnitude), float(self.y / magnitude))
+        if magnitude != 0:
+            unit_vector = Vector2D(float(self.x / magnitude), float(self.y / magnitude))
+        else:
+            unit_vector = Vector2D(0, 1)
         return unit_vector
-
