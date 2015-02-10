@@ -13,7 +13,7 @@ class FetchBall(GeneralizedStrategy):
             print "ball is far away to robot"
 
             if self.is_grabber_down:  # is the cage down?
-                self.raise_cage()
+                return self.raise_cage()
             else:
                 # cage not down
 
@@ -21,13 +21,13 @@ class FetchBall(GeneralizedStrategy):
                     print "robot not facing ball"
                     to_turn = self.robot.angle_to_point(self.ball.position)
                     print "rotating robot " + str(to_turn) + " radians"
-                    self.actual_robot.turn(to_turn)  # turn towards the the ball
+                    return self.actual_robot.turn(to_turn)  # turn towards the the ball
 
                 else:  # we're facing the ball
                     print "robot facing ball"
                     dist_to_ball = self.distance_from_kicker_to_ball()
                     print dist_to_ball
-                    self.actual_robot.move_forward(dist_to_ball)
+                    return self.actual_robot.move(dist_to_ball)
 
         else:  # the ball can be held
             print "ball is close to robot kicker"

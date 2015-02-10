@@ -24,12 +24,12 @@ class GeneralizedStrategy(object):
         # self.fetch_world_state()
 
     def raise_cage(self):
-        self.actual_robot.raise_cage()
         self.is_grabber_down = False
+        return self.actual_robot.grab()
         print "raising cage"
 
     def lower_cage(self):
-        self.actual_robot.lower_cage()
+        # self.actual_robot.lower_cage()
         self.is_grabber_down = True
         print "lowering cage"
 
