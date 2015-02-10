@@ -3,6 +3,8 @@ import unittest
 from lib.world.world_state import Robot, Ball, WorldState, Zone
 from lib.strategy.attacker1 import Attacker1
 from lib.strategy.fetch_ball import FetchBall
+from lib.strategy.planner import Planner
+
 from lib.strategy.shoot_for_goal import ShootForGoal
 from communication.dummy_robot import DummyRobot
 from lib.math.vector import Vector2D
@@ -222,7 +224,23 @@ class PlannerTest(BaseTest):
         # make a dummy robot which can change the world
         actual_robot = DummyRobot(self.world_state, Zone.L_ATT)
         # give the strategy the world the dummy and the zone of the dummy
-        self.attacker1 = FetchBall(self.world_state, Zone.L_ATT, actual_robot)
+        self.planner = Planner(self.world_state, Zone.L_ATT, actual_robot, True)
+
+    # ensure that the timer stops an action from being performed
+    def test_timer_prevents_action(self):
+        # set up the world so that the robot has to turn
+        ball = Ball(position=(15, 15), velocity=(0, 0), in_possession=False)
+        robot_2 = Robot(direction=(1, 0), position=(15, 0), velocity=(0, 0), enemy=False)
+        self.world_state.set_ball(ball)
+        self.world_state.add_robot(Zone.L_ATT, robot_2)
+        # raise cage
+        did_act = self.planner.plan_attack()
+        self.assertTrue(did_act)
+        # turn
+        did_act = self.planner.plan_attack()
+        # make sure that the planner could not act
+        self.assertFalse(did_act)
+
 
     # ensure that the attacker fetches the ball when in own zone
 
