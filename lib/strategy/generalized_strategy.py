@@ -41,7 +41,7 @@ class GeneralizedStrategy(object):
         """
         goal = self.world.goal
         robot = self.world.get_robot(self.robot_tag)
-        return robot.can_see(point=goal, threshold=0.05)
+        return robot.can_see(point=goal, threshold=0.1)
 
     def is_robot_facing_ball(self):
         """
@@ -51,7 +51,7 @@ class GeneralizedStrategy(object):
         """
         robot = self.world.get_robot(self.robot_tag)
         ball_pos = self.world.get_ball().position
-        return robot.can_see(point=ball_pos, threshold=0.05)
+        return robot.can_see(point=ball_pos, threshold=0.1)
 
     def fetch_world_state(self):
         """
