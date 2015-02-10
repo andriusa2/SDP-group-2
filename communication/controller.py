@@ -32,6 +32,7 @@ class Arduino(object):
         if self.comms == 1:
             self.serial.write(string)
             self.serial.flush()
+            return
             a = self.serial.readline()
             while a:
                 print(a)
@@ -90,7 +91,7 @@ class Controller(Arduino):
         angle = abs(angle)
         distance = angle * self.RADIUS
         duration = get_duration(distance, abs(power))  # magic...
-
+        print('Trying to turn for {0}'.format(duration))
         return self.complex_movement(
             left_power=power,
             right_power=-power,
@@ -131,7 +132,9 @@ class Controller(Arduino):
         assert 0 <= right_duration <= 6000, "Wrong right duration"
         command = self.COMMANDS['move'].format(term=self.ENDL, **locals())
         self._write(command)
-        return float(max(left_duration, right_duration)) / 1000.0
+        wait_time = float(max(left_duration, right_duration)) / 1000.0 + 1
+        print(wait_time)
+        return wait_time
         
     def run_engine(self, id, power, duration):
         assert (-1.0 <= power <= 1.0) and (0 <= id <= 5)
