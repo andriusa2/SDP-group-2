@@ -42,8 +42,11 @@ class Planner(GeneralizedStrategy):
             zone_robot = self.world.get_zone(self.robot.position)
 
             if zone_ball == zone_robot:  # is the ball in our zone?
+                print "ball in robot's zone"
                 # if ball is in attacker zone and not held, fetch ball
                 self.do_strategy(self.fetch_ball)
+            else:
+                print "ball not in robot's zone"
 
             # if ball is close to kicker, shoot for goal
             # self.do_strategy(self.shoot_goal)
@@ -68,7 +71,7 @@ class Planner(GeneralizedStrategy):
         :return: nothing
         """
         cool_down_time_period = strategy.act()
-        self.can_act_after = time.time() + (cool_down_time_period/1000.0)
+        self.can_act_after = time.time() + cool_down_time_period
 
     def check_for_re_plan(self):
         # if ball moves while collecting the ball, re-plan

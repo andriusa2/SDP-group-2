@@ -26,7 +26,7 @@ class FetchBall(GeneralizedStrategy):
                 else:  # we're facing the ball
                     print "robot facing ball"
                     dist_to_ball = self.distance_from_kicker_to_ball()
-                    print dist_to_ball
+                    print "moving robot " + str(dist_to_ball)
                     return self.actual_robot.move(dist_to_ball)
 
         else:  # the ball can be held
