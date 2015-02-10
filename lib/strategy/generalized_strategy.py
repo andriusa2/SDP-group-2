@@ -100,3 +100,28 @@ class GeneralizedStrategy(object):
         kicker_vector = direction_unit_vector.scale(self.dist_kicker_robot)
         return self.robot.position + kicker_vector
 
+    def ball_going_quickly(self):
+        """
+        Check is ball is going quicker than a threshold velocity
+        """
+        velocity_threshold = 0
+        ball_velocity = self.world.get_ball.velocity
+        return ball_velocity > velocity_threshold
+
+    def alligned(self):
+        """
+        Robot is in a position in the middle of the goal.
+        """
+        pass
+
+    def sidewards(self):
+        """
+        Check robot is in the side side on position (i.e facing the side wall)
+        """
+        robot = self.world.get_robot(self.robot_tag)
+        robot_x = self.world.get_robot(self.robot_tag).x
+        side_point = (robot_x, 0)
+        return robot.can_see(point=side_point, threshold=0.05)
+
+
+
