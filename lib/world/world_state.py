@@ -1,4 +1,5 @@
 from lib.math.vector import Vector2D
+from math import sin, cos, sqrt
 """
 TODO: convert to numpy arrays instead of tuples
       roll out proper vector/point classes?
@@ -26,11 +27,17 @@ class Robot(_WorldObject):
     - whether it's an enemy robot or not. << might not be needed!
     """
 
-    def __init__(self, direction, position, velocity, enemy):
+    def __init__(self, direction=(0, 0), position=(0, 0), velocity=(0, 0), enemy=False):
         self.enemy = enemy if enemy else False
         self.direction = Vector2D.to_vector2d(direction)
         self.is_moving = False
         super(Robot, self).__init__(position, velocity)
+
+    def convert_from_model(self, model_robot, scale_factor):
+        direction = sqrt(model_robot.x * model_robot.x + model_robot.y * model_robot.y), model_robot.angle
+        position = model_robot.x * scale_factor, model_robot.y * scale_factor
+        velocity = model_robot.velocity * cos(model_robot.angle), model_robot.velocity * sin(model_robot.angle)
+        return Robot(direction, position, velocity, self.enemy)
 
     def is_enemy(self):
         return self.enemy
@@ -71,9 +78,14 @@ class Ball(_WorldObject):
     in_possession is set to True if some robot currently possesses this ball.
     """
 
-    def __init__(self, position, velocity, in_possession=None):
+    def __init__(self, position=(0, 0), velocity=(0, 0), in_possession=None):
         self.in_possession = in_possession if in_possession else False
         super(Ball, self).__init__(position, velocity)
+
+    def convert_from_model(self, model_ball, scale_factor):
+        return Ball(position=(model_ball.x * scale_factor, model_ball.y * scale_factor),
+                    velocity=(model_ball.velocity * cos(model_ball.angle), model_ball.velocity * sin(model_ball.angle)),
+                    in_possession=False)
 
     def __repr__(self):
         return (
@@ -100,7 +112,7 @@ class WorldState(object):
     Should be filled by vision component of our system.
     """
 
-    def __init__(self, robots=None, ball=None, zone_boundaries=None):
+    def __init__(self, robots=None, ball=None, zone_boundaries=None, goal=(0, 0)):
         """
         :param robots: A list of robots (if zone_boundaries is supplied) or
           a dictionary mapping zone to robot.
@@ -110,6 +122,7 @@ class WorldState(object):
         self.zone_boundaries = zone_boundaries
         self.robots = dict() if not robots else robots
         self.fix_robots()
+        self.goal = Vector2D.to_vector2d(goal)
 
     def fix_robots(self):
         """
@@ -151,24 +164,35 @@ class WorldState(object):
     def set_robots_list(self, robot_list):
         """
         Try to initialize self.robots from a list of robots.
+        It assumes that robot ordering is from left to right.
+        """
+        self.robots = dict()
+        for key, val in zip(Zone.zone_order, robot_list):
+            self.robots[key] = val
+
+        """
+        Removed since there won't be 4 robots on pitch during milestone.
+        """
+        """
+        Try to initialize self.robots from a list of robots.
         If there are no zone boundaries set, it assumes that robot ordering is from left
         to right. If there aren't 4 robots given, it should error out.
-        
+
         If zone boundaries are set, then it tries to allocate robots properly to their zones.
         """
-        if not self.zone_boundaries:
-            if len(robot_list) != 4:
-                raise TypeError("Provided robot list of length < 4, but no zone boundary map is found")
-            # assume that robots are listed in turn from left to right
-            # probably we would need to recalculate that
-            # no dict comprehensions in 2.6 :/
-            self.robots = dict()
-            for key, val in zip(Zone.zone_order, robot_list):
-                self.robots[key] = val
-        else:
-            self.robots = dict()
-            for robot in robot_list:
-                self.robots[self.get_zone(robot.position)] = robot
+        # if not self.zone_boundaries:
+        #     if len(robot_list) != 4:
+        #         raise TypeError("Provided robot list of length < 4, but no zone boundary map is found")
+        #     # assume that robots are listed in turn from left to right
+        #     # probably we would need to recalculate that
+        #     # no dict comprehensions in 2.6 :/
+        #     self.robots = dict()
+        #     for key, val in zip(Zone.zone_order, robot_list):
+        #         self.robots[key] = val
+        # else:
+        #     self.robots = dict()
+        #     for robot in robot_list:
+        #         self.robots[self.get_zone(robot.position)] = robot
 
     def set_robots_dict(self, robot_dict):
         unknown_keys = set(robot_dict.keys()) - set(Zone.zone_order)

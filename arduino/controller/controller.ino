@@ -3,7 +3,7 @@
 #include <Wire.h>
 // test purposes, change to 1 when confident with timings
 #define KICK_POWER 1
-#define KICK_DURATION 230
+#define KICK_DURATION 300
 
 #define KICK_TO_GRAB 90
 
@@ -77,11 +77,7 @@ void setup() {
   setup_pins();
   Wire.begin();  // need this s.t. arduino is mastah
   Serial.println("Team2GO");
-  //motors.diagnostics(1); // small twitches should happen
   motors.stop_all();
-  
-  // test function
-  comm.addCommand("BLINK", my_blink);
   
   // performs a kick
   comm.addCommand("KICK", kick);
@@ -94,7 +90,7 @@ void setup() {
   
   // sets speed/accel values for a given engine
   comm.addCommand("RUN_ENGINE", run_engine);
-  
+  comm.addCommand("STOP", stop_engines);
   comm.setDefaultHandler(invalid_command);
 }
 
@@ -106,11 +102,10 @@ void loop() {
   switch(IS_KICKING) {
   case KICK_HAPPENING:
     if (!motors.is_running(KICKER)) {
-      Serial.println("Retracting kicker");
       IS_KICKING = KICK_COOLDOWN;
       motors.stop_motor(KICKER);  // should be stopped by design, but w/e
-      delay(5);  // give it some time to stop properly
-      motors.run_motor(KICKER, -1.0, KICK_TO_GRAB);
+      delay(3);  // give it some time to stop properly
+      motors.run_motor(KICKER, -1.0, KICK_TO_GRAB, 0);
     }
     break;
   case KICK_COOLDOWN:
@@ -130,17 +125,13 @@ void loop() {
   comm.readSerial();
   Serial.flush();  // flushing stuff out just in case
   // parsing stuff out every 100ms for debug
-  delay(10);
+  delay(1);
 }
 
-void my_blink() {
-  int timeout = 1000;
-  for (int i = 0; i < 10; i++) {
-    digitalWrite(13, HIGH);
-    delay(timeout);
-    digitalWrite(13, LOW);
-    delay(timeout);
-  }
+void stop_engines() {
+  // only stops movement engines!
+  motors.stop_motor(LEFT_ENGINE);
+  motors.stop_motor(RIGHT_ENGINE);
 }
 
 void kick_master(int flag, uint16_t duration) {  
@@ -149,7 +140,7 @@ void kick_master(int flag, uint16_t duration) {
     if (!get_float(power))
       power = KICK_POWER;
     // if we use 1/2 power the kick should take 2 times as long, no?
-    motors.run_motor(KICKER, power, uint16_t(float(duration) / abs(power)));
+    motors.run_motor(KICKER, power, uint16_t(float(duration) / abs(power)), 0);
     IS_KICKING = flag;
   }
 }
@@ -174,8 +165,14 @@ void move_bot() {
   }
   if (!get_uint16(r_time))
     r_time = l_time;
-  motors.run_motor(LEFT_ENGINE, left, l_time);
-  motors.run_motor(RIGHT_ENGINE, right, r_time);
+  uint16_t l_lag = 0, r_lag = 0;
+  // if it takes more time for left one to activate, then start running right one a bit later
+  if (ENGINE_ACTIVATION[LEFT_ENGINE] > ENGINE_ACTIVATION[RIGHT_ENGINE])
+    r_lag = ENGINE_ACTIVATION[LEFT_ENGINE] - ENGINE_ACTIVATION[RIGHT_ENGINE];
+  else
+    l_lag =  ENGINE_ACTIVATION[RIGHT_ENGINE] - ENGINE_ACTIVATION[LEFT_ENGINE];
+  motors.run_motor(LEFT_ENGINE, left, l_time, l_lag);
+  motors.run_motor(RIGHT_ENGINE, right, r_time, r_lag);
 }
 
 /* RUN_ENGINE ENGINE_ID POWER[-1;1] DURATION(0;64k] */
@@ -189,7 +186,7 @@ void run_engine() {
     return;
   }
   
-  motors.run_motor(id, power, time);
+  motors.run_motor(id, power, time, -1);
   
 }
 

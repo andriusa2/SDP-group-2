@@ -1,4 +1,5 @@
-from math import cos, sin, sqrt, acos
+from math import cos, sin, sqrt
+import numpy as np
 
 
 class Vector2D(object):
@@ -57,17 +58,26 @@ class Vector2D(object):
         return Vector2D(float(new_x), float(new_y))
 
     def get_angle(self, base_vector):
-        assert base_vector is not None
-        assert base_vector.dot(base_vector) == 1.0
-        d = self.dot(base_vector)
-        d /= self.length()
-        return acos(d)
+        v1_u = self.unit_vector()
+        v2_u = base_vector.unit_vector()
+        # convert to numpy representation
+        v1_u = [v1_u.x, v1_u.y]
+        v2_u = [v2_u.x, v2_u.y]
+        angle = np.arccos(np.dot(v1_u, v2_u))
+        if np.isnan(angle):
+            if (v1_u == v2_u).all():
+                return 0.0
+            else:
+                return np.pi
+        return angle
 
     def is_null(self):
         return self.x == 0.0 and self.y == 0.0
 
     def unit_vector(self):
         magnitude = self.length()
-        unit_vector = Vector2D(float(self.x / magnitude), float(self.y / magnitude))
+        if magnitude != 0:
+            unit_vector = Vector2D(float(self.x / magnitude), float(self.y / magnitude))
+        else:
+            unit_vector = Vector2D(0, 1)
         return unit_vector
-

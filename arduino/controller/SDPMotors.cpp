@@ -3,13 +3,13 @@
 #include "SDPMotors.h"
 
 #define MotorBoardI2CAddress 4
-// get these manually
-static uint16_t ENGINE_ACTIVATION[] = {110, 0, 0, 50, 90, 0};
 MotorBoard::MotorBoard(): stop_timers() {
+  for (int i = 0; i < MAX_ENGINES_BOARD; i++)
+    start_timers[i] = -1;
   last_check = millis();
 }
 
-void MotorBoard::run_motor(uint8_t id, float power, uint16_t duration) {
+void MotorBoard::run_motor(uint8_t id, float power, uint16_t duration, int16_t start_at ) {
   if (id >= 0 && id < MAX_ENGINES_BOARD) {
 #ifdef DEBUG
     Serial.print("Trying to run motor ");
@@ -18,9 +18,19 @@ void MotorBoard::run_motor(uint8_t id, float power, uint16_t duration) {
     Serial.print(power);
     Serial.print(", stops in ");
     Serial.print(duration + ENGINE_ACTIVATION[id]);
+    Serial.print(", added lag ");
+    Serial.print(start_at);
     Serial.print(", duration ");
     Serial.println(duration);
+    Serial.flush();
 #endif
+    if (start_at > 0) {
+      start_timers[id] = start_at;
+      stop_timers[id] = duration;
+      powers[id] = power;
+      return;
+    }
+    start_timers[id] = -1;
     // clamp power to [-1.0;1.0]
     if (power < -1.0) power = -1.0;
     else if (power > 1.0) power = 1.0;
@@ -39,7 +49,9 @@ void MotorBoard::run_motor(uint8_t id, float power, uint16_t duration) {
     // send 2B of data
     Wire.write(send, 2);
     Wire.endTransmission();  // retval ignored
-    stop_timers[id] = duration + ENGINE_ACTIVATION[id];
+    stop_timers[id] = duration;
+    if (start_at == 0)
+      stop_timers[id] += ENGINE_ACTIVATION[id];
 #ifdef DEBUG
     Serial.println("Done");
 #endif
@@ -58,6 +70,7 @@ void MotorBoard::stop_motor(uint8_t id) {
     Wire.write(&cmd, 1);
     Wire.endTransmission();
     stop_timers[id] = 0;
+    start_timers[id] = -1;
 #ifdef DEBUG
     Serial.print("Stopped motor: ");
     Serial.println(id);
@@ -87,11 +100,22 @@ void MotorBoard::scan_motors() {
   const uint32_t diff = now - last_check;
   last_check = now;
   for (byte i = 0; i < MAX_ENGINES_BOARD; i++)
-    if (stop_timers[i] > 0) {
-      if (stop_timers[i] > diff)
-        stop_timers[i] -= diff;
-      else {
-        stop_motor(i);
+    if (stop_timers[i] > 0) { // motor hasn't stopped
+      if (start_timers[i] < 0) { // it started
+        if (stop_timers[i] > diff)
+          stop_timers[i] -= diff;
+        else {
+          stop_motor(i);
+          stop_timers[i] = 0;
+        }
+      }
+      else { // it hasn't started running
+        if (start_timers[i] > diff)
+          start_timers[i] -= diff;
+        else {
+          start_timers[i] = -1;
+          run_motor(i, powers[i], stop_timers[i], 0);
+        }
       }
     }
 }
@@ -103,10 +127,10 @@ void MotorBoard::diagnostics(uint8_t bitmask) {
   for (int i = 0, m = 1; i < MAX_ENGINES_BOARD; i++, m <<= 1) {
     if (bitmask & m) {
       stop_motor(i);
-      run_motor(i, 0.5, 500);
+      run_motor(i, 0.5, 500, 0);
       delay(500);
       stop_motor(i);
-      run_motor(i, -0.5, 500);
+      run_motor(i, -0.5, 500,0);
       delay(500);
       stop_motor(i);
     }

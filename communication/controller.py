@@ -1,6 +1,8 @@
+import datetime
 import serial
 
 from lib.math.util import convert_angle, get_duration
+
 
 class Arduino(object):
     """ Basic class for Arduino communications. """
@@ -28,44 +30,57 @@ class Arduino(object):
     def _write(self, string):
         print("Trying to run command: '{0}'".format(string))
         if self.comms == 1:
-            self.serial.write(string)            
+            self.serial.write(string)
+            self.serial.flush()
             a = self.serial.readline()
             while a:
                 print(a)
                 a = self.serial.readline()
         elif not self.debug:
             raise Exception("No comm link established, but trying to send command.")
-
-            
-class TestController(Arduino):
-    def blink(self):
-        self._write("A_BLINK\n")
             
             
 class Controller(Arduino):
     """ Implements an interface for Arduino device. """
     
     # TODO: get signs on turning right. Depends on wiring. :/
-    ENDL = '\r\n'  # at least the lib believes so
+    ENDL = '\n'  # at least the lib believes so
     
     COMMANDS = {
         'kick': 'KICK {power:.5}{term}',
         'move': 'MOVE {left_power:.5} {right_power:.5} {left_duration} {right_duration}{term}',
         'run_engine': 'RUN_ENGINE {engine_id} {power:.5} {duration}{term}',
         'grab': 'GRAB {power:.5}{term}',
+        'stop': 'STOP{term}',
     }
-    
-    RADIUS = 1.
+
+    # NB not a real radius, just one that worked
+    RADIUS = 7.2
     """ Radius of the robot, used to determine what distance should it cover when turning. """
     
     MAX_POWER = 1.
     """ Max speed of any engine. """
-    
+
     def kick(self, power=None):
         if power is None:
             power = self.MAX_POWER
         self._write(self.COMMANDS['kick'].format(power=float(power), term=self.ENDL))
-        
+        return 0.5
+
+    def move(self, distance, power=None):
+        if power is not None:
+            print "I don't support different powers, defaulting to 1"
+        if distance < 0:
+            duration = get_duration(-distance, -1)
+        else:
+            duration = get_duration(distance, 1)
+        assert 0 < duration < 6000, 'Something looks wrong in the distance calc'
+        return self.go(duration, 1)
+
+    def stop(self):
+        self._write(self.COMMANDS['stop'].format(term=self.ENDL))
+        return 0.01
+
     def turn(self, angle):
         """ Turns robot over 'angle' radians in place. """
         angle = convert_angle(angle)  # so it's in [-pi;pi] range
@@ -75,19 +90,20 @@ class Controller(Arduino):
         angle = abs(angle)
         distance = angle * self.RADIUS
         duration = get_duration(distance, abs(power))  # magic...
-        self.complex_movement(
+
+        return self.complex_movement(
             left_power=power,
-            right_power=power,
+            right_power=-power,
             left_duration=duration
         )
-    
+
     def go(self, duration, power=None):
         """ Makes robot go in a straight line for a given duration. """
         if power is None:
             power = self.MAX_POWER
-        self.complex_movement(
+        return self.complex_movement(
             left_power=min(power, self.MAX_POWER),
-            right_power=-power,  # might need this if the second motor is "inversed"
+            right_power=power,  # might need this if the second motor is "inversed"
             left_duration=duration
         )
     
@@ -108,19 +124,24 @@ class Controller(Arduino):
             right_power = left_power
         if right_duration is None:
             right_duration = left_duration
-            
+
         left_power, left_duration = fix_pair(left_power, left_duration)
         right_power, right_duration = fix_pair(right_power, right_duration)
+        assert 0 <= left_duration <= 6000, "Wrong left duration"
+        assert 0 <= right_duration <= 6000, "Wrong right duration"
         command = self.COMMANDS['move'].format(term=self.ENDL, **locals())
         self._write(command)
+        return float(max(left_duration, right_duration)) / 1000.0
         
     def run_engine(self, id, power, duration):
         assert (-1.0 <= power <= 1.0) and (0 <= id <= 5)
         command = self.COMMANDS['run_engine'].format(engine_id=int(id), power=float(power), duration=int(duration), term=self.ENDL)
         self._write(command)
+        return float(duration) / 1000.0
 
     def grab(self, power=None):
         """ power is negative atm """
         if power is None:
             power = -self.MAX_POWER
         self._write(self.COMMANDS['grab'].format(power=float(power), term=self.ENDL))
+        return 0.2
