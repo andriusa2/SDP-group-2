@@ -1,3 +1,4 @@
+import datetime
 import serial
 
 from lib.math.util import convert_angle, get_duration
@@ -29,25 +30,21 @@ class Arduino(object):
     def _write(self, string):
         print("Trying to run command: '{0}'".format(string))
         if self.comms == 1:
-            self.serial.write(string)            
+            self.serial.write(string)
+            self.serial.flush()
             a = self.serial.readline()
             while a:
                 print(a)
                 a = self.serial.readline()
         elif not self.debug:
             raise Exception("No comm link established, but trying to send command.")
-
-            
-class TestController(Arduino):
-    def blink(self):
-        self._write("A_BLINK\n")
             
             
 class Controller(Arduino):
     """ Implements an interface for Arduino device. """
     
     # TODO: get signs on turning right. Depends on wiring. :/
-    ENDL = '\r\n'  # at least the lib believes so
+    ENDL = '\n'  # at least the lib believes so
     
     COMMANDS = {
         'kick': 'KICK {power:.5}{term}',
@@ -63,11 +60,12 @@ class Controller(Arduino):
     
     MAX_POWER = 1.
     """ Max speed of any engine. """
-    
+
     def kick(self, power=None):
         if power is None:
             power = self.MAX_POWER
         self._write(self.COMMANDS['kick'].format(power=float(power), term=self.ENDL))
+        return 0.5
 
     def move(self, distance, power=None):
         if power is not None:
@@ -77,10 +75,11 @@ class Controller(Arduino):
         else:
             duration = get_duration(distance, 1)
         assert 0 < duration < 6000, 'Something looks wrong in the distance calc'
-        self.go(duration, 1)
+        return self.go(duration, 1)
 
     def stop(self):
         self._write(self.COMMANDS['stop'].format(term=self.ENDL))
+        return 0.01
 
     def turn(self, angle):
         """ Turns robot over 'angle' radians in place. """
@@ -92,17 +91,17 @@ class Controller(Arduino):
         distance = angle * self.RADIUS
         duration = get_duration(distance, abs(power))  # magic...
 
-        self.complex_movement(
+        return self.complex_movement(
             left_power=power,
             right_power=-power,
             left_duration=duration
         )
-    
+
     def go(self, duration, power=None):
         """ Makes robot go in a straight line for a given duration. """
         if power is None:
             power = self.MAX_POWER
-        self.complex_movement(
+        return self.complex_movement(
             left_power=min(power, self.MAX_POWER),
             right_power=power,  # might need this if the second motor is "inversed"
             left_duration=duration
@@ -132,14 +131,17 @@ class Controller(Arduino):
         assert 0 <= right_duration <= 6000, "Wrong right duration"
         command = self.COMMANDS['move'].format(term=self.ENDL, **locals())
         self._write(command)
+        return float(max(left_duration, right_duration)) / 1000.0
         
     def run_engine(self, id, power, duration):
         assert (-1.0 <= power <= 1.0) and (0 <= id <= 5)
         command = self.COMMANDS['run_engine'].format(engine_id=int(id), power=float(power), duration=int(duration), term=self.ENDL)
         self._write(command)
+        return float(duration) / 1000.0
 
     def grab(self, power=None):
         """ power is negative atm """
         if power is None:
             power = -self.MAX_POWER
         self._write(self.COMMANDS['grab'].format(power=float(power), term=self.ENDL))
+        return 0.2

@@ -3,9 +3,9 @@
 #include <Wire.h>
 // test purposes, change to 1 when confident with timings
 #define KICK_POWER 1
-#define KICK_DURATION 350
+#define KICK_DURATION 300
 
-#define KICK_TO_GRAB 130
+#define KICK_TO_GRAB 90
 
 #define KICK_HAPPENING 1
 #define KICK_COOLDOWN 2
@@ -102,10 +102,9 @@ void loop() {
   switch(IS_KICKING) {
   case KICK_HAPPENING:
     if (!motors.is_running(KICKER)) {
-      Serial.println("Retracting kicker");
       IS_KICKING = KICK_COOLDOWN;
       motors.stop_motor(KICKER);  // should be stopped by design, but w/e
-      delay(1);  // give it some time to stop properly
+      delay(3);  // give it some time to stop properly
       motors.run_motor(KICKER, -1.0, KICK_TO_GRAB, 0);
     }
     break;
