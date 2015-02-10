@@ -1,5 +1,6 @@
 __author__ = 'Sam Davies'
 from lib.strategy.generalized_strategy import GeneralizedStrategy
+import numpy as np
 
 
 class FetchBall(GeneralizedStrategy):
@@ -20,7 +21,7 @@ class FetchBall(GeneralizedStrategy):
                 if not self.is_robot_facing_ball():  # are we facing the ball?
                     print "robot not facing ball"
                     to_turn = self.robot.angle_to_point(self.ball.position)
-                    print "rotating robot " + str(to_turn) + " radians"
+                    print "rotating robot " + str(360.0 * to_turn / (2 * np.pi)) + " degrees"
                     return self.actual_robot.turn(to_turn)  # turn towards the the ball
 
                 else:  # we're facing the ball
