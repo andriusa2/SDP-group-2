@@ -6,7 +6,6 @@ from cv2 import waitKey
 import cv2
 import warnings
 import time
-from math import sin, cos, sqrt
 
 from communication.dummy_robot import DummyRobot
 from lib.strategy.attacker1 import Attacker1
@@ -122,12 +121,13 @@ class VisionController:
     def update_world_state(self, model_positions):
         """
         Change the state of the world based on the current frame
-        :param world: the world which has to be chaged
+        :param model_positions: the values to change to world to
         :return: none
         """
         scale_factor = 0.4
 
-        robot_models = [model_positions['our_defender'], model_positions['our_attacker'], model_positions['their_defender'], model_positions['their_attacker']]
+        robot_models = [model_positions['our_defender'], model_positions['our_attacker'],
+                        model_positions['their_defender'], model_positions['their_attacker']]
 
         robot1 = Robot().convert_from_model(robot_models[0], scale_factor)
         robot2 = Robot().convert_from_model(robot_models[1], scale_factor)
