@@ -5,7 +5,7 @@ from lib.strategy.attacker1 import Attacker1
 
 class Planner(object):
 
-    def __init__(self, world, robot_tag, actual_robot):
+    def __init__(self, world, robot_tag, actual_robot, is_attacker):
 
         self.is_acting = False
 
@@ -14,15 +14,21 @@ class Planner(object):
         # time since epoch
         self.last_cool_down_time = time.time()
 
-        self.attack_plan = self.attacker1 = Attacker1(world, robot_tag, actual_robot)
+        if is_attacker:
+            self.attack_plan = self.attacker1 = Attacker1(world, robot_tag, actual_robot)
 
-    def plan(self):
+    def plan_defence(self):
+        pass
+
+    def plan_attack(self):
 
         # if ball moves while collecting the ball, re-plan
         if False:
             self.stop_robot()
 
         # if ball moves while turning with ball, re-plan
+        if False:
+            self.stop_robot()
 
         # if ball is in attacker zone, use attack plan
         if self.can_act():
