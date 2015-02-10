@@ -62,7 +62,7 @@ class VisionController:
         #---------------------- PLANNER ---------------------------
         boundries = [47, 106, 165, 212]
         self.world = WorldState()
-        actual_robot = Controller("")
+        actual_robot = Controller("/dev/ttyACM0")
 
         # set the initial state
         # self.update_world_state()

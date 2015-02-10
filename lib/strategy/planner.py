@@ -44,12 +44,15 @@ class Planner(GeneralizedStrategy):
             if zone_ball == zone_robot:  # is the ball in our zone?
                 print "ball in robot's zone"
                 # if ball is in attacker zone and not held, fetch ball
-                self.do_strategy(self.fetch_ball)
+                if not self.is_ball_close():
+                    self.do_strategy(self.fetch_ball)
+                else:
+                    # if ball is close to kicker, shoot for goal
+                    self.do_strategy(self.shoot_goal)
             else:
-                print "ball not in robot's zone"
-
-            # if ball is close to kicker, shoot for goal
-            # self.do_strategy(self.shoot_goal)
+                # print "ball not in robot's zone"
+                # self.is_robot_facing_ball()
+                pass
 
             # if ball is out of zone, return to middle and turn to face ball
             return True

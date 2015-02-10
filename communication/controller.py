@@ -93,8 +93,8 @@ class Controller(Arduino):
         duration = get_duration(distance, abs(power))  # magic...
         print('Trying to turn for {0}'.format(duration))
         return self.complex_movement(
-            left_power=power,
-            right_power=-power,
+            left_power=-power,
+            right_power=power,
             left_duration=duration
         )
 
@@ -130,9 +130,10 @@ class Controller(Arduino):
         right_power, right_duration = fix_pair(right_power, right_duration)
         assert 0 <= left_duration <= 6000, "Wrong left duration"
         assert 0 <= right_duration <= 6000, "Wrong right duration"
+        self.stop()
         command = self.COMMANDS['move'].format(term=self.ENDL, **locals())
         self._write(command)
-        wait_time = float(max(left_duration, right_duration)) / 1000.0 + 1
+        wait_time = float(max(left_duration, right_duration)) / 1000.0 + 0.1
         print(wait_time)
         return wait_time
         

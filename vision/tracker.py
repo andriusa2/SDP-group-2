@@ -38,11 +38,12 @@ class Tracker(object):
             frame_mask = cv2.inRange(frame_hsv, adjustments['min'], adjustments['max'])
 
             # Apply threshold to the masked image, no idea what the values mean
-            return_val, threshold = cv2.threshold(frame_mask, 127, 255, 0)
+            # return_val, threshold = cv2.threshold(frame_mask, 127, 255, 0)
 
             # Find contours
             contours, hierarchy = cv2.findContours(
-                threshold,
+                # threshold,
+                frame_mask,
                 cv2.RETR_TREE,
                 cv2.CHAIN_APPROX_SIMPLE
             )

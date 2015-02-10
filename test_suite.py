@@ -156,17 +156,17 @@ class FetchBallTest(BaseTest):
         self.assertTrue(self.attacker1.is_ball_close())
 
     # ensure the the robot will lower cage on a close ball
-    def test_will_lower_cage(self):
-        # set up the world so that the robot does not have to turn or move
-        self.change_ball_location(15.0, 15.0+self.attacker1.dist_kicker_robot)
-        # check that the ball is close
-        self.assertTrue(self.attacker1.is_ball_close())
-        # do the next action
-        self.attacker1.act()
-        # refresh the robot's world
-        self.attacker1.fetch_world_state()
-        # check that the robot has reached the ball
-        self.assertTrue(self.attacker1.is_grabber_down)
+    # def test_will_lower_cage(self):
+    #     # set up the world so that the robot does not have to turn or move
+    #     self.change_ball_location(15.0, 15.0+self.attacker1.dist_kicker_robot)
+    #     # check that the ball is close
+    #     self.assertTrue(self.attacker1.is_ball_close())
+    #     # do the next action
+    #     self.attacker1.act()
+    #     # refresh the robot's world
+    #     self.attacker1.fetch_world_state()
+    #     # check that the robot has reached the ball
+    #     self.assertTrue(self.attacker1.is_grabber_down)
 
 
 class ShootTest(BaseTest):

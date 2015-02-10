@@ -132,7 +132,7 @@ class Vision:
         """
         plane_height = 250.0
         # Needs to be amended
-        robot_height = 0.0
+        robot_height = 20.0
         coefficient = robot_height/plane_height
 
         x = point[0]
