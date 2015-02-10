@@ -8,7 +8,7 @@ import warnings
 import time
 
 from communication.dummy_robot import DummyRobot
-from lib.strategy.attacker1 import Attacker1
+from lib.strategy.planner import Planner
 from lib.world.world_state import WorldState, Zone, Robot, Ball
 
 
@@ -69,7 +69,7 @@ class VisionController:
         self.world.set_zone_boundaries(boundries)
 
         # this is our chosen strategy
-        self.attacker1 = Attacker1(self.world, Zone.L_ATT, actual_robot)
+        self.planner = Planner(self.world, Zone.L_ATT, actual_robot, True)
 
         #----------------------------------------------------------
 
@@ -98,7 +98,7 @@ class VisionController:
 
                 #---------------------- PLANNER ---------------------------
                 self.update_world_state(model_positions)
-                self.attacker1.act()
+                self.planner.plan_attack()
                 #----------------------------------------------------------
 
                 # Use 'y', 'b', 'r' to change color.
