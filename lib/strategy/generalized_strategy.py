@@ -12,7 +12,7 @@ class GeneralizedStrategy(object):
 
         self.grab_threshold_x = 4  # we need to define these (based on kicker)
         self.grab_threshold_y = 4
-        self.dist_kicker_robot = 12
+        self.dist_kicker_robot = 11
 
         self.ROBOT_WIDTH = 7
 
