@@ -15,7 +15,7 @@ class ShootForGoal(GeneralizedStrategy):
             print "cage is up"
             return self.lower_cage()
         else:
-            print "cage is up"
+            print "cage is down"
             if not self.is_robot_facing_goal():  # are we facing the goal?
                 print "robot not facing goal"
                 to_turn = self.robot.angle_to_point(self.world.goal)

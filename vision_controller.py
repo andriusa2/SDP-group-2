@@ -71,7 +71,7 @@ class VisionController:
 
         # this is our chosen strategy
         """R_ATT, L_ATT, R_DEF, L_DEF"""
-        self.planner = Planner(self.world, Zone.L_ATT, actual_robot, True)
+        self.planner = Planner(self.world, Zone.R_DEF, actual_robot, True)
 
         #----------------------------------------------------------
 
