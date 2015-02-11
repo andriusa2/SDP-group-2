@@ -244,15 +244,16 @@ class PlannerTest(BaseTest):
         self.planner.plan_attack()
         self.assertTrue(self.planner.is_robot_facing_ball())
 
+
 class BlockTest(BaseTest):
 
-    def block_test(self):
+    def test_block_goal(self):
         # create a robot and a ball
         robot_1 = Robot(direction=(0, 1), position=(8.0, 8.0), velocity=(0.0, 0.0), enemy=True)
         robot_2 = Robot(direction=(1, 0), position=(15.0, 0), velocity=(0.0, 0.0), enemy=False)
         robot_3 = Robot(direction=(0, 1), position=(25, 25), velocity=(0, 0), enemy=True)
         robot_4 = Robot(direction=(0, 1), position=(35, 35), velocity=(0, 0), enemy=True)
-        ball = Ball(position=(5, 5), velocity=(5, 5), in_possession=False)
+        ball = Ball(position=(5, 5), velocity=(5, 0), in_possession=False)
 
         # set the list of robots
         robots = [robot_1, robot_2, robot_3, robot_4]
@@ -263,15 +264,42 @@ class BlockTest(BaseTest):
         actual_robot = DummyRobot(self.world_state, Zone.L_DEF)
         # actual_robot = Controller("/dev/tty.usbmodem000001")
         # give the strategy the world the dummy and the zone of the dummy
-        self.planner = Planner(self.world_state, Zone.L_DEF, actual_robot, True)
+        self.planner = Planner(self.world_state, Zone.L_DEF, actual_robot, False)
 
         self.assertTrue(self.planner.ball_going_quickly())
 
-        self.planner.plan_defense()
-        self.assertTrue(self.planner.sidewards())
+        self.planner.plan_defence()
+        self.assertTrue(self.planner.is_robot_facing_up())
 
-        self.planner.plan_defense()
-        #self.assertTrue(self.planner.)
+        self.planner.plan_defence()
+        self.assertEquals(self.planner.robot.position, Vector2D(8, 5))
+
+    def test_block_goal(self):
+        # create a robot and a ball
+        robot_1 = Robot(direction=(0, 1), position=(5.0, 5.0), velocity=(0.0, 0.0), enemy=True)
+        robot_2 = Robot(direction=(1, 0), position=(15.0, 0), velocity=(0.0, 0.0), enemy=False)
+        robot_3 = Robot(direction=(0, 1), position=(25, 25), velocity=(0, 0), enemy=True)
+        robot_4 = Robot(direction=(0, 1), position=(35, 35), velocity=(0, 0), enemy=True)
+        ball = Ball(position=(8, 8), velocity=(5, 0), in_possession=False)
+
+        # set the list of robots
+        robots = [robot_1, robot_2, robot_3, robot_4]
+
+        # create a world object
+        self.world_state = WorldState(robots=robots, ball=ball, zone_boundaries=[10, 20, 30, 40])
+        # make a dummy robot which can change the world
+        actual_robot = DummyRobot(self.world_state, Zone.L_DEF)
+        # actual_robot = Controller("/dev/tty.usbmodem000001")
+        # give the strategy the world the dummy and the zone of the dummy
+        self.planner = Planner(self.world_state, Zone.L_DEF, actual_robot, False)
+
+        self.assertTrue(self.planner.ball_going_quickly())
+
+        self.planner.plan_defence()
+        self.assertTrue(self.planner.is_robot_facing_up())
+
+        self.planner.plan_defence()
+        self.assertEquals(self.planner.robot.position, Vector2D(5, 8))
 
 
 

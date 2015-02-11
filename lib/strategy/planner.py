@@ -55,8 +55,7 @@ class Planner(GeneralizedStrategy):
                     return self.do_strategy(self.block_goal)
                 else:
                     print "ball is not in robot's zone and stationary. Pass"
-
-            return True
+                    return 0
 
         else:
             return False

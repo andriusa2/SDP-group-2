@@ -59,7 +59,7 @@ class GeneralizedStrategy(object):
         inside the beam projected from the robot
         :return: whether or not the robot is facing the ball
         """
-        up_pos = Vector2D(self.robot.x, 100)
+        up_pos = Vector2D(self.robot.position.x, 100)
         robot = self.world.get_robot(self.robot_tag)
         return robot.can_see(point=up_pos, beam_width=self.ROBOT_WIDTH/2)
 
@@ -155,15 +155,20 @@ class GeneralizedStrategy(object):
         side_point = (robot_x, robot_y + 20)
         return robot.can_see(point=side_point, threshold=0.05)
 
-    def predict_y(self, predict_for_x, ball):
+    def predict_y(self, predict_for_x):
         """
         Predict the y coordinate the ball will have when it reaches the x coordinate of the robot.
         """
-        x = ball.x
-        y = ball.y
-        angle = ball.angle
-        predicted_y = (y + np.tan(angle) * (predict_for_x - x))
-        return predicted_y
+        ball_x = self.ball.position.x
+        ball_y = self.ball.position.y
+        ball_v = self.ball.velocity
+
+        distance_ball_robot = np.abs(ball_x-predict_for_x)
+
+        if ball_v.x == 0:
+            return ball_y
+        else:
+            return ball_y + (ball_v.y / ball_v.x) * distance_ball_robot
 
 
 
