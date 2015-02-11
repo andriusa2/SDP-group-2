@@ -72,14 +72,14 @@ class Controller(Arduino):
         return 0.5
 
     def move(self, distance, power=None):
-        if power is not None:
+        if power is not (None or 1 or -1):
             print "I don't support different powers, defaulting to 1"
         if distance < 0:
             duration = get_duration(-distance, -1)
         else:
             duration = get_duration(distance, 1)
         assert 0 < duration < 6000, 'Something looks wrong in the distance calc'
-        return self.go(duration, 1)
+        return self.go(duration, power)
 
     def stop(self):
         self._write(self.COMMANDS['stop'].format(term=self.ENDL))

@@ -53,6 +53,16 @@ class GeneralizedStrategy(object):
         ball_pos = self.world.get_ball().position
         return robot.can_see(point=ball_pos, beam_width=self.ROBOT_WIDTH/2)
 
+    def is_robot_facing_up(self):
+        """
+        Check the up position is
+        inside the beam projected from the robot
+        :return: whether or not the robot is facing the ball
+        """
+        up_pos = Vector2D(self.robot.x, 100)
+        robot = self.world.get_robot(self.robot_tag)
+        return robot.can_see(point=up_pos, beam_width=self.ROBOT_WIDTH/2)
+
     def fetch_world_state(self):
         """
         grab the latest state of the world and set this objects attribute
@@ -117,7 +127,7 @@ class GeneralizedStrategy(object):
         Check is ball is going quicker than a threshold velocity
         """
         velocity_threshold = 3
-        ball_velocity = self.world.get_ball().velocity
+        ball_velocity = self.world.get_ball().velocity.length()
         return ball_velocity > velocity_threshold
 
     def get_zone_centre(self):
@@ -152,7 +162,7 @@ class GeneralizedStrategy(object):
         x = ball.x
         y = ball.y
         angle = ball.angle
-        predicted_y = (y + tan(angle) * (predict_for_x - x))
+        predicted_y = (y + np.tan(angle) * (predict_for_x - x))
         return predicted_y
 
 
