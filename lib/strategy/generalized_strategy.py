@@ -34,7 +34,6 @@ class GeneralizedStrategy(object):
         self.world.get_robot(self.robot_tag).is_grabber_down = True
         print "GRABING"
         return self.actual_robot.grab()
-        
 
     def is_robot_facing_goal(self):
         """

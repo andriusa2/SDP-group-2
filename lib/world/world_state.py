@@ -118,7 +118,7 @@ class WorldState(object):
     Should be filled by vision component of our system.
     """
 
-    def __init__(self, robots=None, ball=None, zone_boundaries=None, goal=(0, 0)):
+    def __init__(self, robots=None, ball=None, zone_boundaries=None, goal=(0, 0), goal_to_defend=(0, 0)):
         """
         :param robots: A list of robots (if zone_boundaries is supplied) or
           a dictionary mapping zone to robot.
@@ -129,6 +129,7 @@ class WorldState(object):
         self.robots = dict() if not robots else robots
         self.fix_robots()
         self.goal = Vector2D.to_vector2d(goal)
+        self.goal_to_defend = Vector2D.to_vector2d(goal_to_defend)
 
     def fix_robots(self):
         """
