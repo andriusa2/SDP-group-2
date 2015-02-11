@@ -1,9 +1,9 @@
 __author__ = 'samdavies'
-from lib.strategy.generalized_strategy import GeneralizedStrategy
+from lib.strategy.strategy import Strategy
 import numpy as np
 
 
-class BlockGoal(GeneralizedStrategy):
+class BlockGoal(Strategy):
     def __init__(self, world, robot_tag, actual_robot):
         super(BlockGoal, self).__init__(world, robot_tag, actual_robot)
 

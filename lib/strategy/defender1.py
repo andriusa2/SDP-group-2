@@ -1,10 +1,10 @@
-from generalized_strategy import GeneralizedStrategy
+from strategy import Strategy
 import numpy as np
 from lib.math.vector import Vector2D
 __author__ = 'Sam and alex'
 
 
-class Defender1(GeneralizedStrategy):
+class Defender1(Strategy):
 
     def __init__(self, world, robot_tag, actual_robot):
         super(Defender1, self).__init__(world, robot_tag, actual_robot)

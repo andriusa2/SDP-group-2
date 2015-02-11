@@ -1,9 +1,11 @@
-__author__ = 'samdavies'
+__author__ = 'Sam Davies'
+from lib.strategy.strategy import Strategy
 
-class PassToZone(GeneralizedStrategy):
+
+class PassToZone(Strategy):
 
     def __init__(self, world, robot_tag, actual_robot):
-        super(FetchBall, self).__init__(world, robot_tag, actual_robot)
+        super(PassToZone, self).__init__(world, robot_tag, actual_robot)
 
     def act(self):
-    	pass
+        pass

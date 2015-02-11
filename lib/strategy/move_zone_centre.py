@@ -1,8 +1,8 @@
 __author__ = 'Sam Davies'
-from lib.strategy.generalized_strategy import GeneralizedStrategy
+from lib.strategy.strategy import Strategy
 
 
-class MoveToZoneCentre(GeneralizedStrategy):
+class MoveToZoneCentre(Strategy):
 
     def __init__(self, world, robot_tag, actual_robot):
         super(MoveToZoneCentre, self).__init__(world, robot_tag, actual_robot)

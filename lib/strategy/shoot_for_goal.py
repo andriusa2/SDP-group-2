@@ -1,15 +1,14 @@
 __author__ = 'Sam Davies'
-from lib.strategy.generalized_strategy import GeneralizedStrategy
+from lib.strategy.strategy import Strategy
 
 
-class ShootForGoal(GeneralizedStrategy):
+class ShootForGoal(Strategy):
 
     def __init__(self, world, robot_tag, actual_robot):
         super(ShootForGoal, self).__init__(world, robot_tag, actual_robot)
 
     def act(self):
         self.fetch_world_state()
-        
 
         if not self.world.is_grabber_down:
             print "cage is up"

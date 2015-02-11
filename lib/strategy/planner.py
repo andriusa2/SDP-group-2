@@ -3,10 +3,10 @@ import time
 from lib.strategy.fetch_ball import FetchBall
 from lib.strategy.shoot_for_goal import ShootForGoal
 from lib.strategy.block_goal import BlockGoal
-from lib.strategy.generalized_strategy import GeneralizedStrategy
+from lib.strategy.strategy import Strategy
 
 
-class Planner(GeneralizedStrategy):
+class Planner(Strategy):
 
     """
     time the next action be performed before the previous action will finish

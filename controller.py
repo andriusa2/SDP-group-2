@@ -36,7 +36,7 @@ class Controller(object):
 
     def fetch_our_zone(self, zone_num):
         """
-        choose are zone starting with 1 being at the left and 4 being at the right
+        choose our robot's zone, with 1 being at the left and 4 being at the right
         :param zone_num
         """
         assert zone_num in [1, 2, 3, 4]

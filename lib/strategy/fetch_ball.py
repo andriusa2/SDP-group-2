@@ -1,9 +1,9 @@
 __author__ = 'Sam Davies'
-from lib.strategy.generalized_strategy import GeneralizedStrategy
+from lib.strategy.strategy import Strategy
 import numpy as np
 
 
-class FetchBall(GeneralizedStrategy):
+class FetchBall(Strategy):
 
     def __init__(self, world, robot_tag, actual_robot):
         super(FetchBall, self).__init__(world, robot_tag, actual_robot)

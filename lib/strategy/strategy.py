@@ -3,7 +3,7 @@ from lib.math.vector import Vector2D
 __author__ = 'Sam'
 
 
-class GeneralizedStrategy(object):
+class Strategy(object):
 
     def __init__(self, world, robot_tag, actual_robot):
         self.actual_robot = actual_robot
@@ -24,10 +24,18 @@ class GeneralizedStrategy(object):
         # self.fetch_world_state()
 
     def raise_cage(self):
+        """
+        opens the grabber arms
+        :return: time it takes for the grabbers to open
+        """
         self.world.is_grabber_down = False
         return self.actual_robot.kick()
 
     def lower_cage(self):
+        """
+        closes the grabber in an attempt to collect the ball
+        :return: time it takes for the grabbers to close
+        """
         # self.actual_robot.lower_cage()
         self.world.is_grabber_down = True
         print "GRABING"
@@ -132,28 +140,6 @@ class GeneralizedStrategy(object):
 
     def get_zone_centre(self):
         return Vector2D(0, 0)  # TODO
-
-    def alligned(self):
-        """
-        Robot is in a position in the middle of the goal.
-        """
-        pass
-
-    def sidewards(self):
-        """
-        Check robot is in the side side on position (i.e facing the side wall)
-        """
-        robot = self.world.get_robot(self.robot_tag)
-        robot_x = robot.x
-        side_point = (robot_x, 0)
-        return robot.can_see(point=side_point, threshold=0.05)
-
-    def is_sideways_up(self):
-        robot = self.world.get_robot(self.robot_tag)
-        robot_x = robot.x
-        robot_y = robot.y
-        side_point = (robot_x, robot_y + 20)
-        return robot.can_see(point=side_point, threshold=0.05)
 
     def predict_y(self, predict_for_x):
         """
