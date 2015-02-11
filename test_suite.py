@@ -209,15 +209,15 @@ class PlannerTest(BaseTest):
         self.world_state.set_ball(ball)
         self.world_state.add_robot(Zone.L_ATT, robot_2)
         # raise cage
-        did_act = self.planner.plan_attack()
-        self.assertTrue(did_act)
+        act_timer1 = self.planner.plan_attack()
+        self.assertTrue(act_timer1)
         # prevent action
-        did_act = self.planner.plan_attack()
+        act_timer2 = self.planner.plan_attack()
         # make sure that the planner could not act
-        self.assertFalse(did_act)
-        time.sleep(1)
-        did_act = self.planner.plan_attack()
-        self.assertTrue(did_act)
+        self.assertFalse(act_timer2)
+        time.sleep(act_timer1)
+        act_timer3 = self.planner.plan_attack()
+        self.assertTrue(act_timer3)
 
     # ensure that the world state is fetched
     def test_fetch_world_state(self):

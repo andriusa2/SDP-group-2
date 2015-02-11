@@ -1,27 +1,36 @@
 __author__ = 'samdavies'
 import time
 from lib.math.util import rotate_vector
+import os
+import pty
+import serial
+from communication.controller import Controller
 
 
-class DummyRobot():
+class DummyRobot(Controller):
 
     def __init__(self, world, robot_tag="L_ATT"):
+
         self.world = world
         self.robot_tag = robot_tag
 
+        master, slave = pty.openpty()
+        s_name = os.ttyname(slave)
+        ser = serial.Serial(s_name)
+
+        super(DummyRobot, self).__init__(ser.getPort(), is_dummy=True)
+
     def kick(self, power=None):
         pass
-        # artificially set the world state
-        return 1.0
+        return super(DummyRobot, self).kick(power)
 
     def turn(self, angle):
         """ Turns robot over 'angle' radians in place. """
-        pass
         # artificially set the world state
         robot = self.world.get_robot(self.robot_tag)
         robot.direction = rotate_vector(robot.direction, angle)
         self.world.add_robot(self.robot_tag, robot)
-        return 1.0
+        return super(DummyRobot, self).turn(angle)
 
     def move(self, distance):
         # artificially set the world state
@@ -31,13 +40,7 @@ class DummyRobot():
         robot.position += unit_direction
         print("robot moved from " + str(old_pos.x) + ", " + str(old_pos.y) + " to " + str(robot.position.x) + ", " + str(robot.position.y))
         self.world.add_robot(self.robot_tag, robot)
-        return 1.0
-
-    def go(self, duration, power=None):
-        pass
-        return 1.0
+        return super(DummyRobot, self).move(distance)
 
     def grab(self):
-        pass
-        # artificially set the world state
-        return 1.0
+        return super(DummyRobot, self).grab()

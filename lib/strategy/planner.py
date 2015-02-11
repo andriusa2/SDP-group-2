@@ -26,8 +26,8 @@ class Planner(GeneralizedStrategy):
         # create all the defending strategies
         if not is_attacker:
             self.block_goal = BlockGoal(world, robot_tag, actual_robot)
-            self.fetch_ball = FetchBall(world,robot_tag, actual_robot)
-            self.clear_ball = ShootForGoal(world,robot_tag, actual_robot)
+            self.fetch_ball = FetchBall(world, robot_tag, actual_robot)
+            self.clear_ball = ShootForGoal(world, robot_tag, actual_robot)
 
     def plan_defence(self):
         self.fetch_world_state()
@@ -39,7 +39,7 @@ class Planner(GeneralizedStrategy):
 
             if zone_ball == zone_robot:
                 print "ball in robot's zone"
-                if ball_going_quickly:
+                if self.ball_going_quickly():
                     print "Ball going quickly. Block the goal"
                     self.do_strategy(self.block_goal)
                 else:
@@ -50,7 +50,7 @@ class Planner(GeneralizedStrategy):
                         print "Ball is held. Kick ball upfield"
                         self.do_strategy(self.clear_ball)
             else:
-                if ball_going_quickly:
+                if self.ball_going_quickly():
                     print "ball is not in robot's zone but moving quickly. Block the ball"
                     self.do_strategy(self.block_goal)
                 else:
@@ -60,7 +60,6 @@ class Planner(GeneralizedStrategy):
 
         else:
             return False
-
 
     def plan_attack(self):
         # update the world
@@ -77,17 +76,16 @@ class Planner(GeneralizedStrategy):
                 print "ball in robot's zone"
                 # if ball is in attacker zone and not held, fetch ball
                 if not self.is_ball_close():
-                    self.do_strategy(self.fetch_ball)
+                    return self.do_strategy(self.fetch_ball)
                 else:
                     # if ball is close to kicker, shoot for goal
-                    self.do_strategy(self.shoot_goal)
+                    return self.do_strategy(self.shoot_goal)
             else:
                 # print "ball not in robot's zone"
                 # self.is_robot_facing_ball()
-                pass
+                return 0
 
             # if ball is out of zone, return to middle and turn to face ball
-            return True
         else:
             return False
 
@@ -103,10 +101,11 @@ class Planner(GeneralizedStrategy):
         performs the next action in the strategy and sets when we
         can next act based on how long it takes to perform that action
         :param strategy: the strategy on which to act
-        :return: nothing
+        :return: the time that we have to wait
         """
         cool_down_time_period = strategy.act()
         self.can_act_after = time.time() + cool_down_time_period
+        return cool_down_time_period
 
     def check_for_re_plan(self):
         # if ball moves while collecting the ball, re-plan

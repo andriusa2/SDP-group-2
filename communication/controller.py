@@ -7,7 +7,7 @@ from lib.math.util import convert_angle, get_duration
 class Arduino(object):
     """ Basic class for Arduino communications. """
     
-    def __init__(self, port='/dev/ttyUSB0', rate=115200, timeOut=1, comms=1, debug=False):
+    def __init__(self, port='/dev/ttyUSB0', rate=115200, timeOut=1, comms=1, debug=False, is_dummy=False):
         self.serial = None
         self.comms = comms
         self.port = port
@@ -15,6 +15,7 @@ class Arduino(object):
         self.timeout = timeOut
         self.debug = debug
         self.establish_connection()
+        self.is_dummy = is_dummy
 
     def establish_connection(self):
         self.comms = 1
@@ -31,12 +32,14 @@ class Arduino(object):
         print("Trying to run command: '{0}'".format(string))
         if self.comms == 1:
             self.serial.write(string)
-            self.serial.flush()
-            return
-            a = self.serial.readline()
-            while a:
-                print(a)
+            if not self.is_dummy:
+                self.serial.flush()
+                return
+
                 a = self.serial.readline()
+                while a:
+                    print(a)
+                    a = self.serial.readline()
         elif not self.debug:
             raise Exception("No comm link established, but trying to send command.")
             
@@ -91,7 +94,7 @@ class Controller(Arduino):
         angle = abs(angle)
         distance = angle * self.RADIUS
         duration = get_duration(distance, abs(power))  # magic...
-        print('Trying to turn for {0}'.format(duration))
+        print('Trying to turn for {0} seconds'.format(duration))
         return self.complex_movement(
             left_power=-power,
             right_power=power,
@@ -134,7 +137,7 @@ class Controller(Arduino):
         command = self.COMMANDS['move'].format(term=self.ENDL, **locals())
         self._write(command)
         wait_time = float(max(left_duration, right_duration)) / 1000.0 + 1.0
-        print(wait_time)
+        print("waiting " + str(wait_time) + " for motors")
         return wait_time
         
     def run_engine(self, id, power, duration):
