@@ -186,10 +186,10 @@ class PlannerTest(BaseTest):
     def setUp(self):
         # create a robot and a ball
         robot_1 = Robot(direction=(0, 1), position=(8.0, 8.0), velocity=(0.0, 0.0), enemy=True)
-        robot_2 = Robot(direction=(0, 1), position=(15.0, 15.0), velocity=(0.0, 0.0), enemy=True)
+        robot_2 = Robot(direction=(1, 0), position=(15.0, 0), velocity=(0.0, 0.0), enemy=False)
         robot_3 = Robot(direction=(0, 1), position=(25, 25), velocity=(0, 0), enemy=True)
         robot_4 = Robot(direction=(0, 1), position=(35, 35), velocity=(0, 0), enemy=True)
-        ball = Ball(position=(5, 5), velocity=(0, 0), in_possession=False)
+        ball = Ball(position=(15, 15), velocity=(0, 0), in_possession=False)
 
         # set the list of robots
         robots = [robot_1, robot_2, robot_3, robot_4]
@@ -204,11 +204,6 @@ class PlannerTest(BaseTest):
 
     # ensure that the timer stops an action from being performed
     def test_timer_prevents_action(self):
-        # set up the world so that the robot has to turn
-        ball = Ball(position=(15, 15), velocity=(0, 0), in_possession=False)
-        robot_2 = Robot(direction=(1, 0), position=(15, 0), velocity=(0, 0), enemy=False)
-        self.world_state.set_ball(ball)
-        self.world_state.add_robot(Zone.L_ATT, robot_2)
         # raise cage
         act_timer1 = self.planner.plan_attack()
         self.assertTrue(act_timer1)
@@ -224,8 +219,8 @@ class PlannerTest(BaseTest):
     def test_fetch_world_state(self):
         self.planner.fetch_world_state()
         # check that the correct location is fetched for robot and ball
-        self.assertEquals(self.planner.robot.position, Vector2D(15, 15))
-        self.assertEquals(self.planner.ball.position, Vector2D(5, 5))
+        self.assertEquals(self.planner.robot.position, Vector2D(15, 0))
+        self.assertEquals(self.planner.ball.position, Vector2D(15, 15))
 
     # ensure that real world values work
     def test_real_world_values(self):
