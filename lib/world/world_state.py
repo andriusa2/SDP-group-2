@@ -31,7 +31,6 @@ class Robot(_WorldObject):
         self.enemy = enemy if enemy else False
         self.direction = Vector2D.to_vector2d(direction)
         self.is_moving = False
-        self.is_grabber_down = False
         super(Robot, self).__init__(position, velocity)
 
     def convert_from_model(self, model_robot, scale_factor):
@@ -118,7 +117,7 @@ class WorldState(object):
     Should be filled by vision component of our system.
     """
 
-    def __init__(self, robots=None, ball=None, zone_boundaries=None, goal=(0, 0), goal_to_defend=(0, 0)):
+    def __init__(self, robots=None, ball=None, zone_boundaries=None, goal=(0, 50), goal_to_defend=(212, 50)):
         """
         :param robots: A list of robots (if zone_boundaries is supplied) or
           a dictionary mapping zone to robot.
@@ -130,6 +129,7 @@ class WorldState(object):
         self.fix_robots()
         self.goal = Vector2D.to_vector2d(goal)
         self.goal_to_defend = Vector2D.to_vector2d(goal_to_defend)
+        self.is_grabber_down = False
 
     def fix_robots(self):
         """

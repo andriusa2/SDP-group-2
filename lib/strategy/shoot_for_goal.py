@@ -9,11 +9,13 @@ class ShootForGoal(GeneralizedStrategy):
 
     def act(self):
         self.fetch_world_state()
-        print "cage is down"
+        
 
-        if not self.world.get_robot(self.robot_tag).is_grabber_down:
+        if not self.world.is_grabber_down:
+            print "cage is up"
             return self.lower_cage()
         else:
+            print "cage is up"
             if not self.is_robot_facing_goal():  # are we facing the goal?
                 print "robot not facing goal"
                 to_turn = self.robot.angle_to_point(self.world.goal)
@@ -22,4 +24,5 @@ class ShootForGoal(GeneralizedStrategy):
 
             else:  # we are facing the goal
                 print "robot is facing goal"
+                self.world.is_grabber_down = False
                 return self.actual_robot.kick(power=1.0)  # kick
