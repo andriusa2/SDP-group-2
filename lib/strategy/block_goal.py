@@ -31,3 +31,4 @@ class BlockGoal(GeneralizedStrategy):
             to_turn = self.robot.angle_to_point(self.ball.position)
             print "rotating robot " + str(360.0 * to_turn / (2 * np.pi)) + " degrees"
             return self.actual_robot.turn(to_turn)  # turn towards up
+
