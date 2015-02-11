@@ -41,18 +41,18 @@ class Planner(GeneralizedStrategy):
                 print "ball in robot's zone"
                 if self.ball_going_quickly():
                     print "Ball going quickly. Block the goal"
-                    self.do_strategy(self.block_goal)
+                    return self.do_strategy(self.block_goal)
                 else:
                     if not self.is_ball_close():
                         print "Ball is (near) stationary. Get the ball"
-                        self.do_strategy(self.fetch_ball)
+                        return self.do_strategy(self.fetch_ball)
                     else:
                         print "Ball is held. Kick ball upfield"
-                        self.do_strategy(self.clear_ball)
+                        return self.do_strategy(self.clear_ball)
             else:
                 if self.ball_going_quickly():
                     print "ball is not in robot's zone but moving quickly. Block the ball"
-                    self.do_strategy(self.block_goal)
+                    return self.do_strategy(self.block_goal)
                 else:
                     print "ball is not in robot's zone and stationary. Pass"
 

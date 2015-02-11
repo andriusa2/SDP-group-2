@@ -3,6 +3,7 @@ import unittest
 from lib.world.world_state import Robot, Ball, WorldState, Zone
 from lib.strategy.fetch_ball import FetchBall
 from lib.strategy.planner import Planner
+from lib.strategy.block_goal import BlockGoal
 
 from communication.controller import Controller
 
@@ -254,6 +255,8 @@ class PlannerTest(BaseTest):
     # ensure that the attacker shoots when it has the ball
 
     # ensure that the planner moves to centre when ball is away
+
+
 
 
 if __name__ == '__main__':

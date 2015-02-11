@@ -116,8 +116,8 @@ class GeneralizedStrategy(object):
         """
         Check is ball is going quicker than a threshold velocity
         """
-        velocity_threshold = 0
-        ball_velocity = self.world.get_ball.velocity
+        velocity_threshold = 3
+        ball_velocity = self.world.get_ball().velocity
         return ball_velocity > velocity_threshold
 
     def get_zone_centre(self):
@@ -134,8 +134,15 @@ class GeneralizedStrategy(object):
         Check robot is in the side side on position (i.e facing the side wall)
         """
         robot = self.world.get_robot(self.robot_tag)
-        robot_x = self.world.get_robot(self.robot_tag).x
+        robot_x = robot.x
         side_point = (robot_x, 0)
+        return robot.can_see(point=side_point, threshold=0.05)
+
+    def is_sideways_up(self):
+        robot = self.world.get_robot(self.robot_tag)
+        robot_x = robot.x
+        robot_y = robot.y
+        side_point = (robot_x, robot_y + 20)
         return robot.can_see(point=side_point, threshold=0.05)
 
     def predict_y(self, predict_for_x, ball):
