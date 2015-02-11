@@ -1,7 +1,6 @@
 _author__ = 'Sam Davies'
 import unittest
 from lib.world.world_state import Robot, Ball, WorldState, Zone
-from lib.strategy.attacker1 import Attacker1
 from lib.strategy.fetch_ball import FetchBall
 from lib.strategy.planner import Planner
 
@@ -55,34 +54,7 @@ class TestAttacker1(BaseTest):
         # give the strategy the world the dummy and the zone of the dummy
         self.attacker1 = Attacker1(self.world_state, Zone.L_ATT, actual_robot)
 
-    # ensure that the world state is fetched
-    def test_fetch_world_state(self):
-        self.attacker1.fetch_world_state()
-        # check that the correct location is fetched for robot and ball
-        self.assertEquals(self.attacker1.robot.position, Vector2D(15, 15))
-        self.assertEquals(self.attacker1.ball.position, Vector2D(5, 5))
 
-    # ensure that real world values work
-    def test_real_world_values(self):
-        scale_factor = 0.4
-        robot1 = Robot().convert_from_model(DummyRobotModel(22.0, 168.0, 0.04, 0.0), scale_factor)
-        robot2 = Robot().convert_from_model(DummyRobotModel(172.0, 207.0, 6.21, 0.0), scale_factor)
-        robot3 = Robot().convert_from_model(DummyRobotModel(336.0, 133.0, 3.33, 1.0), scale_factor)
-        robot4 = Robot().convert_from_model(DummyRobotModel(436.0, 238.0, 4.3, 0.0), scale_factor)
-        robots = [robot1, robot2, robot3, robot4]
-
-        ball = Ball().convert_from_model(DummyBallModel(180.0, 236.0, 3.14, 1.0), scale_factor)
-        boundries = [47, 106, 165, 212]
-
-        self.world_state.set_zone_boundaries(boundries)
-        self.world_state.set_robots(robots)
-        self.world_state.set_ball(ball)
-
-        # raise cage
-        self.attacker1.act()
-        # turn
-        self.attacker1.act()
-        self.assertTrue(self.attacker1.is_robot_facing_ball())
 
 
 class FetchBallTest(BaseTest):
@@ -246,6 +218,35 @@ class PlannerTest(BaseTest):
         time.sleep(1)
         did_act = self.planner.plan_attack()
         self.assertTrue(did_act)
+
+    # ensure that the world state is fetched
+    def test_fetch_world_state(self):
+        self.planner.fetch_world_state()
+        # check that the correct location is fetched for robot and ball
+        self.assertEquals(self.planner.robot.position, Vector2D(15, 15))
+        self.assertEquals(self.planner.ball.position, Vector2D(5, 5))
+
+    # ensure that real world values work
+    def test_real_world_values(self):
+        scale_factor = 0.4
+        robot1 = Robot().convert_from_model(DummyRobotModel(22.0, 168.0, 0.04, 0.0), scale_factor)
+        robot2 = Robot().convert_from_model(DummyRobotModel(172.0, 207.0, 6.21, 0.0), scale_factor)
+        robot3 = Robot().convert_from_model(DummyRobotModel(336.0, 133.0, 3.33, 1.0), scale_factor)
+        robot4 = Robot().convert_from_model(DummyRobotModel(436.0, 238.0, 4.3, 0.0), scale_factor)
+        robots = [robot1, robot2, robot3, robot4]
+
+        ball = Ball().convert_from_model(DummyBallModel(180.0, 236.0, 3.14, 1.0), scale_factor)
+        boundries = [47, 106, 165, 212]
+
+        self.world_state.set_zone_boundaries(boundries)
+        self.world_state.set_robots(robots)
+        self.world_state.set_ball(ball)
+
+        # raise cage
+        self.planner.plan_attack()
+        # turn
+        self.planner.plan_attack()
+        self.assertTrue(self.planner.is_robot_facing_ball())
 
 
     # ensure that the attacker fetches the ball when in own zone
