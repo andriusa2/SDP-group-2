@@ -24,6 +24,6 @@ class FetchBall(GeneralizedStrategy):
 
         else:  # we're facing the ball
             print "robot facing ball"
-            dist_to_ball = self.distance_from_kicker_to_ball()
+            dist_to_ball = self.distance_from_kicker_to_ball() * 0.9  # only move 90%
             print "moving robot " + str(dist_to_ball)
             return self.actual_robot.move(dist_to_ball)
