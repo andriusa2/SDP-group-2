@@ -31,6 +31,7 @@ class Robot(_WorldObject):
         self.enemy = enemy if enemy else False
         self.direction = Vector2D.to_vector2d(direction)
         self.is_moving = False
+        self.is_grabber_down = False
         super(Robot, self).__init__(position, velocity)
 
     def convert_from_model(self, model_robot, scale_factor):

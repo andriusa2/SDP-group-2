@@ -13,6 +13,7 @@ class FetchBall(GeneralizedStrategy):
         print "ball is far away to robot"
             # cage not down
 
+
         if not self.is_robot_facing_ball():  # are we facing the ball?
             print "robot not facing ball"
             to_turn = self.robot.angle_to_point(self.ball.position)

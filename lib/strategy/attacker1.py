@@ -17,7 +17,7 @@ class Attacker1(GeneralizedStrategy):
             if not self.is_ball_close():
                 print "ball is far away to robot"
 
-                if self.is_grabber_down:  # is the cage down?
+                if self.world.get_robot(self.robot_tag).is_grabber_down:  # is the cage down?
                     self.raise_cage()
                 else:
                     # cage not down
@@ -36,7 +36,7 @@ class Attacker1(GeneralizedStrategy):
 
             else:  # the ball can be held
                 print "ball is close to robot kicker"
-                if self.is_grabber_down:  # we must be holding the ball
+                if self.world.get_robot(self.robot_tag).is_grabber_down:  # we must be holding the ball
                     print "cage is down"
                     if not self.is_robot_facing_goal():  # are we facing the goal?
                         print "robot not facing goal"

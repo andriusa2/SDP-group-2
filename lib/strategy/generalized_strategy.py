@@ -12,11 +12,9 @@ class GeneralizedStrategy(object):
 
         self.grab_threshold_x = 4  # we need to define these (based on kicker)
         self.grab_threshold_y = 4
-        self.dist_kicker_robot = 12
+        self.dist_kicker_robot = 10
 
         self.ROBOT_WIDTH = 7
-
-        self.is_grabber_down = False
 
         # initialise state attributes
         self.robot = None
@@ -26,14 +24,14 @@ class GeneralizedStrategy(object):
         # self.fetch_world_state()
 
     def raise_cage(self):
-        self.is_grabber_down = False
+        self.world.get_robot(self.robot_tag).is_grabber_down = False
         raise Exception('calling raise_cage')
         print "raise cage"
         return 0
 
     def lower_cage(self):
         # self.actual_robot.lower_cage()
-        self.is_grabber_down = True
+        self.world.get_robot(self.robot_tag).is_grabber_down = True
         print "GRABING"
         return self.actual_robot.grab()
         
@@ -56,7 +54,7 @@ class GeneralizedStrategy(object):
         """
         robot = self.world.get_robot(self.robot_tag)
         ball_pos = self.world.get_ball().position
-        return robot.can_see(point=ball_pos, beam_width=self.ROBOT_WIDTH)
+        return robot.can_see(point=ball_pos, beam_width=self.ROBOT_WIDTH/2)
 
     def fetch_world_state(self):
         """

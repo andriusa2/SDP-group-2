@@ -11,7 +11,7 @@ class ShootForGoal(GeneralizedStrategy):
         self.fetch_world_state()
         print "cage is down"
 
-        if not self.is_grabber_down:
+        if not self.world.get_robot(self.robot_tag).is_grabber_down:
             return self.lower_cage()
         else:
             if not self.is_robot_facing_goal():  # are we facing the goal?

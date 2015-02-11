@@ -133,7 +133,7 @@ class Controller(Arduino):
         self.stop()
         command = self.COMMANDS['move'].format(term=self.ENDL, **locals())
         self._write(command)
-        wait_time = float(max(left_duration, right_duration)) / 1000.0 + 0.1
+        wait_time = float(max(left_duration, right_duration)) / 1000.0 + 1.0
         print(wait_time)
         return wait_time
         
