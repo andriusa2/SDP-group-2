@@ -1,27 +1,40 @@
 __author__ = 'Sam Davies'
 from planning.strategies.strategy import Strategy
+from planning.strategies.state_machine import StateMachine
 
 
 class ShootForGoal(Strategy):
 
     def __init__(self, world, robot_tag, actual_robot):
         super(ShootForGoal, self).__init__(world, robot_tag, actual_robot)
+        self.m = StateMachine()
+        self.m.add_state("Start", self.start_trans)
+        self.m.add_state("Grabber is Closed", self.grabber_open_trans)
+
+        # End States / Actions
+        self.m.add_action("Close Grabber", self.lower_cage)
+        self.m.add_action("Shoot", self.shoot)
+        self.m.add_action("Turn to Goal", self.turn_robot_to_goal)
+
+        # set start state
+        self.m.set_start("Start")
 
     def act(self):
         self.fetch_world_state()
 
-        if not self.world.is_grabber_down:
-            print "cage is up"
-            return self.lower_cage()
-        else:
-            print "cage is down"
-            if not self.is_robot_facing_goal():  # are we facing the goal?
-                print "robot not facing goal"
-                to_turn = self.robot.angle_to_point(self.world.goal)
-                print "rotating robot " + str(to_turn) + " radians"
-                return self.actual_robot.turn(to_turn)  # turn towards the the goal
+        action_state = self.m.run()
+        return self.m.do_action(action_state)
 
-            else:  # we are facing the goal
-                print "robot is facing goal"
-                self.world.is_grabber_down = False
-                return self.actual_robot.kick(power=1.0)  # kick
+    def start_trans(self):
+        if self.world.is_grabber_down:
+            new_state = "Grabber is Closed"
+        else:
+            new_state = "Close Grabber"
+        return new_state
+
+    def grabber_open_trans(self):
+        if self.is_robot_facing_goal():
+            new_state = "Shoot"
+        else:
+            new_state = "Turn to Goal"
+        return new_state

@@ -13,7 +13,7 @@ class FetchBall(Strategy):
         self.m.add_state("Grabber is Open", self.grabber_is_open_trans)
 
         # End States / Actions
-        self.m.add_action("Open Grabber", self.open_grabber)
+        self.m.add_action("Open Grabber", self.raise_cage())
         self.m.add_action("Move to Ball", self.move_robot_to_ball)
         self.m.add_action("Turn to Ball", self.turn_robot_to_ball)
 
@@ -42,20 +42,3 @@ class FetchBall(Strategy):
         else:
             new_state = "Turn to Ball"
         return new_state
-
-    ##-------------------------------------- Actions --------------------------------------
-
-    def open_grabber(self):
-        return self.raise_cage()
-
-    def turn_robot_to_ball(self):
-        print "robot not facing ball"
-        to_turn = self.robot.angle_to_point(self.ball.position)
-        print "rotating robot " + str(360.0 * to_turn / (2 * np.pi)) + " degrees"
-        return self.actual_robot.turn(to_turn)  # turn towards the the ball
-
-    def move_robot_to_ball(self):
-        print "robot facing ball"
-        dist_to_ball = self.distance_from_kicker_to_ball() * 0.9  # only move 90%
-        print "moving robot " + str(dist_to_ball)
-        return self.actual_robot.move(dist_to_ball)
