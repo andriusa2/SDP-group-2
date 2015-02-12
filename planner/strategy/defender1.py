@@ -1,6 +1,5 @@
-from strategy import Strategy
-import numpy as np
-from lib.math.vector import Vector2D
+from planner.strategy.strategy import Strategy
+
 __author__ = 'Sam and alex'
 
 

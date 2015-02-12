@@ -1,9 +1,10 @@
 __author__ = 'Sam Davies'
 import time
-from lib.strategy.fetch_ball import FetchBall
-from lib.strategy.shoot_for_goal import ShootForGoal
-from lib.strategy.block_goal import BlockGoal
-from lib.strategy.strategy import Strategy
+
+from planner.strategy.fetch_ball import FetchBall
+from planner.strategy.shoot_for_goal import ShootForGoal
+from planner.strategy.block_goal import BlockGoal
+from planner.strategy.strategy import Strategy
 
 
 class Planner(Strategy):

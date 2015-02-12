@@ -1,12 +1,13 @@
+from multiprocessing import Process, Queue
+from collections import namedtuple
+
+import numpy as np
+
 import cv2
 import tools
 from tracker import BallTracker, RobotTracker
-from multiprocessing import Process, Queue
 from colors import BGR_COMMON
-from collections import namedtuple
-import numpy as np
 from findHSV import CalibrationGUI
-from lib.world.world_state import Robot, Ball
 
 
 TEAM_COLORS = set(['yellow', 'blue'])

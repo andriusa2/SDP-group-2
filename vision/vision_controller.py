@@ -1,11 +1,12 @@
+import warnings
+import time
+
 from vision.vision import Vision, Camera, GUI
 from postprocessing.postprocessing import Postprocessing
-from preprocessing.preprocessing import Preprocessing
+from vision.preprocessing.preprocessing import Preprocessing
 import vision.tools as tools
 from cv2 import waitKey
 import cv2
-import warnings
-import time
 
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -53,7 +54,7 @@ class VisionController:
         self.side = our_side
 
         self.preprocessing = Preprocessing()
-        
+
     def send_model_to_planner(self, planning_function):
         """
         Ready your sword, here be dragons.

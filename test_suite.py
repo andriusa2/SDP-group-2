@@ -1,18 +1,14 @@
 _author__ = 'Sam Davies'
 import unittest
+import time
+
 from lib.world.world_state import Robot, Ball, WorldState, Zone
-from lib.strategy.fetch_ball import FetchBall
-from lib.strategy.planner import Planner
-from lib.strategy.block_goal import BlockGoal
-
-from communication.controller import Controller
-
-from lib.strategy.shoot_for_goal import ShootForGoal
+from planner.strategy.fetch_ball import FetchBall
+from planner.strategy.planner import Planner
+from planner.strategy.shoot_for_goal import ShootForGoal
 from communication.dummy_robot import DummyRobot
 from lib.math.vector import Vector2D
 from vision.dummy_vision import DummyRobotModel, DummyBallModel
-from numpy import pi
-import time
 
 
 class TestWorldState(unittest.TestCase):

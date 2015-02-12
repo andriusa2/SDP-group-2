@@ -1,6 +1,7 @@
 __author__ = 'Sam Davies'
-from lib.strategy.strategy import Strategy
 import numpy as np
+
+from planner.strategy.strategy import Strategy
 
 
 class FetchBall(Strategy):

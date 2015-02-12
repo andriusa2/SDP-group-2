@@ -1,5 +1,5 @@
 __author__ = 'Sam Davies'
-from lib.strategy.strategy import Strategy
+from planner.strategy.strategy import Strategy
 
 
 class MoveToZoneCentre(Strategy):
