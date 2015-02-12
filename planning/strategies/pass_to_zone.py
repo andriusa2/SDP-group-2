@@ -1,5 +1,5 @@
 __author__ = 'Sam Davies'
-from planner.strategies.strategy import Strategy
+from planning.planner.strategies.strategy import Strategy
 
 
 class PassToZone(Strategy):

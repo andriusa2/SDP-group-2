@@ -1,4 +1,4 @@
-from planner.strategies.strategy import Strategy
+from planning.planner.strategies.strategy import Strategy
 
 __author__ = 'Sam and alex'
 

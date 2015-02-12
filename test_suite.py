@@ -3,7 +3,7 @@ import unittest
 import time
 
 from planning.world.world_state import Robot, Ball, WorldState, Zone
-from planning.strategies.planner import Planner
+from planning.planner import Planner
 from planning.strategies.fetch_ball import FetchBall
 from planning.strategies.shoot_for_goal import ShootForGoal
 from communication.dummy_robot import DummyRobot
