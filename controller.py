@@ -1,5 +1,5 @@
-from planner.strategy.planner import Planner
-from planner.world.world_state import WorldState, Zone, Robot, Ball
+from planning.strategy.planner import Planner
+from planning.world.world_state import WorldState, Zone, Robot, Ball
 from vision.vision_controller import VisionController
 
 __name__ = "Sam Davies"

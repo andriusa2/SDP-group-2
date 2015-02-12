@@ -1,5 +1,5 @@
 __author__ = 'Sam Davies'
-from planner.strategy.strategy import Strategy
+from planning.strategies.strategy import Strategy
 
 
 class ShootForGoal(Strategy):

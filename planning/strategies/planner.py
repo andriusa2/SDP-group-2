@@ -1,10 +1,10 @@
 __author__ = 'Sam Davies'
 import time
 
-from planner.strategy.fetch_ball import FetchBall
-from planner.strategy.shoot_for_goal import ShootForGoal
-from planner.strategy.block_goal import BlockGoal
-from planner.strategy.strategy import Strategy
+from planning.strategies.fetch_ball import FetchBall
+from planning.strategies.shoot_for_goal import ShootForGoal
+from planning.strategies.block_goal import BlockGoal
+from planning.strategies.strategy import Strategy
 
 
 class Planner(Strategy):
@@ -98,9 +98,9 @@ class Planner(Strategy):
 
     def do_strategy(self, strategy):
         """
-        performs the next action in the strategy and sets when we
+        performs the next action in the strategies and sets when we
         can next act based on how long it takes to perform that action
-        :param strategy: the strategy on which to act
+        :param strategy: the strategies on which to act
         :return: the time that we have to wait
         """
         cool_down_time_period = strategy.act()
