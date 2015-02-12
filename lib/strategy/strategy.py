@@ -67,9 +67,9 @@ class Strategy(object):
         inside the beam projected from the robot
         :return: whether or not the robot is facing the ball
         """
-        up_pos = Vector2D(self.robot.position.x, 100)
+        up_pos = Vector2D(self.robot.position.x, 150)
         robot = self.world.get_robot(self.robot_tag)
-        return robot.can_see(point=up_pos, beam_width=self.ROBOT_WIDTH/2)
+        return robot.can_see(point=up_pos, beam_width=self.ROBOT_WIDTH * 4)
 
     def fetch_world_state(self):
         """

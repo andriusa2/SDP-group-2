@@ -54,7 +54,7 @@ class Planner(Strategy):
                     print "ball is not in robot's zone but moving quickly. Block the ball"
                     return self.do_strategy(self.block_goal)
                 else:
-                    print "ball is not in robot's zone and stationary. Pass"
+                    # print "ball is not in robot's zone and stationary. Pass"
                     return 0
 
         else:

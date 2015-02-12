@@ -53,7 +53,7 @@ class VisionController:
         self.side = our_side
 
         self.preprocessing = Preprocessing()
-
+        
     def send_model_to_planner(self, planning_function):
         """
         Ready your sword, here be dragons.

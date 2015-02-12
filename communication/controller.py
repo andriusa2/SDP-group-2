@@ -69,7 +69,7 @@ class Controller(Arduino):
         if power is None:
             power = self.MAX_POWER
         self._write(self.COMMANDS['kick'].format(power=float(power), term=self.ENDL))
-        return 0.5
+        return 0.6
 
     def move(self, distance, power=None):
         if power is not None:
@@ -138,7 +138,7 @@ class Controller(Arduino):
         #self.stop()
         command = self.COMMANDS['move'].format(term=self.ENDL, **locals())
         self._write(command)
-        wait_time = float(max(left_duration, right_duration)) / 1000.0 + 1.0
+        wait_time = float(max(left_duration, right_duration)) / 1000.0 + 0.5
         print("waiting " + str(wait_time) + " for motors")
         return wait_time
         
@@ -153,4 +153,4 @@ class Controller(Arduino):
         if power is None:
             power = -self.MAX_POWER
         self._write(self.COMMANDS['grab'].format(power=float(power), term=self.ENDL))
-        return 0.2
+        return 0.3

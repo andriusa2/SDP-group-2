@@ -72,7 +72,7 @@ class Robot(_WorldObject):
         d = point - self.position
         if d.is_null():
             return False
-        angle = d.get_angle(self.direction)
+        angle = d.get_angle(self.direction.unit_vector())
         print "angle to point: " + str(angle) + " radians"
         return angle
 
