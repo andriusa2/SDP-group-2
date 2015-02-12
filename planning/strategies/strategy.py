@@ -20,9 +20,6 @@ class Strategy(object):
         self.robot = None
         self.ball = None
 
-        # fetch the attributes from the world
-        # self.fetch_world_state()
-
     def shoot(self):
         """
         We are facing the goal so just kick

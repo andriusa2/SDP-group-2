@@ -118,3 +118,17 @@ class Planner(Strategy):
 
     def stop_robot(self):
         pass
+
+    def pretty_print(self, current_zone, dist_to_ball, angle_to_ball, current_state, action, action_duration):
+        """
+            Robot - Attacker - Zone 1
+            --------------------------------------------------
+            |    [][][][][]  | State      : GRABBER IS OPEN    |
+            |    [][][][][]  | Action     : TURN TO BALL       |
+            | R->[][][][][]  | Duration   : 0.5 seconds        |
+            |    []::[][][]  |---------------------------------|
+            |    [][][][][]  | Ball Angle : 45 deg (IN BEAM)   |
+            |    <--10cm-->  | Ball Zone  : 1                  |
+            --------------------------------------------------
+        """
+        pass
