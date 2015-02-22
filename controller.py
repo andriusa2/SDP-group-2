@@ -1,8 +1,8 @@
-from planning.strategy.planner import Planner
+from planning.planner import Planner
 from planning.world.world_state import WorldState, Zone, Robot, Ball
 from vision.vision_controller import VisionController
-
-__name__ = "Sam Davies"
+from communication import Controller as CommController
+__author__ = "Sam Davies"
 
 
 class Controller(object):
@@ -11,16 +11,18 @@ class Controller(object):
 
         boundaries = [47, 106, 165, 212]
         self.world = WorldState()
-        actual_robot = Controller("/dev/ttyACM0")
-
+        actual_robot = CommController("/dev/ttyACM0", ack_tries=10)
+        from time import sleep
+        sleep(5)
+        actual_robot.kick()
         # set the boundaries
         self.world.set_zone_boundaries(boundaries)
 
         # this is our chosen strategy
         """R_ATT, L_ATT, R_DEF, L_DEF"""
-        self.planner = Planner(self.world, Zone.L_ATT, actual_robot, True)
+        self.planner = Planner(self.world, Zone.L_DEF, actual_robot, False)
 
-        self.vision = VisionController(pitch, color, our_side, comms=0)
+        self.vision = VisionController(pitch, color, our_side)
 
     def main(self):
         """
@@ -30,9 +32,6 @@ class Controller(object):
         """
         # let the vision update the world
         self.vision.send_model_to_planner(self.update_world_state)
-
-        # do the next plan
-        self.planner.plan_attack()
 
     def fetch_our_zone(self, zone_num):
         """
@@ -51,7 +50,6 @@ class Controller(object):
 
         robot_models = [model_positions['our_defender'], model_positions['our_attacker'],
                         model_positions['their_defender'], model_positions['their_attacker']]
-
         robot1 = Robot().convert_from_model(robot_models[0], scale_factor)
         robot2 = Robot().convert_from_model(robot_models[1], scale_factor)
         robot3 = Robot().convert_from_model(robot_models[2], scale_factor)
@@ -66,6 +64,9 @@ class Controller(object):
         self.world.set_robots_list(robots)
         # change the position of the ball
         self.world.set_ball(ball)
+
+        # do the next plan
+        self.planner.plan_defence()
 
 if __name__ == '__main__':
     import argparse
