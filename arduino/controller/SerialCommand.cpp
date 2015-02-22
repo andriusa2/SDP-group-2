@@ -104,7 +104,6 @@ void SerialCommand::readSerial() {
             // Execute the stored handler function for the command
             (*commandList[i].function)();
             matched = true;
-            break;
           }
         }
         if (!matched && (defaultHandler != NULL)) {
@@ -112,6 +111,7 @@ void SerialCommand::readSerial() {
         }
       }
       clearBuffer();
+      return;
     }
     else if (isprint(inChar)) {     // Only printable characters into the buffer
       if (bufPos < SERIALCOMMAND_BUFFER) {
