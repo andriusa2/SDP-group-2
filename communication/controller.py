@@ -147,7 +147,7 @@ class Controller(Arduino):
         #self.stop()
         command = self.COMMANDS['move'].format(term=self.ENDL, **locals())
         self._write(command)
-        wait_time = float(max(left_duration, right_duration)) / 1000.0 + 0.5
+        wait_time = float(max(left_duration, right_duration)) / 1000.0 + 0.3
         print("waiting " + str(wait_time) + " for motors")
         return wait_time
         
