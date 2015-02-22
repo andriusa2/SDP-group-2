@@ -13,7 +13,7 @@ class FetchBall(Strategy):
         self.m.add_state("Grabber is Open", self.grabber_is_open_trans)
 
         # End States / Actions
-        self.m.add_action("Open Grabber", self.raise_cage())
+        self.m.add_action("Open Grabber", self.raise_cage)
         self.m.add_action("Move to Ball", self.move_robot_to_ball)
         self.m.add_action("Turn to Ball", self.turn_robot_to_ball)
 
