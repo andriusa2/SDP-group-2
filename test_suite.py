@@ -24,6 +24,25 @@ class TestWorldState(unittest.TestCase):
 
 class BaseTest(unittest.TestCase):
 
+    def setUp(self):
+        # create a robot and a ball
+        robot_1 = Robot(direction=(0, 1), position=(8.0, 8.0), velocity=(0.0, 0.0), enemy=True)
+        robot_2 = Robot(direction=(1, 0), position=(15.0, 0), velocity=(0.0, 0.0), enemy=False)
+        robot_3 = Robot(direction=(0, 1), position=(25, 25), velocity=(0, 0), enemy=True)
+        robot_4 = Robot(direction=(0, 1), position=(35, 35), velocity=(0, 0), enemy=True)
+        ball = Ball(position=(15, 15), velocity=(0, 0), in_possession=False)
+
+        # set the list of robots
+        robots = [robot_1, robot_2, robot_3, robot_4]
+
+        # create a world object
+        self.world_state = WorldState(robots=robots, ball=ball, zone_boundaries=[10, 20, 30, 40])
+        # make a dummy robot which can change the world
+        actual_robot = DummyRobot(self.world_state, Zone.L_ATT)
+        # actual_robot = Controller("/dev/tty.usbmodem000001")
+        # give the strategies the world the dummy and the zone of the dummy
+        self.planner = Planner(self.world_state, Zone.L_ATT, actual_robot, True)
+
     def change_ball_location(self, new_ball_x, new_ball_y):
         ball = Ball(position=(new_ball_x, new_ball_y), velocity=(0, 0), in_possession=False)
         self.world_state.set_ball(ball)
@@ -156,25 +175,6 @@ class ShootTest(BaseTest):
 
 class PlannerTest(BaseTest):
 
-    def setUp(self):
-        # create a robot and a ball
-        robot_1 = Robot(direction=(0, 1), position=(8.0, 8.0), velocity=(0.0, 0.0), enemy=True)
-        robot_2 = Robot(direction=(1, 0), position=(15.0, 0), velocity=(0.0, 0.0), enemy=False)
-        robot_3 = Robot(direction=(0, 1), position=(25, 25), velocity=(0, 0), enemy=True)
-        robot_4 = Robot(direction=(0, 1), position=(35, 35), velocity=(0, 0), enemy=True)
-        ball = Ball(position=(15, 15), velocity=(0, 0), in_possession=False)
-
-        # set the list of robots
-        robots = [robot_1, robot_2, robot_3, robot_4]
-
-        # create a world object
-        self.world_state = WorldState(robots=robots, ball=ball, zone_boundaries=[10, 20, 30, 40])
-        # make a dummy robot which can change the world
-        actual_robot = DummyRobot(self.world_state, Zone.L_ATT)
-        # actual_robot = Controller("/dev/tty.usbmodem000001")
-        # give the strategies the world the dummy and the zone of the dummy
-        self.planner = Planner(self.world_state, Zone.L_ATT, actual_robot, True)
-
     # ensure that the timer stops an action from being performed
     def test_timer_prevents_action(self):
         # raise cage
@@ -251,6 +251,23 @@ class BlockTest(BaseTest):
     # ensure that the attacker shoots when it has the ball
 
     # ensure that the planning moves to centre when ball is away"""
+
+
+class PrettyPrintTest(BaseTest):
+
+    def test_simple_print(self):
+        printed = self.planner.pretty_print(1, 4, 45, "GRABBER IS OPEN", "TURN TO BALL", 0.5, True, True, 1)
+
+        self.assertEquals("Robot - Attacker - Zone 1", printed[0])
+        self.assertEquals("--------------------------------------------------", printed[1])
+        self.assertEquals("|    [][][][][]  | State      : GRABBER IS OPEN", printed[2])
+        self.assertEquals("|    [][][][][]  | Action     : TURN TO BALL", printed[3])
+        self.assertEquals("| R->[][][][][]  | Duration   : 0.5 seconds", printed[4])
+        self.assertEquals("|    [][][][][]  |--------------------------------", printed[5])
+        self.assertEquals("|    [][][][][]  | Ball Angle : 45 deg (IN BEAM)", printed[6])
+        self.assertEquals("|    <--10cm-->  | Ball Zone  : 1", printed[7])
+        self.assertEquals("--------------------------------------------------", printed[8])
+
 
 
 if __name__ == '__main__':
