@@ -16,7 +16,7 @@ class StateMachine(object):
             assert self.actions[name] is not None
             self.endStates.append(name)
 
-    def add_action(self, name, action):
+    def add_final_state_and_action(self, name, action):
         name = name.upper()
         self.actions[name] = action
         self.add_state(name, None, end_state=True)

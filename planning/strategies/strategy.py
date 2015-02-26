@@ -68,10 +68,14 @@ class Strategy(object):
         closes the grabber in an attempt to collect the ball
         :return: time it takes for the grabbers to close
         """
-        # self.actual_robot.lower_cage()
         self.world.is_grabber_down = True
         print "GRABING"
         return self.actual_robot.grab()
+
+    def is_ball_in_robot_zone(self):
+        zone_ball = self.world.get_zone(self.ball.position)
+        zone_robot = self.world.get_zone(self.robot.position)
+        return zone_ball == zone_robot
 
     def is_robot_facing_goal(self):
         """

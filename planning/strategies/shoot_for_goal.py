@@ -12,9 +12,9 @@ class ShootForGoal(Strategy):
         self.m.add_state("Grabber is Closed", self.grabber_open_trans)
 
         # End States / Actions
-        self.m.add_action("Close Grabber", self.lower_cage)
-        self.m.add_action("Shoot", self.shoot)
-        self.m.add_action("Turn to Goal", self.turn_robot_to_goal)
+        self.m.add_final_state_and_action("Close Grabber", self.lower_cage)
+        self.m.add_final_state_and_action("Shoot", self.shoot)
+        self.m.add_final_state_and_action("Turn to Goal", self.turn_robot_to_goal)
 
         # set start state
         self.m.set_start("Start")

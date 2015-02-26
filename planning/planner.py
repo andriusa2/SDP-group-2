@@ -5,6 +5,7 @@ from planning.strategies.fetch_ball import FetchBall
 from planning.strategies.shoot_for_goal import ShootForGoal
 from planning.strategies.block_goal import BlockGoal
 from planning.strategies.strategy import Strategy
+from planning.strategies.state_machine import StateMachine
 
 
 class Planner(Strategy):
@@ -18,76 +19,97 @@ class Planner(Strategy):
         super(Planner, self).__init__(world, robot_tag, actual_robot)
         # when the next action can be performed
         self.can_act_after = time.time()
+        self.is_attacker = is_attacker
 
-        # create all the attacking strategies
-        if is_attacker:
-            self.fetch_ball = FetchBall(world, robot_tag, actual_robot)
-            self.shoot_goal = ShootForGoal(world, robot_tag, actual_robot)
+        self.fetch_ball = FetchBall(world, robot_tag, actual_robot)
+        self.shoot_goal = ShootForGoal(world, robot_tag, actual_robot)
+        self.block_goal = BlockGoal(world, robot_tag, actual_robot)
+        self.clear_ball = ShootForGoal(world, robot_tag, actual_robot)
 
-        # create all the defending strategies
-        if not is_attacker:
-            self.block_goal = BlockGoal(world, robot_tag, actual_robot)
-            self.fetch_ball = FetchBall(world, robot_tag, actual_robot)
-            self.clear_ball = ShootForGoal(world, robot_tag, actual_robot)
+        self.m = StateMachine()
+        self.m.add_state("Start", self.start_trans)
+        self.m.add_state("Can Act", self.can_act_trans)
 
-    def plan_defence(self):
-        self.fetch_world_state()
+        self.m.add_state("Attacker Robot", self.attacker_robot_trans)
+        self.m.add_state("Defender Robot", self.defender_robot_trans)
 
-        if self.can_act:
+        self.m.add_state("ball in attacker zone", self.ball_in_attacker_zone_trans)
 
-            zone_ball = self.world.get_zone(self.ball.position)
-            zone_robot = self.world.get_zone(self.robot.position)
+        self.m.add_state("ball in defender zone", self.ball_in_defender_zone_trans)
+        self.m.add_state("ball not in defender zone", self.ball_not_in_defender_zone_trans)
 
-            if zone_ball == zone_robot:
-                print "ball in robot's zone"
-                if self.ball_going_quickly():
-                    print "Ball going quickly. Block the goal"
-                    return self.do_strategy(self.block_goal)
-                else:
-                    if not self.is_ball_close():
-                        print "Ball is (near) stationary. Get the ball"
-                        return self.do_strategy(self.fetch_ball)
-                    else:
-                        print "Ball is held. Kick ball upfield"
-                        return self.do_strategy(self.clear_ball)
-            else:
-                if self.ball_going_quickly():
-                    print "ball is not in robot's zone but moving quickly. Block the ball"
-                    return self.do_strategy(self.block_goal)
-                else:
-                    # print "ball is not in robot's zone and stationary. Pass"
-                    return 0
+        # End States / Actions
+        self.m.add_final_state_and_action("waiting", action=self.do_nothing)
+        self.m.add_final_state_and_action("shooting", action=self.do_shoot_goal)
+        self.m.add_final_state_and_action("fetching ball", action=self.do_fetch_ball)
+        self.m.add_final_state_and_action("blocking goal", action=self.do_block_goal)
 
-        else:
-            return False
+        # set start state
+        self.m.set_start("Start")
 
-    def plan_attack(self):
+    def plan(self):
         # update the world
         self.fetch_world_state()
 
         self.check_for_re_plan()
 
+        action_state = self.m.run()
+        return self.m.do_action(action_state)
+
+    def start_trans(self):
         if self.can_act():
-
-            zone_ball = self.world.get_zone(self.ball.position)
-            zone_robot = self.world.get_zone(self.robot.position)
-
-            if zone_ball == zone_robot:  # is the ball in our zone?
-                print "ball in robot's zone"
-                # if ball is in attacker zone and not held, fetch ball
-                if not self.is_ball_close():
-                    return self.do_strategy(self.fetch_ball)
-                else:
-                    # if ball is close to kicker, shoot for goal
-                    return self.do_strategy(self.shoot_goal)
-            else:
-                # print "ball not in robot's zone"
-                # self.is_robot_facing_ball()
-                return 0
-
-            # if ball is out of zone, return to middle and turn to face ball
+            new_state = "Can Act"
         else:
-            return False
+            new_state = "waiting"
+        return new_state
+
+    def can_act_trans(self):
+        if self.is_attacker:
+            new_state = "Attacker Robot"
+        else:
+            new_state = "Defender Robot"
+        return new_state
+
+    def attacker_robot_trans(self):
+        if self.is_ball_in_robot_zone():
+            new_state = "ball in attacker zone"
+        else:
+            new_state = "waiting"
+        return new_state
+
+    def ball_in_attacker_zone_trans(self):
+        if self.is_ball_close():
+            new_state = "shooting"
+        else:
+            new_state = "fetching ball"
+        return new_state
+
+    def defender_robot_trans(self):
+        if self.is_ball_in_robot_zone():
+            new_state = "ball in defender zone"
+        else:
+            new_state = "ball not in defender zone"
+        return new_state
+
+    def ball_in_defender_zone_trans(self):
+        if self.ball_going_quickly():
+            new_state = "blocking goal"
+        else:
+            if self.is_ball_close():
+                new_state = "passing ball"
+            else:
+                new_state = "fetching ball"
+        return new_state
+
+    def ball_not_in_defender_zone_trans(self):
+        if self.ball_going_quickly():
+            new_state = "blocking goal"
+        else:
+            new_state = "waiting"
+        return new_state
+
+    def do_nothing(self):
+        return False
 
     def can_act(self):
         # has the robot finished moving
@@ -95,6 +117,18 @@ class Planner(Strategy):
             return True
         else:
             return False
+
+    def do_fetch_ball(self):
+        return self.do_strategy(self.fetch_ball)
+
+    def do_shoot_goal(self):
+        return self.do_strategy(self.shoot_goal)
+
+    def do_block_goal(self):
+        return self.do_strategy(self.block_goal)
+
+    def do_clear_ball(self):
+        return self.do_strategy(self.clear_ball)
 
     def do_strategy(self, strategy):
         """
@@ -104,6 +138,7 @@ class Planner(Strategy):
         :return: the time that we have to wait
         """
         cool_down_time_period = strategy.act()
+        print "cool down period of {0}".format(cool_down_time_period)
         self.can_act_after = time.time() + cool_down_time_period
         return cool_down_time_period
 
@@ -119,7 +154,8 @@ class Planner(Strategy):
     def stop_robot(self):
         pass
 
-    def pretty_print(self, current_zone, dist_to_ball, angle_to_ball, current_state, action, action_duration):
+    @staticmethod
+    def pretty_print(is_attacker, current_zone, dist_to_ball, angle_to_ball, current_state, action, action_duration):
         """
             Robot - Attacker - Zone 1
             --------------------------------------------------

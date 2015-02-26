@@ -31,9 +31,6 @@ class Controller(object):
         # let the vision update the world
         self.vision.send_model_to_planner(self.update_world_state)
 
-        # do the next plan
-        self.planner.plan_attack()
-
     def fetch_our_zone(self, zone_num):
         """
         choose our robot's zone, with 1 being at the left and 4 being at the right
