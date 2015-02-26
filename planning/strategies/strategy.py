@@ -1,5 +1,6 @@
 import numpy as np
 from lib.math.vector import Vector2D
+from planning.strategies.state_machine import StateMachine
 __author__ = 'Sam'
 
 
@@ -19,20 +20,18 @@ class Strategy(object):
         # initialise state attributes
         self.robot = None
         self.ball = None
+        self.m = StateMachine()
 
     def shoot(self):
         """
         We are facing the goal so just kick
         :return: duration that the motors are on
         """
-        print "robot is facing goal"
         self.world.is_grabber_down = False
         return self.actual_robot.kick()  # kick
 
     def turn_robot_to_goal(self):
-        print "robot not facing goal"
         to_turn = self.robot.angle_to_point(self.world.goal)
-        print "rotating robot " + str(to_turn) + " radians"
         return self.actual_robot.turn(to_turn)  # turn towards the the goal
 
     def turn_robot_to_ball(self):
@@ -40,9 +39,7 @@ class Strategy(object):
         Turn the robot to face the ball
         :return: duration that the motors are on
         """
-        print "robot not facing ball"
         to_turn = self.robot.angle_to_point(self.ball.position)
-        print "rotating robot " + str(360.0 * to_turn / (2 * np.pi)) + " degrees"
         return self.actual_robot.turn(to_turn)  # turn towards the the ball
 
     def move_robot_to_ball(self):
@@ -50,9 +47,7 @@ class Strategy(object):
         Move the robot forward in a straight line to the ball
         :return: duration that the motors are on
         """
-        print "robot facing ball"
         dist_to_ball = self.distance_from_kicker_to_ball() * 0.9  # only move 90%
-        print "moving robot " + str(dist_to_ball)
         return self.actual_robot.move(dist_to_ball)
 
     def raise_cage(self):
@@ -69,7 +64,6 @@ class Strategy(object):
         :return: time it takes for the grabbers to close
         """
         self.world.is_grabber_down = True
-        print "GRABING"
         return self.actual_robot.grab()
 
     def is_ball_in_robot_zone(self):
@@ -124,7 +118,6 @@ class Strategy(object):
 
         # check if the balls is in close enough to the robot to be grabbed
         ball_kicker_vector = self.vector_from_kicker_to_ball()
-        print "ball is " + str(ball_kicker_vector.length()) + " away"
         ball_close_x = ball_kicker_vector.x < self.grab_threshold_x
         ball_close_y = ball_kicker_vector.y < self.grab_threshold_y
         return ball_close_x and ball_close_y

@@ -1,5 +1,6 @@
 __author__ = 'Sam Davies'
 import time
+import numpy as np
 
 from planning.strategies.fetch_ball import FetchBall
 from planning.strategies.shoot_for_goal import ShootForGoal
@@ -19,6 +20,7 @@ class Planner(Strategy):
         # when the next action can be performed
         self.can_act_after = time.time()
         self.is_attacker = is_attacker
+        self.next_action_wait = 0
 
         self.fetch_ball = FetchBall(world, robot_tag, actual_robot)
         self.shoot_goal = ShootForGoal(world, robot_tag, actual_robot)
@@ -53,7 +55,9 @@ class Planner(Strategy):
         self.check_for_re_plan()
 
         action_state = self.m.run()
-        return self.m.do_action(action_state)
+        self.next_action_wait = self.m.do_action(action_state)
+        self.do_pretty_print()
+        return self.next_action_wait
 
     def start_trans(self):
         if self.can_act():
@@ -137,7 +141,7 @@ class Planner(Strategy):
         :return: the time that we have to wait
         """
         cool_down_time_period = strategy.act()
-        print "cool down period of {0}".format(cool_down_time_period)
+        self.m.state_trace += strategy.m.state_trace
         self.can_act_after = time.time() + cool_down_time_period
         return cool_down_time_period
 
@@ -152,6 +156,28 @@ class Planner(Strategy):
 
     def stop_robot(self):
         pass
+
+    def do_pretty_print(self):
+
+        current_zone = self.world.get_zone(self.robot.position)
+        dist_to_ball = self.distance_from_kicker_to_ball()
+        angle_to_ball = int(360.0 * self.robot.angle_to_point(self.ball.position) / (2 * np.pi))
+        current_state = self.m.state_trace[len(self.m.state_trace)-2]
+        action = self.m.state_trace[len(self.m.state_trace)-1]
+        action_duration = self.next_action_wait
+        is_attacker = self.is_attacker
+        in_beam = self.is_robot_facing_ball()
+        ball_zone = self.world.get_zone(self.ball.position)
+        state_trace = self.m.state_trace
+
+        to_print = self.pretty_print(current_zone, dist_to_ball, angle_to_ball, current_state, action, action_duration,
+                                     is_attacker, in_beam, ball_zone)
+
+        print ""
+        for line in to_print:
+            print line
+
+        return to_print
 
     def pretty_print(self, current_zone, dist_to_ball, angle_to_ball, current_state, action, action_duration,
                      is_attacker, in_beam, ball_zone):
@@ -168,6 +194,9 @@ class Planner(Strategy):
             |  Ball is 4cm away
             |  Ball is Far from robot
             --------------------------------------------------
+            | State Trace...
+            | [CAN ACT] -> [ATTACKER ROBOT] -> [BALL IN ATTACKER ZONE]
+            | -> [FETCHING BALL] -> [GRABBER IS OPEN] -> [MOVE TO BALL]
         """
         grid = self.pretty_grid(angle_to_ball, dist_to_ball)
         role = "Attacker" if is_attacker else "Defender"

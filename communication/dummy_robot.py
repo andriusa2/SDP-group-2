@@ -38,7 +38,6 @@ class DummyRobot(Controller):
         old_pos = robot.position
         unit_direction = robot.direction.scale(distance)
         robot.position += unit_direction
-        print("robot moved from " + str(old_pos.x) + ", " + str(old_pos.y) + " to " + str(robot.position.x) + ", " + str(robot.position.y))
         self.world.add_robot(self.robot_tag, robot)
         return super(DummyRobot, self).move(distance)
 

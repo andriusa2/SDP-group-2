@@ -30,7 +30,7 @@ class Arduino(object):
                 raise
 
     def _write(self, string):
-        print("Trying to run command: '{0}'".format(string))
+        # print("Trying to run command: '{0}'".format(string))
         if self.comms == 1:
             ret_msg = ''
             for _ in range(self.ack_tries if self.ack_tries else 1):
@@ -105,7 +105,7 @@ class Controller(Arduino):
         angle = abs(angle)
         distance = angle * self.RADIUS
         duration = get_duration(distance, abs(power))  # magic...
-        print('Trying to turn for {0} seconds'.format(duration))
+        # print('Trying to turn for {0} seconds'.format(duration))
         return self.complex_movement(
             left_power=-power,
             right_power=power,
@@ -148,7 +148,7 @@ class Controller(Arduino):
         command = self.COMMANDS['move'].format(term=self.ENDL, **locals())
         self._write(command)
         wait_time = float(max(left_duration, right_duration)) / 1000.0 + 0.3
-        print("waiting " + str(wait_time) + " for motors")
+        # print("waiting " + str(wait_time) + " for motors")
         return wait_time
         
     def run_engine(self, id, power, duration):

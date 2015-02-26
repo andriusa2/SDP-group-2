@@ -8,6 +8,7 @@ class StateMachine(object):
         self.startState = None
         self.endStates = []
         self.actions = {}
+        self.state_trace = []
 
     def add_state(self, name, handler, end_state=False):
         name = name.upper()
@@ -29,6 +30,7 @@ class StateMachine(object):
         self.startState = name.upper()
 
     def run(self):
+        self.state_trace = []
         try:
             handler = self.handlers[self.startState]
         except:
@@ -38,6 +40,7 @@ class StateMachine(object):
 
         while True:
             new_state = handler()
+            self.state_trace.append(new_state.upper())
             if new_state.upper() in self.endStates:
                 return new_state
                 break
