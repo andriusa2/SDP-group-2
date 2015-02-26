@@ -1,10 +1,10 @@
 import warnings
 import time
 
-from vision.vision import Vision, Camera, GUI
+from vision import Vision, Camera, GUI
 from postprocessing.postprocessing import Postprocessing
-from vision.preprocessing.preprocessing import Preprocessing
-import vision.tools as tools
+from preprocessing.preprocessing import Preprocessing
+import tools as tools
 from cv2 import waitKey
 import cv2
 

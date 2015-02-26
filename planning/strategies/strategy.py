@@ -10,11 +10,11 @@ class Strategy(object):
         self.robot_tag = robot_tag
         self.world = world
 
-        self.grab_threshold_x = 4  # we need to define these (based on kicker)
-        self.grab_threshold_y = 4
-        self.dist_kicker_robot = 11
+        self.grab_threshold_x = 3  # we need to define these (based on kicker)
+        self.grab_threshold_y = 3
+        self.dist_kicker_robot = 8
 
-        self.ROBOT_WIDTH = 7
+        self.ROBOT_WIDTH = 2
 
         # initialise state attributes
         self.robot = None
@@ -105,7 +105,7 @@ class Strategy(object):
         """
         up_pos = Vector2D(self.robot.position.x, 150)
         robot = self.world.get_robot(self.robot_tag)
-        return robot.can_see(point=up_pos, beam_width=self.ROBOT_WIDTH * 4)
+        return robot.can_see(point=up_pos, beam_width=self.ROBOT_WIDTH * 20)
 
     def fetch_world_state(self):
         """
@@ -170,7 +170,7 @@ class Strategy(object):
         """
         Check is ball is going quicker than a threshold velocity
         """
-        velocity_threshold = 3
+        velocity_threshold = 10
         ball_velocity = self.world.get_ball().velocity.length()
         return ball_velocity > velocity_threshold
 

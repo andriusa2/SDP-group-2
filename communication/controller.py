@@ -7,7 +7,7 @@ from lib.math.util import convert_angle, get_duration
 class Arduino(object):
     """ Basic class for Arduino communications. """
     
-    def __init__(self, port='/dev/ttyUSB0', rate=115200, timeOut=1, comms=1, debug=False, is_dummy=False):
+    def __init__(self, port='/dev/ttyUSB0', rate=115200, timeOut=0.2, comms=1, debug=False, is_dummy=False, ack_tries=4):
         self.serial = None
         self.comms = comms
         self.port = port
@@ -16,6 +16,7 @@ class Arduino(object):
         self.debug = debug
         self.establish_connection()
         self.is_dummy = is_dummy
+        self.ack_tries = ack_tries
 
     def establish_connection(self):
         self.comms = 1
@@ -31,15 +32,23 @@ class Arduino(object):
     def _write(self, string):
         print("Trying to run command: '{0}'".format(string))
         if self.comms == 1:
-            self.serial.write(string)
-            if not self.is_dummy:
-                self.serial.flush()
-                return
-
-                a = self.serial.readline()
-                while a:
-                    print(a)
-                    a = self.serial.readline()
+            ret_msg = ''
+            for _ in range(self.ack_tries if self.ack_tries else 1):
+                if 'ACK' not in ret_msg:
+                    self.serial.write(string)
+                    if not self.is_dummy and self.ack_tries != 0:
+                        self.serial.flush()
+                        ret_msg = self.serial.readline()
+                        if ret_msg:
+                            print "Got msg from upstream: '{0}'".format(ret_msg)
+                        else:
+                            print "Timed out while waiting for msg from upstream"
+                    else:
+                        ret_msg = 'ACK'
+                else:
+                    break
+            else:
+                raise Exception("No ACK after {0} tries, giving up".format(self.ack_tries))
         elif not self.debug:
             raise Exception("No comm link established, but trying to send command.")
             
@@ -138,7 +147,7 @@ class Controller(Arduino):
         #self.stop()
         command = self.COMMANDS['move'].format(term=self.ENDL, **locals())
         self._write(command)
-        wait_time = float(max(left_duration, right_duration)) / 1000.0 + 0.5
+        wait_time = float(max(left_duration, right_duration)) / 1000.0 + 0.3
         print("waiting " + str(wait_time) + " for motors")
         return wait_time
         

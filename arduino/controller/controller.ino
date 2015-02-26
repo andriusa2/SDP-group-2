@@ -12,7 +12,12 @@
 #define GRAB_HAPPENING 3
 MotorBoard motors;
 SerialCommand comm;
-
+#define ACK_COMMS
+#if (RAMEND < 1000)
+  #define SERIAL_BUFFER_SIZE 16
+#else
+  #define SERIAL_BUFFER_SIZE 64
+#endif
 enum MOTORS {
   LEFT_ENGINE = 4,
   RIGHT_ENGINE = 0,
@@ -24,7 +29,48 @@ float MAX_SPEED = 1; // TODO: get real value, etc
 
 // 0 -> not kicking, 1 -> kicking, 2 -> getting back to position
 byte IS_KICKING = 0;
+#if (ARDUINO >= 100)
+#include <Arduino.h>
+#else
+#include <WProgram.h>
+#endif
 
+extern unsigned int __heap_start;
+extern void *__brkval;
+
+/*
+ * The free list structure as maintained by the 
+ * avr-libc memory allocation routines.
+ */
+struct __freelist {
+  size_t sz;
+  struct __freelist *nx;
+};
+
+/* The head of the free list structure */
+extern struct __freelist *__flp;
+
+/* Calculates the size of the free list */
+int freeListSize() {
+  struct __freelist* current;
+  int total = 0;
+  for (current = __flp; current; current = current->nx) {
+    total += 2; /* Add two bytes for the memory block's header  */
+    total += (int) current->sz;
+  }
+  return total;
+}
+
+int freeMemory() {
+  int free_memory;
+  if ((int)__brkval == 0) {
+    free_memory = ((int)&free_memory) - ((int)&__heap_start);
+  } else {
+    free_memory = ((int)&free_memory) - ((int)__brkval);
+    free_memory += freeListSize();
+  }
+  return free_memory;
+}
 void setup_pins() {
   pinMode(2,INPUT);
   pinMode(3,OUTPUT);
@@ -77,6 +123,8 @@ void setup() {
   setup_pins();
   Wire.begin();  // need this s.t. arduino is mastah
   Serial.println("Team2GO");
+  Serial.println(SERIAL_BUFFER_SIZE);
+  Serial.flush();
   motors.stop_all();
   
   // performs a kick
@@ -92,6 +140,15 @@ void setup() {
   comm.addCommand("RUN_ENGINE", run_engine);
   comm.addCommand("STOP", stop_engines);
   comm.setDefaultHandler(invalid_command);
+  read_all();
+  Serial.print("freeMemory()=");
+    Serial.println(freeMemory());
+    Serial.flush();
+}
+
+void read_all() {
+  for (int i = 0; i < 128 && Serial.available(); i++)
+    Serial.read();
 }
 
 void loop() {
@@ -122,8 +179,12 @@ void loop() {
   }
   
   // if kicker is running, it will be ignored, all other commands won't be blocked
-  comm.readSerial();
-  Serial.flush();  // flushing stuff out just in case
+  if (Serial.available() > 6){
+    comm.readSerial();
+    Serial.flush();
+    read_all();
+  }
+    // flushing stuff out just in case
   // parsing stuff out every 100ms for debug
   delay(1);
 }
@@ -147,15 +208,32 @@ void kick_master(int flag, uint16_t duration) {
 
 /* KICK [POWER(0;1]=1] */
 void kick() {
+  
+#ifdef ACK_COMMS
+  
+  Serial.println("ACK - received KICK");
+  
+#endif
   kick_master(KICK_HAPPENING, KICK_DURATION);
 }
 void grab() {
+  
+#ifdef ACK_COMMS
+  
+  Serial.println("ACK - received GRAB");
+  
+#endif
   kick_master(GRAB_HAPPENING, KICK_TO_GRAB);
 }
 /* MOVE LEFT_POWER RIGHT_POWER LEFT_DURATION [RIGHT_DURATION=LEFT_DURATION] */
 void move_bot() {
   float left, right;
   uint16_t l_time, r_time;
+#ifdef ACK_COMMS
+  
+  Serial.println("ACK - received Move");
+  
+#endif
   if (!get_float(left)) { Serial.println("Can't get left");return;}
   if (!get_float(right)) { Serial.println("Can't get right");return;}
   if (!get_uint16(l_time)) {
@@ -179,6 +257,12 @@ void move_bot() {
 void run_engine() {
   float power;
   uint16_t id, time;
+  
+#ifdef ACK_COMMS
+  
+  Serial.println("ACK - received run_engine");
+  
+#endif
   if (!get_uint16(id)) {Serial.println("failed to get id"); return;}
   if (!get_float(power)) {Serial.println("failed to get power");return;}
   if (!get_uint16(time)) {
@@ -191,5 +275,6 @@ void run_engine() {
 }
 
 void invalid_command(const char * command) {
+  Serial.print("Can't understand this: ");
   Serial.println(command);
 }

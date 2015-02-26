@@ -34,6 +34,7 @@ class BlockGoal(Strategy):
             print "rotating to face up"
             up_pos = Vector2D(self.robot.position.x, 150)
             print "up is at " + str(up_pos.x) + ", " + str(up_pos.y) 
+            print "robot at {0}; {1}".format(self.robot.position.x, self.robot.position.y)
             to_turn = self.robot.angle_to_point(up_pos)
             print "rotating robot " + str(360.0 * to_turn / (2 * np.pi)) + " degrees"
-            return self.actual_robot.turn(to_turn) + 0.5 # turn towards up
+            return self.actual_robot.turn(to_turn) # turn towards up

@@ -154,8 +154,8 @@ class Planner(Strategy):
     def stop_robot(self):
         pass
 
-    @staticmethod
-    def pretty_print(is_attacker, current_zone, dist_to_ball, angle_to_ball, current_state, action, action_duration):
+
+    def pretty_print(self, current_zone, dist_to_ball, angle_to_ball, current_state, action, action_duration, is_attacker, beam_width, ball_zone, ball_pos):
         """
             Robot - Attacker - Zone 1
             --------------------------------------------------
@@ -167,4 +167,88 @@ class Planner(Strategy):
             |    <--10cm-->  | Ball Zone  : 1                  |
             --------------------------------------------------
         """
-        pass
+        robot_matrix = self.pretty_helper(angle_to_ball, dist_to_ball, ball_pos)
+        if is_attacker:
+            isAttacker = "Attacker"
+        else:
+            isAttacker = "Defender"
+        print "\nRobot - ", isAttacker, " - Zone ", current_zone
+        print "--------------------------------------------------"
+        print "|", robot_matrix[0],"| State      : ", current_state
+        print "|", robot_matrix[1],"| Action     : ", action
+        print "|", robot_matrix[2],"| Duration   : ", action_duration, " seconds"
+        print "|", robot_matrix[3],"|---------------------------------"
+        if angle_to_ball <= beam_width:
+            inBeam = "(IN BEAM)"
+        else:
+            inBeam = "(OUTSIDE BEAM)"
+        print "|", robot_matrix[4],"| Ball Angle : ", angle_to_ball, " ", inBeam
+        print "|", robot_matrix[5],"| Ball Zone  : ", ball_zone
+        print "--------------------------------------------------"
+
+    def pretty_helper(self, angle_to_ball, dist_to_ball, ball_pos):
+        matrix = [0] * 6
+        matrix[0] = "    [][][][][]  "
+        matrix[1] = "    [][][][][]  "
+        matrix[2] = " R->[][][][][]  "
+        matrix[3] = "    [][][][][]  "
+        matrix[4] = "    [][][][][]  "
+        matrix[5] = "    <--10cm-->  "
+        if angle_to_ball < 15:
+            if dist_to_ball <= 10 and dist_to_ball > 8:
+                matrix[2] = " R->[][][][]::  "
+            elif dist_to_ball <= 8 and dist_to_ball > 6:
+                matrix[2] = " R->[][][]::[]  "
+            elif dist_to_ball <= 6 and dist_to_ball > 4:
+                matrix[2] = " R->[][]::[][]  "
+            elif dist_to_ball <= 4 and dist_to_ball > 2:
+                matrix[2] = " R->[]::[][][]  "
+            elif dist_to_ball <= 2:
+                matrix[2] = " R->::[][][][]  "
+        elif angle_to_ball < 30 and angle_to_ball >= 15 and ball_pos == "left":
+            if dist_to_ball <= 10 and dist_to_ball > 8:
+                matrix[1] = "    [][][][]::  "
+            elif dist_to_ball <= 8 and dist_to_ball > 6:
+                matrix[1] = "    [][][]::[]  "
+            elif dist_to_ball <= 6 and dist_to_ball > 4:
+                matrix[1] = "    [][]::[][]  "
+            elif dist_to_ball <= 4 and dist_to_ball > 2:
+                matrix[1] = "    []::[][][]  "
+            elif dist_to_ball <= 2:
+                matrix[1] = "    ::[][][][]  "
+        elif angle_to_ball < 45 and angle_to_ball >=30 and ball_pos == "left":
+            if dist_to_ball <= 10 and dist_to_ball > 8:
+                matrix[0] = "    [][][][]::  "
+            elif dist_to_ball <= 8 and dist_to_ball > 6:
+                matrix[0] = "    [][][]::[]  "
+            elif dist_to_ball <= 6 and dist_to_ball > 4:
+                matrix[0] = "    [][]::[][]  "
+            elif dist_to_ball <= 4 and dist_to_ball > 2:
+                matrix[0] = "    []::[][][]  "
+            elif dist_to_ball <= 2:
+                matrix[0] = "    ::[][][][]  "
+        elif angle_to_ball < 30  and angle_to_ball >=15 and ball_pos == "right":
+            if dist_to_ball <= 10 and dist_to_ball > 8:
+                matrix[3] = "    [][][][]::  "
+            elif dist_to_ball <= 8 and dist_to_ball > 6:
+                matrix[3] = "    [][][]::[]  "
+            elif dist_to_ball <= 6 and dist_to_ball > 4:
+                matrix[3] = "    [][]::[][]  "
+            elif dist_to_ball <= 4 and dist_to_ball > 2:
+                matrix[3] = "    []::[][][]  "
+            elif dist_to_ball <= 2:
+                matrix[3] = "    ::[][][][]  "
+        elif angle_to_ball < 45  and angle_to_ball >= 30 and ball_pos == "right":
+            if dist_to_ball <= 10 and dist_to_ball > 8:
+                matrix[4] = "    [][][][]::  "
+            elif dist_to_ball <= 8 and dist_to_ball > 6:
+                matrix[4] = "    [][][]::[]  "
+            elif dist_to_ball <= 6 and dist_to_ball > 4:
+                matrix[4] = "    [][]::[][]  "
+            elif dist_to_ball <= 4 and dist_to_ball > 2:
+                matrix[4] = "    []::[][][]  "
+            elif dist_to_ball <= 2:
+                matrix[4] = "    ::[][][][]  "
+        return matrix
+
+
