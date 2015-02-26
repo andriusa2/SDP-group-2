@@ -24,48 +24,37 @@ class TestWorldState(unittest.TestCase):
 class BaseTest(unittest.TestCase):
     def setUp(self):
         # create a world object
-        self.world_state = self.put_robot_and_ball(robot_pos=(15, 0), robot_dir=(1, 0), ball_pos=(15, 15))
+        self.world_state = self.put_robot_and_ball(robot_pos=(15, 0), robot_dir=(1, 0), ball_pos=(15, 15), robot_num=1)
         # make a dummy robot which can change the world
         actual_robot = DummyRobot(self.world_state, Zone.L_ATT)
         # actual_robot = Controller("/dev/tty.usbmodem000001")
         # give the strategies the world the dummy and the zone of the dummy
         self.planner = Planner(self.world_state, Zone.L_ATT, actual_robot, True)
 
-    def put_robot_and_ball(self, robot_pos, robot_dir, ball_pos):
+    def put_robot_and_ball(self, robot_pos, robot_dir, ball_pos, robot_num):
         robot_pos_x, robot_pos_y = robot_pos
         robot_dir_x, robot_dir_y = robot_dir
         ball_pos_x, ball_pos_y = ball_pos
 
         # create a robot and a ball
-        robot_1 = Robot(direction=(0, 1), position=(8.0, 8.0), velocity=(0.0, 0.0), enemy=True)
-        robot_2 = Robot(direction=(robot_dir_x, robot_dir_y), position=(robot_pos_x, robot_pos_y), velocity=(0.0, 0.0), enemy=False)
+        me = Robot(direction=(robot_dir_x, robot_dir_y), position=(robot_pos_x, robot_pos_y), velocity=(0.0, 0.0), enemy=False)
+        robot_2 = Robot(direction=(0, 1), position=(8.0, 8.0), velocity=(0.0, 0.0), enemy=True)
         robot_3 = Robot(direction=(0, 1), position=(25, 25), velocity=(0, 0), enemy=True)
         robot_4 = Robot(direction=(0, 1), position=(35, 35), velocity=(0, 0), enemy=True)
         ball = Ball(position=(ball_pos_x, ball_pos_y), velocity=(0, 0), in_possession=False)
 
         # set the list of robots
-        robots = [robot_1, robot_2, robot_3, robot_4]
+        if robot_num is 0:
+            robots = [me, robot_2, robot_3, robot_4]
+        if robot_num is 1:
+            robots = [robot_2, me, robot_3, robot_4]
+        if robot_num is 2:
+            robots = [robot_2, robot_3, me, robot_4]
+        if robot_num is 3:
+            robots = [robot_2, robot_3, robot_4, me]
 
         # create a world object
-        return WorldState(robots=robots, ball=ball, zone_boundaries=[10, 20, 30, 40])
-
-    def put_defender_robot_and_ball(self, robot_pos, robot_dir, ball_pos):
-        robot_pos_x, robot_pos_y = robot_pos
-        robot_dir_x, robot_dir_y = robot_dir
-        ball_pos_x, ball_pos_y = ball_pos
-
-        # create a robot and a ball
-        robot_1 = Robot(direction=(robot_dir_x, robot_dir_y), position=(robot_pos_x, robot_pos_y), velocity=(0.0, 0.0), enemy=False)
-        robot_2 = Robot(direction=(0, 1), position=(15, 15), velocity=(0.0, 0.0), enemy=True)
-        robot_3 = Robot(direction=(0, 1), position=(25, 25), velocity=(0, 0), enemy=True)
-        robot_4 = Robot(direction=(0, 1), position=(35, 35), velocity=(0, 0), enemy=True)
-        ball = Ball(position=(ball_pos_x, ball_pos_y), velocity=(0, 0), in_possession=False)
-
-        # set the list of robots
-        robots = [robot_1, robot_2, robot_3, robot_4]
-
-        # create a world object
-        return WorldState(robots=robots, ball=ball, zone_boundaries=[10, 20, 30, 40])
+        return WorldState(robots=robots, ball=ball, zone_boundaries=[10, 20, 30, 40], left_goal=(0, 50), right_goal=(40, 50))
 
     def change_ball_location(self, new_ball_x, new_ball_y):
         ball = Ball(position=(new_ball_x, new_ball_y), velocity=(0, 0), in_possession=False)
@@ -76,7 +65,7 @@ class BaseTest(unittest.TestCase):
 
 class FetchBallTest(BaseTest):
     def setUp(self):
-        self.world_state = self.put_robot_and_ball(robot_pos=(15, 15), robot_dir=(0, 1), ball_pos=(5, 5))
+        self.world_state = self.put_robot_and_ball(robot_pos=(15, 15), robot_dir=(0, 1), ball_pos=(5, 5), robot_num=1)
         # make a dummy robot which can change the world
         actual_robot = DummyRobot(self.world_state, Zone.L_ATT)
         # give the strategies the world the dummy and the zone of the dummy
@@ -135,7 +124,7 @@ class FetchBallTest(BaseTest):
 
 class ShootTest(BaseTest):
     def setUp(self):
-        self.world_state = self.put_robot_and_ball(robot_pos=(15, 15), robot_dir=(0, 1), ball_pos=(5, 5))
+        self.world_state = self.put_robot_and_ball(robot_pos=(15, 15), robot_dir=(0, 1), ball_pos=(5, 5), robot_num=1)
         # make a dummy robot which can change the world
         actual_robot = DummyRobot(self.world_state, Zone.L_ATT)
         # give the strategies the world the dummy and the zone of the dummy
@@ -206,17 +195,36 @@ class PlannerTest(BaseTest):
 class BlockTest(BaseTest):
 
     def test_y_intercept_of_ball_goal(self):
-        self.world_state = self.put_defender_robot_and_ball(robot_pos=(5, 50), robot_dir=(0, 1), ball_pos=(10, 60))
-        actual_robot = DummyRobot(self.world_state, Zone.L_DEF)
-        self.planner = Planner(self.world_state, Zone.L_DEF, actual_robot, False)
+        self.world_state = self.put_robot_and_ball(robot_pos=(5, 50), robot_dir=(0, 1), ball_pos=(10, 60), robot_num=0)
+        pos = self.set_up_y_intercept_of_ball_goal("left")
+        self.assertEquals(pos, (5, 55))
+
+        self.world_state = self.put_robot_and_ball(robot_pos=(5, 50), robot_dir=(0, 1), ball_pos=(10, 40), robot_num=0)
+        pos = self.set_up_y_intercept_of_ball_goal("left")
+        self.assertEquals(pos, (5, 45))
+
+        self.world_state = self.put_robot_and_ball(robot_pos=(35, 50), robot_dir=(0, 1), ball_pos=(30, 60), robot_num=3)
+        pos = self.set_up_y_intercept_of_ball_goal("right")
+        self.assertEquals(pos, (35, 55))
+
+        self.world_state = self.put_robot_and_ball(robot_pos=(35, 50), robot_dir=(0, 1), ball_pos=(30, 40), robot_num=3)
+        pos = self.set_up_y_intercept_of_ball_goal("right")
+        self.assertEquals(pos, (35, 45))
+
+    def set_up_y_intercept_of_ball_goal(self, side):
+        if side == "left":
+            actual_robot = DummyRobot(self.world_state, Zone.L_DEF)
+            self.planner = Planner(self.world_state, Zone.L_DEF, actual_robot, False)
+        else:
+            actual_robot = DummyRobot(self.world_state, Zone.R_DEF)
+            self.planner = Planner(self.world_state, Zone.R_DEF, actual_robot, False)
         self.planner.fetch_world_state()
 
         robot_pos = self.planner.robot.position
         goal = self.planner.goal
         ball_pos = self.planner.ball.position
-        pos = self.planner.y_intercept_of_ball_goal(robot_pos, goal, ball_pos)
+        return self.planner.y_intercept_of_ball_goal(robot_pos, goal, ball_pos)
 
-        self.assertEquals(pos, (5, 55))
 
 
     # ensure that the attacker fetches the ball when in own zone
