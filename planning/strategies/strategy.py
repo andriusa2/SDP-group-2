@@ -1,6 +1,8 @@
 import numpy as np
 from lib.math.vector import Vector2D
 from planning.strategies.state_machine import StateMachine
+from planning.world.world_state import Zone
+
 __author__ = 'Sam'
 
 
@@ -20,7 +22,15 @@ class Strategy(object):
         # initialise state attributes
         self.robot = None
         self.ball = None
+        self.goal = None
         self.m = StateMachine()
+
+    def get_goal(self):
+        zone = self.world.get_zone(self.robot.position)
+        if zone == Zone.L_ATT or zone == Zone.L_DEF:
+            return self.world.left_goal
+        else:
+            return self.world.right_goal
 
     def shoot(self):
         """
@@ -31,7 +41,7 @@ class Strategy(object):
         return self.actual_robot.kick()  # kick
 
     def turn_robot_to_goal(self):
-        to_turn = self.robot.angle_to_point(self.world.goal)
+        to_turn = self.robot.angle_to_point(self.goal)
         return self.actual_robot.turn(to_turn)  # turn towards the the goal
 
     def turn_robot_to_ball(self):
@@ -77,7 +87,7 @@ class Strategy(object):
         the centre of the goal is less than a threshold
         :return: whether or not the robot is facing the ball
         """
-        goal = self.world.goal
+        goal = self.goal
         robot = self.world.get_robot(self.robot_tag)
         return robot.can_see(point=goal, beam_width=self.ROBOT_WIDTH)
 
@@ -108,6 +118,7 @@ class Strategy(object):
         """
         self.robot = self.world.get_robot(self.robot_tag)
         self.ball = self.world.get_ball()
+        self.goal = self.get_goal()
 
     def is_ball_close(self):
         """
@@ -149,7 +160,7 @@ class Strategy(object):
         return self.robot.position + kicker_vector
 
     def distance_from_robot_to_point(self, x, y):
-        return self.vector_from_robot_to_point(x,y).length()
+        return self.vector_from_robot_to_point(x, y).length()
 
     def vector_from_robot_to_point(self, x, y):
         """
@@ -184,6 +195,17 @@ class Strategy(object):
             return ball_y
         else:
             return ball_y + (ball_v.y / ball_v.x) * distance_ball_robot
+
+    @staticmethod
+    def y_intercept_of_ball_goal(robot_pos, goal_pos, ball_pos):
+        to_move_x = robot_pos.x
+
+        m = 1.0*(goal_pos.y - ball_pos.y)/(goal_pos.x - ball_pos.x)
+        print m
+
+        to_move_y = (m * (robot_pos.x - goal_pos.x)) + goal_pos.y
+
+        return to_move_x, to_move_y
 
 
 

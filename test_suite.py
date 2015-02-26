@@ -209,9 +209,10 @@ class BlockTest(BaseTest):
         self.world_state = self.put_defender_robot_and_ball(robot_pos=(5, 50), robot_dir=(0, 1), ball_pos=(10, 60))
         actual_robot = DummyRobot(self.world_state, Zone.L_DEF)
         self.planner = Planner(self.world_state, Zone.L_DEF, actual_robot, False)
+        self.planner.fetch_world_state()
 
         robot_pos = self.planner.robot.position
-        goal = self.planner.world.goal_to_defend.position
+        goal = self.planner.goal
         ball_pos = self.planner.ball.position
         pos = self.planner.y_intercept_of_ball_goal(robot_pos, goal, ball_pos)
 
