@@ -150,6 +150,7 @@ class ShootTest(BaseTest):
 
 
 class PlannerTest(BaseTest):
+
     # ensure that the timer stops an action from being performed
     def test_timer_prevents_action(self):
         # raise cage
@@ -211,13 +212,36 @@ class BlockTest(BaseTest):
         pos = self.set_up_y_intercept_of_ball_goal("right")
         self.assertEquals(pos, (35, 45))
 
+    def test_intercept_ball(self):
+        self.world_state = self.put_robot_and_ball(robot_pos=(10, 50), robot_dir=(0, 1), ball_pos=(20, 60), robot_num=0)
+        self.choose_planner("left")
+        self.planner.plan()
+        self.assertEquals(self.planner.robot.position.x, 10)
+        self.assertEquals(self.planner.robot.position.y, 55)
+
+        self.world_state = self.put_robot_and_ball(robot_pos=(10, 50), robot_dir=(0, 1), ball_pos=(20, 40), robot_num=0)
+        self.choose_planner("left")
+        self.planner.fetch_world_state()
+        self.planner.plan()
+        self.assertEquals(self.planner.robot.position.x, 10)
+        self.assertEquals(self.planner.robot.position.y, 45)
+
+        self.world_state = self.put_robot_and_ball(robot_pos=(35, 50), robot_dir=(0, 1), ball_pos=(30, 60), robot_num=0)
+        self.choose_planner("left")
+        self.planner.fetch_world_state()
+        self.planner.plan()
+        self.assertEquals(self.planner.robot.position.x, 35)
+        self.assertEquals(self.planner.robot.position.y, 55)
+
+        self.world_state = self.put_robot_and_ball(robot_pos=(35, 50), robot_dir=(0, 1), ball_pos=(30, 40), robot_num=0)
+        self.choose_planner("left")
+        self.planner.fetch_world_state()
+        self.planner.plan()
+        self.assertEquals(self.planner.robot.position.x, 35)
+        self.assertEquals(self.planner.robot.position.y, 45)
+
     def set_up_y_intercept_of_ball_goal(self, side):
-        if side == "left":
-            actual_robot = DummyRobot(self.world_state, Zone.L_DEF)
-            self.planner = Planner(self.world_state, Zone.L_DEF, actual_robot, False)
-        else:
-            actual_robot = DummyRobot(self.world_state, Zone.R_DEF)
-            self.planner = Planner(self.world_state, Zone.R_DEF, actual_robot, False)
+        self.choose_planner(side)
         self.planner.fetch_world_state()
 
         robot_pos = self.planner.robot.position
@@ -225,6 +249,13 @@ class BlockTest(BaseTest):
         ball_pos = self.planner.ball.position
         return self.planner.y_intercept_of_ball_goal(robot_pos, goal, ball_pos)
 
+    def choose_planner(self, side):
+        if side == "left":
+            actual_robot = DummyRobot(self.world_state, Zone.L_DEF)
+            self.planner = Planner(self.world_state, Zone.L_DEF, actual_robot, False)
+        else:
+            actual_robot = DummyRobot(self.world_state, Zone.R_DEF)
+            self.planner = Planner(self.world_state, Zone.R_DEF, actual_robot, False)
 
 
     # ensure that the attacker fetches the ball when in own zone
