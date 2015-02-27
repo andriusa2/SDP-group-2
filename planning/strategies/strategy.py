@@ -145,8 +145,8 @@ class Strategy(object):
         """
         kicker_pos = self.get_kicker_position()
 
-        ball_kicker_dist_x = np.abs(kicker_pos.x-self.ball.position.x)
-        ball_kicker_dist_y = np.abs(kicker_pos.y-self.ball.position.y)
+        ball_kicker_dist_x = kicker_pos.x-self.ball.position.x
+        ball_kicker_dist_y = kicker_pos.y-self.ball.position.y
         return Vector2D(ball_kicker_dist_x, ball_kicker_dist_y)
 
     def get_kicker_position(self):
@@ -166,8 +166,8 @@ class Strategy(object):
         """
         :return: distance from robot to a given point
         """
-        robot_point_dist_x = np.abs(self.robot.position.x-x)
-        robot_point_dist_y = np.abs(self.robot.position.y-y)
+        robot_point_dist_x = -self.robot.position.x+x
+        robot_point_dist_y = -self.robot.position.y+y
         return Vector2D(robot_point_dist_x, robot_point_dist_y)
 
     def ball_going_quickly(self):
@@ -201,7 +201,6 @@ class Strategy(object):
         to_move_x = robot_pos.x
 
         m = 1.0*(goal_pos.y - ball_pos.y)/(goal_pos.x - ball_pos.x)
-        print m
 
         to_move_y = (m * (robot_pos.x - goal_pos.x)) + goal_pos.y
 

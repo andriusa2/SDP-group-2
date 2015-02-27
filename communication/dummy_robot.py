@@ -35,9 +35,8 @@ class DummyRobot(Controller):
     def move(self, distance):
         # artificially set the world state
         robot = self.world.get_robot(self.robot_tag)
-        old_pos = robot.position
-        unit_direction = robot.direction.scale(distance)
-        robot.position += unit_direction
+        add_distance = robot.direction.unit_vector().scale(distance)
+        robot.position += add_distance
         self.world.add_robot(self.robot_tag, robot)
         return super(DummyRobot, self).move(distance)
 

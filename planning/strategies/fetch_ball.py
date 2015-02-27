@@ -21,7 +21,6 @@ class FetchBall(Strategy):
 
     def act(self):
         self.fetch_world_state()
-        print "ball is far away to robot"
 
         action_state = self.m.run()
         return self.m.do_action(action_state)

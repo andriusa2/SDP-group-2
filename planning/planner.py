@@ -105,10 +105,11 @@ class Planner(Strategy):
         return new_state
 
     def ball_not_in_defender_zone_trans(self):
-        if self.ball_going_quickly():
-            new_state = "blocking goal"
-        else:
-            new_state = "waiting"
+        # if self.ball_going_quickly():
+        #     new_state = "blocking goal"
+        # else:
+        #     new_state = "waiting"
+        new_state = "blocking goal"
         return new_state
 
     def do_nothing(self):
@@ -194,9 +195,12 @@ class Planner(Strategy):
             |  Ball is 4cm away
             |  Ball is Far from robot
             --------------------------------------------------
-            | State Trace...
-            | [CAN ACT] -> [ATTACKER ROBOT] -> [BALL IN ATTACKER ZONE]
-            | -> [FETCHING BALL] -> [GRABBER IS OPEN] -> [MOVE TO BALL]
+            | State Trace ...
+            | -> [CAN ACT]          -> [ATTACKER ROBOT]     -> [BALL IN ATTACKER ZONE]
+            | -> [FETCHING BALL]    -> [GRABBER IS OPEN]    -> [MOVE TO BALL]
+            | ...
+            | ...
+            --------------------------------------------------
         """
         grid = self.pretty_grid(angle_to_ball, dist_to_ball)
         role = "Attacker" if is_attacker else "Defender"
