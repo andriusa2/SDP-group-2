@@ -1,3 +1,5 @@
+from planning.strategies.pass_to_zone import PassToZone
+
 __author__ = 'Sam Davies'
 import time
 import numpy as np
@@ -25,7 +27,7 @@ class Planner(Strategy):
         self.fetch_ball = FetchBall(world, robot_tag, actual_robot)
         self.shoot_goal = ShootForGoal(world, robot_tag, actual_robot)
         self.block_goal = BlockGoal(world, robot_tag, actual_robot)
-        self.clear_ball = ShootForGoal(world, robot_tag, actual_robot)
+        self.pass_ball = PassToZone(world, robot_tag, actual_robot)
 
         self.m = StateMachine()
         self.m.add_state("Start", self.start_trans)
@@ -44,6 +46,7 @@ class Planner(Strategy):
         self.m.add_final_state_and_action("shooting", action=self.do_shoot_goal)
         self.m.add_final_state_and_action("fetching ball", action=self.do_fetch_ball)
         self.m.add_final_state_and_action("blocking goal", action=self.do_block_goal)
+        self.m.add_final_state_and_action("passing ball", action=self.do_pass_ball)
 
         # set start state
         self.m.set_start("Start")
@@ -131,8 +134,8 @@ class Planner(Strategy):
     def do_block_goal(self):
         return self.do_strategy(self.block_goal)
 
-    def do_clear_ball(self):
-        return self.do_strategy(self.clear_ball)
+    def do_pass_ball(self):
+        return self.do_strategy(self.pass_ball)
 
     def do_strategy(self, strategy):
         """

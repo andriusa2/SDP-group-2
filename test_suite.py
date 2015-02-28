@@ -62,6 +62,14 @@ class BaseTest(unittest.TestCase):
         # refresh the robot's world
         self.attacker1.fetch_world_state()
 
+    def choose_planner(self, side):
+        if side == "left":
+            actual_robot = DummyRobot(self.world_state, Zone.L_DEF)
+            self.planner = Planner(self.world_state, Zone.L_DEF, actual_robot, False)
+        else:
+            actual_robot = DummyRobot(self.world_state, Zone.R_DEF)
+            self.planner = Planner(self.world_state, Zone.R_DEF, actual_robot, False)
+
 
 class FetchBallTest(BaseTest):
     def setUp(self):
@@ -249,20 +257,16 @@ class BlockTest(BaseTest):
         ball_pos = self.planner.ball.position
         return self.planner.y_intercept_of_ball_goal(robot_pos, goal, ball_pos)
 
-    def choose_planner(self, side):
-        if side == "left":
-            actual_robot = DummyRobot(self.world_state, Zone.L_DEF)
-            self.planner = Planner(self.world_state, Zone.L_DEF, actual_robot, False)
-        else:
-            actual_robot = DummyRobot(self.world_state, Zone.R_DEF)
-            self.planner = Planner(self.world_state, Zone.R_DEF, actual_robot, False)
-
 
 class PassToZoneTest(BaseTest):
 
     # ensure that a friend robot is found correctly
     def test_get_friend(self):
-        pass
+        self.world_state = self.put_robot_and_ball(robot_pos=(10, 50), robot_dir=(0, 1), ball_pos=(20, 60), robot_num=0)
+        self.choose_planner("left")
+        self.planner.fetch_world_state()
+        friend = self.planner.pass_ball.get_friend()
+        self.assertEqual(self.planner.world.get_zone(friend.position), Zone.R_ATT)
 
     # ensure that a blocked pass is found to be blocked
     def test_blocked_pass(self):

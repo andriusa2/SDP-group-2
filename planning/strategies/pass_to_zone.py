@@ -56,8 +56,8 @@ class PassToZone(Strategy):
 
     def get_friend(self):
         self.fetch_world_state()
-        my_zone = self.robot_tag
-        if my_zone == Zone.L_ATT or Zone.L_DEF:
+        my_zone = self.world.get_zone(self.robot.position)
+        if my_zone == 0 or 1:
             friend = self.world.get_robot(Zone.R_ATT)
         else:
             friend = self.world.get_robot(Zone.L_ATT)
