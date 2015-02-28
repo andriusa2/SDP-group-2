@@ -1,8 +1,5 @@
 __author__ = 'samdavies'
-import numpy as np
-
 from planning.strategies.strategy import Strategy
-from lib.math.vector import Vector2D
 
 
 class BlockGoal(Strategy):
@@ -23,7 +20,7 @@ class BlockGoal(Strategy):
         action_state = self.m.run()
         return self.m.do_action(action_state)
 
-    ##------------------------------------ Transitions ------------------------------------
+    # ------------------------------------ Transitions ------------------------------------
 
     def start_trans(self):
         if self.is_robot_facing_up():
@@ -32,7 +29,7 @@ class BlockGoal(Strategy):
             new_state = "Turn To Face Up"
         return new_state
 
-    ##-------------------------------------- Actions --------------------------------------
+    # -------------------------------------- Actions --------------------------------------
 
     def intercept_ball(self):
         x, y = self.y_intercept_of_ball_goal(self.robot.position, self.goal, self.ball.position)

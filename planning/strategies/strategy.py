@@ -111,6 +111,14 @@ class Strategy(object):
         robot = self.world.get_robot(self.robot_tag)
         return robot.can_see(point=up_pos, beam_width=self.ROBOT_WIDTH * 20)
 
+    def is_robot_facing_point(self, point):
+        """
+        Check to see if a point is in the robots beam
+        :return: whether or not the robot is facing the point
+        """
+        robot = self.world.get_robot(self.robot_tag)
+        return robot.can_see(point=point, beam_width=self.ROBOT_WIDTH)
+
     def fetch_world_state(self):
         """
         grab the latest state of the world and set this objects attribute

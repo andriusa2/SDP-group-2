@@ -258,11 +258,27 @@ class BlockTest(BaseTest):
             self.planner = Planner(self.world_state, Zone.R_DEF, actual_robot, False)
 
 
-    # ensure that the attacker fetches the ball when in own zone
+class PassToZoneTest(BaseTest):
 
-    # ensure that the attacker shoots when it has the ball
+    # ensure that a friend robot is found correctly
+    def test_get_friend(self):
+        pass
 
-    # ensure that the planning moves to centre when ball is away"""
+    # ensure that a blocked pass is found to be blocked
+    def test_blocked_pass(self):
+        pass
+
+    # ensure that unblocked pass is found to be open
+    def test_unblocked_pass(self):
+        pass
+
+    # ensure that a blocked pass results in a position change
+    def test_blocked_pass_action(self):
+        pass
+
+    # ensure that an unblocked results in a pass
+    def test_unblocked_pass_action(self):
+        pass
 
 
 class PrettyPrintTest(BaseTest):

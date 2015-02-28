@@ -55,11 +55,14 @@ class Robot(_WorldObject):
         """
         # vector from robot to point
         assert not threshold
+        return self.is_point_within_beam(point, self.direction, beam_width)
+
+    def is_point_within_beam(self, point, direction, beam_width=7):
         dpoint = point - self.position
         # sanity check
-        if abs(dpoint.get_angle(self.direction)) >= pi / 2:
+        if abs(dpoint.get_angle(direction)) >= pi / 2:
             return False
-        projection = self.direction.scale(dpoint.dot(self.direction))
+        projection = direction.scale(dpoint.dot(direction))
         dist_vector = dpoint - projection
         return dist_vector.dot(dist_vector) <= beam_width * beam_width
 
