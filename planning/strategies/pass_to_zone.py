@@ -63,16 +63,23 @@ class PassToZone(Strategy):
             friend = self.world.get_robot(Zone.L_ATT)
         return friend
 
+    def get_enemy(self):
+        self.fetch_world_state()
+        my_zone = self.world.get_zone(self.robot.position)
+        if my_zone == 0 or 1:
+            friend = self.world.get_robot(Zone.L_ATT)
+        else:
+            friend = self.world.get_robot(Zone.R_ATT)
+        return friend
+
     def is_pass_blocked(self):
         # first find the location of your friend
-        direction = self.friend.position - self.robot.position
-
-        enemy_robots = self.world.get_robots_list() - [self.robot, self.friend]
-
-        for robot in enemy_robots:
-            if self.robot.is_point_within_beam(robot.position, direction, beam_width=self.ROBOT_WIDTH*2):
-                return True
-        return False
+        direction = (self.friend.position - self.robot.position).unit_vector()
+        enemy_robot = self.get_enemy()
+        if self.robot.is_point_within_beam(enemy_robot.position, direction, beam_width=self.ROBOT_WIDTH*2):
+            return True
+        else:
+            return False
 
     def turn_to_location(self):
         to_turn = self.robot.angle_to_point(self.determine_next_location())

@@ -32,15 +32,23 @@ class BaseTest(unittest.TestCase):
         self.planner = Planner(self.world_state, Zone.L_ATT, actual_robot, True)
 
     def put_robot_and_ball(self, robot_pos, robot_dir, ball_pos, robot_num):
-        robot_pos_x, robot_pos_y = robot_pos
-        robot_dir_x, robot_dir_y = robot_dir
+        return self.put_robots_and_ball(robot_pos, [(18.0, 8.0), (25, 25), (35, 35)], robot_dir, ball_pos, robot_num)
+
+    def put_robots_and_ball(self, my_position, other_positions, my_direction, ball_pos, robot_num):
+        robot1_pos_x, robot1_pos_y = my_position
+        robot2_pos_x, robot2_pos_y = other_positions[0]
+        robot3_pos_x, robot3_pos_y = other_positions[1]
+        robot4_pos_x, robot4_pos_y = other_positions[2]
+
+        robot_dir_x, robot_dir_y = my_direction
         ball_pos_x, ball_pos_y = ball_pos
 
         # create a robot and a ball
-        me = Robot(direction=(robot_dir_x, robot_dir_y), position=(robot_pos_x, robot_pos_y), velocity=(0.0, 0.0), enemy=False)
-        robot_2 = Robot(direction=(0, 1), position=(8.0, 8.0), velocity=(0.0, 0.0), enemy=True)
-        robot_3 = Robot(direction=(0, 1), position=(25, 25), velocity=(0, 0), enemy=True)
-        robot_4 = Robot(direction=(0, 1), position=(35, 35), velocity=(0, 0), enemy=True)
+        me = Robot(direction=(robot_dir_x, robot_dir_y), position=(robot1_pos_x, robot1_pos_y), velocity=(0.0, 0.0),
+                   enemy=False)
+        robot_2 = Robot(direction=(0, 1), position=(robot2_pos_x, robot2_pos_y), velocity=(0.0, 0.0), enemy=True)
+        robot_3 = Robot(direction=(0, 1), position=(robot3_pos_x, robot3_pos_y), velocity=(0, 0), enemy=True)
+        robot_4 = Robot(direction=(0, 1), position=(robot4_pos_x, robot4_pos_y), velocity=(0, 0), enemy=True)
         ball = Ball(position=(ball_pos_x, ball_pos_y), velocity=(0, 0), in_possession=False)
 
         # set the list of robots
@@ -54,7 +62,8 @@ class BaseTest(unittest.TestCase):
             robots = [robot_2, robot_3, robot_4, me]
 
         # create a world object
-        return WorldState(robots=robots, ball=ball, zone_boundaries=[10, 20, 30, 40], left_goal=(0, 50), right_goal=(40, 50))
+        return WorldState(robots=robots, ball=ball, zone_boundaries=[10, 20, 30, 40], left_goal=(0, 50),
+                          right_goal=(40, 50))
 
     def change_ball_location(self, new_ball_x, new_ball_y):
         ball = Ball(position=(new_ball_x, new_ball_y), velocity=(0, 0), in_possession=False)
@@ -158,7 +167,6 @@ class ShootTest(BaseTest):
 
 
 class PlannerTest(BaseTest):
-
     # ensure that the timer stops an action from being performed
     def test_timer_prevents_action(self):
         # raise cage
@@ -202,7 +210,6 @@ class PlannerTest(BaseTest):
 
 
 class BlockTest(BaseTest):
-
     def test_y_intercept_of_ball_goal(self):
         self.world_state = self.put_robot_and_ball(robot_pos=(5, 50), robot_dir=(0, 1), ball_pos=(10, 60), robot_num=0)
         pos = self.set_up_y_intercept_of_ball_goal("left")
@@ -259,22 +266,35 @@ class BlockTest(BaseTest):
 
 
 class PassToZoneTest(BaseTest):
-
     # ensure that a friend robot is found correctly
     def test_get_friend(self):
         self.world_state = self.put_robot_and_ball(robot_pos=(10, 50), robot_dir=(0, 1), ball_pos=(20, 60), robot_num=0)
         self.choose_planner("left")
-        self.planner.fetch_world_state()
         friend = self.planner.pass_ball.get_friend()
         self.assertEqual(self.planner.world.get_zone(friend.position), Zone.R_ATT)
 
+    # ensure that the blocking robot is found correctly
+    def test_get_enemy(self):
+        self.world_state = self.put_robot_and_ball(robot_pos=(5, 50), robot_dir=(0, 1), ball_pos=(20, 60), robot_num=0)
+        self.choose_planner("left")
+        friend = self.planner.pass_ball.get_enemy()
+        self.assertEqual(self.planner.world.get_zone(friend.position), Zone.L_ATT)
+
     # ensure that a blocked pass is found to be blocked
     def test_blocked_pass(self):
-        pass
+        self.world_state = self.put_robots_and_ball((5, 50), [(15.0, 50), (25, 50), (35, 0)], my_direction=(0, 1),
+                                                    ball_pos=(20, 60), robot_num=0)
+        self.choose_planner("left")
+        is_blocked = self.planner.pass_ball.is_pass_blocked()
+        self.assertTrue(is_blocked)
 
     # ensure that unblocked pass is found to be open
     def test_unblocked_pass(self):
-        pass
+        self.world_state = self.put_robots_and_ball((10, 50), [(8.0, 8.0), (25, 25), (35, 35)], my_direction=(0, 1),
+                                                    ball_pos=(20, 60), robot_num=0)
+        self.choose_planner("left")
+        is_blocked = self.planner.pass_ball.is_pass_blocked()
+        self.assertFalse(is_blocked)
 
     # ensure that a blocked pass results in a position change
     def test_blocked_pass_action(self):
