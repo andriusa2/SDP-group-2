@@ -176,10 +176,12 @@ class Planner(Strategy):
 
         to_print = self.pretty_print(current_zone, dist_to_ball, angle_to_ball, current_state, action, action_duration,
                                      is_attacker, in_beam, ball_zone)
+        if action != 'WAITING':
+            print ""
+            for line in to_print:
+                print line
 
-        print ""
-        for line in to_print:
-            print line
+            print state_trace
 
         return to_print
 

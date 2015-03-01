@@ -107,7 +107,7 @@ class Controller(Arduino):
         duration = get_duration(distance, abs(power))  # magic...
         # print('Trying to turn for {0} seconds'.format(duration))
         return self.complex_movement(
-            left_power=-power,
+            left_power=power,
             right_power=power,
             left_duration=duration
         )

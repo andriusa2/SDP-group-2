@@ -11,18 +11,18 @@ class Controller(object):
 
         boundaries = [47, 106, 165, 212]
         self.world = WorldState()
-        actual_robot = CommController("/dev/ttyACM0", ack_tries=10)
+        self.actual_robot = CommController("/dev/ttyACM0", ack_tries=10)
         from time import sleep
         sleep(5)
-        actual_robot.kick()
+        # actual_robot.open_grabber()
         # set the boundaries
         self.world.set_zone_boundaries(boundaries)
 
         # this is our chosen strategy
         """R_ATT, L_ATT, R_DEF, L_DEF"""
-        self.planner = Planner(self.world, Zone.L_DEF, actual_robot, False)
-
         self.vision = VisionController(pitch, color, our_side)
+
+        self.planner = None
 
     def main(self):
         """
@@ -66,7 +66,10 @@ class Controller(object):
         self.world.set_ball(ball)
 
         # do the next plan
-        self.planner.plan_defence()
+        # self.planner.plan_defence()
+        if not self.planner:
+            self.planner = Planner(self.world, Zone.L_DEF, self.actual_robot, False)
+        self.planner.plan()
 
 if __name__ == '__main__':
     import argparse
