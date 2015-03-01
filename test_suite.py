@@ -210,6 +210,17 @@ class PlannerTest(BaseTest):
 
 
 class BlockTest(BaseTest):
+
+    # ensure that a robot turns
+    def test_turn_to_face_up(self):
+        self.world_state = self.put_robot_and_ball(robot_pos=(5, 50), robot_dir=(1, 0), ball_pos=(15, 60), robot_num=0)
+        self.set_up_y_intercept_of_ball_goal("left")
+
+        self.planner.plan()
+        direction = self.planner.robot.direction
+        self.assertAlmostEqual(direction.x, 0)
+        self.assertAlmostEqual(direction.y, 1)
+
     def test_y_intercept_of_ball_goal(self):
         self.world_state = self.put_robot_and_ball(robot_pos=(5, 50), robot_dir=(0, 1), ball_pos=(10, 60), robot_num=0)
         pos = self.set_up_y_intercept_of_ball_goal("left")
@@ -298,7 +309,17 @@ class PassToZoneTest(BaseTest):
 
     # ensure that a blocked pass results in a position change
     def test_blocked_pass_action(self):
-        pass
+        self.world_state = self.put_robots_and_ball((5, 50), [(15.0, 50), (25, 50), (35, 0)], my_direction=(1, 0),
+                                                    ball_pos=(6, 50), robot_num=0)
+        self.choose_planner("left")
+        is_blocked = self.planner.pass_ball.is_pass_blocked()
+        self.assertTrue(is_blocked)
+
+        timer = self.planner.plan()
+        time.sleep(timer)
+
+        timer = self.planner.plan()
+        time.sleep(timer)
 
     # ensure that an unblocked results in a pass
     def test_unblocked_pass_action(self):
