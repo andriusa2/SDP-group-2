@@ -223,14 +223,23 @@ class Planner(Strategy):
 
         return [l1, l2, l3, l4, l5, l6, l7, l8, l9]
 
+
     @staticmethod
     def pretty_grid(angle_to_ball, dist_to_ball):
-        g0 = "[][][][][]"
-        g1 = "[][][][][]"
-        g2 = "[][][][][]"
-        g3 = "[][][][][]"
-        g4 = "[][][][][]"
+        brackets = "[][][][][]"
+        matrix = {'0' : list(brackets), '1' : list(brackets), '2' : list(brackets), '-2' : list(brackets), '-3' : list(brackets)}
+        if angle_to_ball >=45 or angle_to_ball <= -45:
+            return ["".join(matrix['2']), "".join(matrix['1']), "".join(matrix['0']), "".join(matrix['-2']), "".join(matrix['-3'])]
+        if dist_to_ball > 10:
+            return ["".join(matrix['2']), "".join(matrix['1']), "".join(matrix['0']), "".join(matrix['-2']), "".join(matrix['-3'])]
+        if angle_to_ball < 0 and angle_to_ball > -15:
+            angle_to_ball = abs(dist_to_ball)
+        row = int(angle_to_ball)/15
+        index = int(dist_to_ball)/2*2
+        matrix[str(row)][index] = ':'
+        matrix[str(row)][index + 1] = ':'
+        return ["".join(matrix['2']), "".join(matrix['1']), "".join(matrix['0']), "".join(matrix['-2']), "".join(matrix['-3'])]
 
-        return [g0, g1, g2, g3, g4]
+
 
 
