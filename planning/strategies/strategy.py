@@ -137,8 +137,8 @@ class Strategy(object):
 
         # check if the balls is in close enough to the robot to be grabbed
         ball_kicker_vector = self.vector_from_kicker_to_ball()
-        ball_close_x = ball_kicker_vector.x < self.grab_threshold_x
-        ball_close_y = ball_kicker_vector.y < self.grab_threshold_y
+        ball_close_x = abs(ball_kicker_vector.x) < self.grab_threshold_x
+        ball_close_y = abs(ball_kicker_vector.y) < self.grab_threshold_y
         return ball_close_x and ball_close_y
 
     def distance_from_kicker_to_ball(self):
