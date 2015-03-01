@@ -1,3 +1,6 @@
+from lib.math.vector import Vector2D
+import numpy as np
+
 __author__ = 'samdavies'
 from planning.strategies.strategy import Strategy
 
@@ -9,7 +12,7 @@ class BlockGoal(Strategy):
 
         # End States / Actions
         self.m.add_final_state_and_action("Intercept Ball", self.intercept_ball)
-        self.m.add_final_state_and_action("Turn To Face Up", self.turn_robot_to_ball)
+        self.m.add_final_state_and_action("Turn To Face Up", self.turn_robot_to_up)
 
         # set start state
         self.m.set_start("Start")
@@ -41,6 +44,16 @@ class BlockGoal(Strategy):
             dist_to_point = - dist_to_point
 
         return self.actual_robot.move(dist_to_point)
+
+    def turn_robot_to_up(self):
+        # rotate to face up
+        up_pos = Vector2D(self.robot.position.x, 150)
+        print "up is at " + str(up_pos.x) + ", " + str(up_pos.y)
+        print "robot at {0}; {1}".format(self.robot.position.x, self.robot.position.y)
+        to_turn = self.robot.angle_to_point(up_pos)
+        print "rotating robot " + str(360.0 * to_turn / (2 * np.pi)) + " degrees"
+        return self.actual_robot.turn(to_turn)
+
 
     """def act(self):
         self.fetch_world_state()
