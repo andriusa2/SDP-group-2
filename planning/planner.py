@@ -184,20 +184,20 @@ class Planner(Strategy):
         state_trace = self.m.state_trace
 
         to_print = self.pretty_print(current_zone, dist_to_ball, angle_to_ball, current_state, action, action_duration,
-                                     is_attacker, in_beam, ball_zone)
+                                     is_attacker, in_beam, ball_zone, state_trace)
         if action != 'WAITING':
             print ""
             for line in to_print:
                 print line
 
-            print state_trace
+            #print state_trace
 
-        print state_trace
+        #print state_trace
 
         return to_print
 
     def pretty_print(self, current_zone, dist_to_ball, angle_to_ball, current_state, action, action_duration,
-                     is_attacker, in_beam, ball_zone):
+                     is_attacker, in_beam, ball_zone, state_trace):
         """
             Robot - Attacker - Zone 1
             --------------------------------------------------
@@ -226,6 +226,8 @@ class Planner(Strategy):
         grid = self.pretty_grid(angle_to_ball, dist_to_ball)
         role = "Attacker" if is_attacker else "Defender"
         beam = "(IN BEAM)" if in_beam else ""
+        #close = "close to" if is_ball_close else "far from"
+        close = "close to"
 
         l1 = "Robot - {0} - Zone {1}".format(role, current_zone)
         l2 = "--------------------------------------------------"
@@ -233,11 +235,33 @@ class Planner(Strategy):
         l4 = "|    {0}  | Action     : {1}".format(grid[1], action)
         l5 = "| R->{0}  | Duration   : {1} seconds".format(grid[2], action_duration)
         l6 = "|    {0}  |--------------------------------".format(grid[3])
-        l7 = "|    {0}  | Ball Angle : {1} deg {2}".format(grid[4], int(360.0 * angle_to_ball / (2 * np.pi)), beam)
-        l8 = "|    <--10cm-->  | Ball Zone  : {0}".format(ball_zone)
+        l7 = "|    {0}  |".format(grid[4])
+        l8 = "|    <--10cm-->  |"
         l9 = "--------------------------------------------------"
+        l10 = "| Ball is {0}cm away".format(dist_to_ball)
+        l11 = "| Ball is {0} robot".format(close)
+        l12 = "| Ball at angle : {0} deg {1}".format(int(360.0 * angle_to_ball / (2 * np.pi)), beam)
+        l13 = "| Ball Zone : {0}".format(ball_zone)
+        l14 = "--------------------------------------------------"
+        l15 = "State Trace ..."
+        l16 = ""
+        x = 0
+        for state in state_trace:
+            length = len(state)
+            padding = 20 - length
+            x += 1
+            l16 += "-> %s" % state
+            l16 += " " * padding
+            if not x%3:
+                l16 += "\n"
+        #l16 = " -> [{0}]         -> [{1}]         -> [{2}]".format(state_trace[0], state_trace[1], state_trace[2])
+        #if len(state_trace) == 6:
+        #    l17 = " -> [{0}]         -> [{1}]         -> [{2}]".format(state_trace[3], state_trace[4], state_trace[5])
+        #elif len(state_trace) == 5:
+        #    l17 = " -> [{0}]         -> [{1}]".format(state_trace[3], state_trace[4])
+        l18 = "--------------------------------------------------"
 
-        return [l1, l2, l3, l4, l5, l6, l7, l8, l9]
+        return [l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13, l14, l15, l16, l18]
 
 
 

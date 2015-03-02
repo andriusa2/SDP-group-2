@@ -354,8 +354,9 @@ class PassToZoneTest(BaseTest):
 
 
 class PrettyPrintTest(BaseTest):
+    state_trace = ["a", "b", "c", "d", "e"]
     def test_simple_print(self):
-        printed = self.planner.pretty_print(1, 3.8, np.pi/4, "GRABBER IS OPEN", "TURN TO BALL", 0.5, True, True, 1)
+        printed = self.planner.pretty_print(1, 3.8, np.pi/4, "GRABBER IS OPEN", "TURN TO BALL", 0.5, True, True, 1, ["a", "b", "c", "d", "e"])
 
         self.assertEquals("Robot - Attacker - Zone 1", printed[0])
         self.assertEquals("--------------------------------------------------", printed[1])
@@ -363,12 +364,17 @@ class PrettyPrintTest(BaseTest):
         self.assertEquals("|    []::[][][]  | Action     : TURN TO BALL", printed[3])
         self.assertEquals("| R->[][][][][]  | Duration   : 0.5 seconds", printed[4])
         self.assertEquals("|    [][][][][]  |--------------------------------", printed[5])
-        self.assertEquals("|    [][][][][]  | Ball Angle : 45 deg (IN BEAM)", printed[6])
-        self.assertEquals("|    <--10cm-->  | Ball Zone  : 1", printed[7])
+        self.assertEquals("|    [][][][][]  |", printed[6])
+        self.assertEquals("|    <--10cm-->  |", printed[7])
         self.assertEquals("--------------------------------------------------", printed[8])
+        self.assertEquals("| Ball is 3.8cm away", printed[9])
+        self.assertEquals("| Ball is close to robot", printed[10])
+        self.assertEquals("| Ball at angle : 45 deg (IN BEAM)", printed[11])
+        self.assertEquals("| Ball Zone : 1", printed[12])
+        self.assertEquals("--------------------------------------------------", printed[13])
 
     def test_simple_print_negative(self):
-        printed = self.planner.pretty_print(1, 3.8, np.pi/-4, "GRABBER IS OPEN", "TURN TO BALL", 0.5, True, True, 1)
+        printed = self.planner.pretty_print(1, 3.8, np.pi/-4, "GRABBER IS OPEN", "TURN TO BALL", 0.5, True, True, 1, ["a", "b", "c", "d", "e"])
 
         self.assertEquals("Robot - Attacker - Zone 1", printed[0])
         self.assertEquals("--------------------------------------------------", printed[1])
@@ -376,12 +382,17 @@ class PrettyPrintTest(BaseTest):
         self.assertEquals("|    [][][][][]  | Action     : TURN TO BALL", printed[3])
         self.assertEquals("| R->[][][][][]  | Duration   : 0.5 seconds", printed[4])
         self.assertEquals("|    []::[][][]  |--------------------------------", printed[5])
-        self.assertEquals("|    [][][][][]  | Ball Angle : -45 deg (IN BEAM)", printed[6])
-        self.assertEquals("|    <--10cm-->  | Ball Zone  : 1", printed[7])
+        self.assertEquals("|    [][][][][]  |", printed[6])
+        self.assertEquals("|    <--10cm-->  |", printed[7])
         self.assertEquals("--------------------------------------------------", printed[8])
+        self.assertEquals("| Ball is 3.8cm away", printed[9])
+        self.assertEquals("| Ball is close to robot", printed[10])
+        self.assertEquals("| Ball at angle : -45 deg (IN BEAM)", printed[11])
+        self.assertEquals("| Ball Zone : 1", printed[12])
+        self.assertEquals("--------------------------------------------------", printed[13])
 
     def test_simple_print_behind(self):
-        printed = self.planner.pretty_print(1, 3.8, np.pi, "GRABBER IS OPEN", "TURN TO BALL", 0.5, True, True, 1)
+        printed = self.planner.pretty_print(1, 3.8, np.pi, "GRABBER IS OPEN", "TURN TO BALL", 0.5, True, True, 1, ["a", "b", "c", "d", "e"])
 
         self.assertEquals("Robot - Attacker - Zone 1", printed[0])
         self.assertEquals("--------------------------------------------------", printed[1])
@@ -389,12 +400,17 @@ class PrettyPrintTest(BaseTest):
         self.assertEquals("|    [][][][][]  | Action     : TURN TO BALL", printed[3])
         self.assertEquals("| R->[][][][][]  | Duration   : 0.5 seconds", printed[4])
         self.assertEquals("|    [][][][][]  |--------------------------------", printed[5])
-        self.assertEquals("|    [][][][][]  | Ball Angle : 180 deg (IN BEAM)", printed[6])
-        self.assertEquals("|    <--10cm-->  | Ball Zone  : 1", printed[7])
+        self.assertEquals("|    [][][][][]  |", printed[6])
+        self.assertEquals("|    <--10cm-->  |", printed[7])
         self.assertEquals("--------------------------------------------------", printed[8])
+        self.assertEquals("| Ball is 3.8cm away", printed[9])
+        self.assertEquals("| Ball is close to robot", printed[10])
+        self.assertEquals("| Ball at angle : 180 deg (IN BEAM)", printed[11])
+        self.assertEquals("| Ball Zone : 1", printed[12])
+        self.assertEquals("--------------------------------------------------", printed[13])
 
     def test_simple_print_distance(self):
-        printed = self.planner.pretty_print(1, 10.1, np.pi/4, "GRABBER IS OPEN", "TURN TO BALL", 0.5, True, True, 1)
+        printed = self.planner.pretty_print(1, 10.1, np.pi/4, "GRABBER IS OPEN", "TURN TO BALL", 0.5, True, True, 1, ["a", "b", "c", "d", "e"])
 
         self.assertEquals("Robot - Attacker - Zone 1", printed[0])
         self.assertEquals("--------------------------------------------------", printed[1])
@@ -402,34 +418,49 @@ class PrettyPrintTest(BaseTest):
         self.assertEquals("|    [][][][][]  | Action     : TURN TO BALL", printed[3])
         self.assertEquals("| R->[][][][][]  | Duration   : 0.5 seconds", printed[4])
         self.assertEquals("|    [][][][][]  |--------------------------------", printed[5])
-        self.assertEquals("|    [][][][][]  | Ball Angle : 45 deg (IN BEAM)", printed[6])
-        self.assertEquals("|    <--10cm-->  | Ball Zone  : 1", printed[7])
+        self.assertEquals("|    [][][][][]  |", printed[6])
+        self.assertEquals("|    <--10cm-->  |", printed[7])
         self.assertEquals("--------------------------------------------------", printed[8])
+        self.assertEquals("| Ball is 10.1cm away", printed[9])
+        self.assertEquals("| Ball is close to robot", printed[10])
+        self.assertEquals("| Ball at angle : 45 deg (IN BEAM)", printed[11])
+        self.assertEquals("| Ball Zone : 1", printed[12])
+        self.assertEquals("--------------------------------------------------", printed[13])
 
    
     def test_simple_print_corner_top(self):
-        printed = self.planner.pretty_print(1, np.sqrt(440)/2, 0.442374223, "GRABBER IS OPEN", "TURN TO BALL", 0.5, True, True, 1)
+        printed = self.planner.pretty_print(1, np.sqrt(440)/2, 0.442374223, "GRABBER IS OPEN", "TURN TO BALL", 0.5, True, True, 1, ["a", "b", "c", "d", "e"])
         self.assertEquals("Robot - Attacker - Zone 1", printed[0])
         self.assertEquals("--------------------------------------------------", printed[1])
         self.assertEquals("|    [][][][]::  | State      : GRABBER IS OPEN", printed[2])
         self.assertEquals("|    [][][][][]  | Action     : TURN TO BALL", printed[3])
         self.assertEquals("| R->[][][][][]  | Duration   : 0.5 seconds", printed[4])
         self.assertEquals("|    [][][][][]  |--------------------------------", printed[5])
-        self.assertEquals("|    [][][][][]  | Ball Angle : 25 deg (IN BEAM)", printed[6])
-        self.assertEquals("|    <--10cm-->  | Ball Zone  : 1", printed[7])
+        self.assertEquals("|    [][][][][]  |", printed[6])
+        self.assertEquals("|    <--10cm-->  |", printed[7])
         self.assertEquals("--------------------------------------------------", printed[8])
+        self.assertEquals("| Ball is 3.8cm away", printed[9])
+        self.assertEquals("| Ball is close to robot", printed[10])
+        self.assertEquals("| Ball at angle : 25 deg (IN BEAM)", printed[11])
+        self.assertEquals("| Ball Zone : 1", printed[12])
+        self.assertEquals("--------------------------------------------------", printed[13])
 
     def test_simple_print_corner_top(self):
-        printed = self.planner.pretty_print(1, np.sqrt(440)/2, -0.442374223, "GRABBER IS OPEN", "TURN TO BALL", 0.5, True, True, 1)
+        printed = self.planner.pretty_print(1, np.sqrt(440)/2, -0.442374223, "GRABBER IS OPEN", "TURN TO BALL", 0.5, True, True, 1, ["a", "b", "c", "d", "e"])
         self.assertEquals("Robot - Attacker - Zone 1", printed[0])
         self.assertEquals("--------------------------------------------------", printed[1])
         self.assertEquals("|    [][][][][]  | State      : GRABBER IS OPEN", printed[2])
         self.assertEquals("|    [][][][][]  | Action     : TURN TO BALL", printed[3])
         self.assertEquals("| R->[][][][][]  | Duration   : 0.5 seconds", printed[4])
         self.assertEquals("|    [][][][][]  |--------------------------------", printed[5])
-        self.assertEquals("|    [][][][]::  | Ball Angle : -25 deg (IN BEAM)", printed[6])
-        self.assertEquals("|    <--10cm-->  | Ball Zone  : 1", printed[7])
+        self.assertEquals("|    [][][][]::  |", printed[6])
+        self.assertEquals("|    <--10cm-->  |", printed[7])
         self.assertEquals("--------------------------------------------------", printed[8])
+        self.assertEquals("| Ball is 10.4880884817cm away", printed[9])
+        self.assertEquals("| Ball is close to robot", printed[10])
+        self.assertEquals("| Ball at angle : -25 deg (IN BEAM)", printed[11])
+        self.assertEquals("| Ball Zone : 1", printed[12])
+        self.assertEquals("--------------------------------------------------", printed[13])
 
 
 if __name__ == '__main__':
