@@ -177,6 +177,7 @@ class WorldState(object):
         It assumes that robot ordering is from left to right.
         """
         self.robots = dict()
+        robot_list.sort(key=lambda a: a.position.x)
         for key, val in zip(Zone.zone_order, robot_list):
             self.robots[key] = val
 
