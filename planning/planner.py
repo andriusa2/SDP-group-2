@@ -165,7 +165,7 @@ class Planner(Strategy):
 
         current_zone = self.world.get_zone(self.robot.position)
         dist_to_ball = self.distance_from_kicker_to_ball()
-        angle_to_ball = int(360.0 * self.robot.angle_to_point(self.ball.position) / (2 * np.pi))
+        angle_to_ball = self.robot.angle_to_point(self.ball.position)
         current_state = self.m.state_trace[len(self.m.state_trace)-2]
         action = self.m.state_trace[len(self.m.state_trace)-1]
         action_duration = self.next_action_wait
@@ -224,26 +224,31 @@ class Planner(Strategy):
         l4 = "|    {0}  | Action     : {1}".format(grid[1], action)
         l5 = "| R->{0}  | Duration   : {1} seconds".format(grid[2], action_duration)
         l6 = "|    {0}  |--------------------------------".format(grid[3])
-        l7 = "|    {0}  | Ball Angle : {1} deg {2}".format(grid[4], angle_to_ball, beam)
+        l7 = "|    {0}  | Ball Angle : {1} deg {2}".format(grid[4], int(360.0 * angle_to_ball / (2 * np.pi)), beam)
         l8 = "|    <--10cm-->  | Ball Zone  : {0}".format(ball_zone)
         l9 = "--------------------------------------------------"
 
         return [l1, l2, l3, l4, l5, l6, l7, l8, l9]
 
+
+
     @staticmethod
     def pretty_grid(angle_to_ball, dist_to_ball):
         brackets = "[][][][][]"
         matrix = {'0': list(brackets), '1': list(brackets), '2': list(brackets), '-2': list(brackets), '-3': list(brackets)}
-        if angle_to_ball >= 45 or angle_to_ball <= -45:
+        dist_to_x = dist_to_ball * np.cos(abs(angle_to_ball))
+        index = int(dist_to_x)/2 * 2
+        dist_to_y = dist_to_ball * np.sin(abs(angle_to_ball))
+        if angle_to_ball < 0:
+            dist_to_y = - dist_to_y
+        if dist_to_y > 5 or dist_to_y < -5 or dist_to_x > 10 or angle_to_ball > np.pi/2 or angle_to_ball < np.pi/-2:
             return ["".join(matrix['2']), "".join(matrix['1']), "".join(matrix['0']), "".join(matrix['-2']), "".join(matrix['-3'])]
-        if dist_to_ball > 10:
-            return ["".join(matrix['2']), "".join(matrix['1']), "".join(matrix['0']), "".join(matrix['-2']), "".join(matrix['-3'])]
-        if angle_to_ball < 0 and angle_to_ball > -15:
-            angle_to_ball = abs(dist_to_ball)
-        row = int(angle_to_ball)/15
-        index = int(dist_to_ball)/2*2
+        if dist_to_y >= -1:
+            row = int(dist_to_y + 1)/2
+        else:
+            row = int(dist_to_y -1)/2
         matrix[str(row)][index] = ':'
-        matrix[str(row)][index + 1] = ':'
+        matrix[str(row)][index + 1] = ":"
         return ["".join(matrix['2']), "".join(matrix['1']), "".join(matrix['0']), "".join(matrix['-2']), "".join(matrix['-3'])]
 
 
