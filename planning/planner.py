@@ -1,4 +1,5 @@
 from planning.strategies.pass_to_zone import PassToZone
+from planning.strategies.receive_pass import ReceivePass
 
 __author__ = 'Sam Davies'
 import time
@@ -26,8 +27,10 @@ class Planner(Strategy):
 
         self.fetch_ball = FetchBall(world, robot_tag, actual_robot)
         self.shoot_goal = ShootForGoal(world, robot_tag, actual_robot)
+
         self.block_goal = BlockGoal(world, robot_tag, actual_robot)
         self.pass_ball = PassToZone(world, robot_tag, actual_robot)
+        self.receive_pass = ReceivePass(world, robot_tag, actual_robot)
 
         self.m = StateMachine()
         self.m.add_state("Start", self.start_trans)
@@ -47,6 +50,7 @@ class Planner(Strategy):
         self.m.add_final_state_and_action("fetching ball", action=self.do_fetch_ball)
         self.m.add_final_state_and_action("blocking goal", action=self.do_block_goal)
         self.m.add_final_state_and_action("passing ball", action=self.do_pass_ball)
+        self.m.add_final_state_and_action("receiving pass", action=self.do_receive_pass)
 
         # set start state
         self.m.set_start("Start")
@@ -108,11 +112,13 @@ class Planner(Strategy):
         return new_state
 
     def ball_not_in_defender_zone_trans(self):
-        # if self.ball_going_quickly():
-        #     new_state = "blocking goal"
-        # else:
-        #     new_state = "waiting"
-        new_state = "blocking goal"
+        print "friend zone is {0}".format(self.world.get_zone(self.get_friend().position))
+        if self.is_ball_in_friend_zone():
+            print "receiving pass"
+            new_state = "receiving pass"
+        else:
+            print "blocking goal"
+            new_state = "blocking goal"
         return new_state
 
     def do_nothing(self):
@@ -136,6 +142,9 @@ class Planner(Strategy):
 
     def do_pass_ball(self):
         return self.do_strategy(self.pass_ball)
+
+    def do_receive_pass(self):
+        return self.do_strategy(self.receive_pass)
 
     def do_strategy(self, strategy):
         """

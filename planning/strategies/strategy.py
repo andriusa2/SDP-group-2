@@ -25,12 +25,35 @@ class Strategy(object):
         self.goal = None
         self.m = StateMachine()
 
+    def is_ball_in_friend_zone(self):
+        friend_zone = self.world.get_zone(self.get_friend().position)
+        ball_zone = self.world.get_zone(self.world.get_ball().position)
+        return friend_zone == ball_zone
+
     def get_goal(self):
         zone = self.world.get_zone(self.robot.position)
         if zone == Zone.L_ATT or zone == Zone.L_DEF:
             return self.world.left_goal
         else:
             return self.world.right_goal
+
+    def get_friend(self):
+        self.fetch_world_state()
+        my_zone = self.world.get_zone(self.robot.position)
+        if my_zone == 0 or 1:
+            friend = self.world.get_robot(Zone.R_ATT)
+        else:
+            friend = self.world.get_robot(Zone.L_ATT)
+        return friend
+
+    def get_enemy(self):
+        self.fetch_world_state()
+        my_zone = self.world.get_zone(self.robot.position)
+        if my_zone == 0 or 1:
+            friend = self.world.get_robot(Zone.L_ATT)
+        else:
+            friend = self.world.get_robot(Zone.R_ATT)
+        return friend
 
     def shoot(self):
         """
