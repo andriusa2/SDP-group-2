@@ -71,6 +71,8 @@ class Controller(object):
             self.planner = Planner(self.world, Zone.L_DEF, self.actual_robot, False)
         self.planner.plan()
 
+        return self.planner
+
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()

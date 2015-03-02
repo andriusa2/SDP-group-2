@@ -79,7 +79,10 @@ class VisionController:
                 model_positions = self.postprocessing.analyze(model_positions)
 
                 #---------------------- PLANNER ---------------------------
-                planning_function(model_positions)
+                planner = planning_function(model_positions)
+                print_list = (planner.m.state_trace[len(planner.m.state_trace)-2],
+                              planner.m.state_trace[len(planner.m.state_trace)-1])
+                # print print_list
                 #----------------------------------------------------------
 
                 # Use 'y', 'b', 'r' to change color.
@@ -88,7 +91,7 @@ class VisionController:
                 fps = float(counter) / (time.clock() - timer)
                 # Draw vision content and actions
                 self.GUI.draw(
-                    frame, model_positions, actions, regular_positions, fps, 
+                    frame, model_positions, actions, regular_positions, fps, (print_list[0],print_list[1]),
                     our_color=self.color, our_side=self.side, key=c, preprocess=pre_options)
                 counter += 1
 
