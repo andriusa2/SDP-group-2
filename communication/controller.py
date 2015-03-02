@@ -30,7 +30,7 @@ class Arduino(object):
                 raise
 
     def _write(self, string):
-        # print("Trying to run command: '{0}'".format(string))
+        print("Trying to run command: '{0}'".format(string))
         if self.comms == 1:
             ret_msg = ''
             for _ in range(self.ack_tries if self.ack_tries else 1):
@@ -60,10 +60,10 @@ class Controller(Arduino):
     ENDL = '\r\n'  # at least the lib believes so
     
     COMMANDS = {
-        'kick': 'KICK {power:.5}{term}',
+        'kick': 'KICK {term}',
         'move': 'MOVE {left_power:.5} {right_power:.5} {left_duration} {right_duration}{term}',
         'run_engine': 'RUN_ENGINE {engine_id} {power:.5} {duration}{term}',
-        'grab': 'GRAB {power:.5}{term}',
+        'grab': 'GRAB{term}',
         'stop': 'STOP{term}',
     }
 
@@ -117,7 +117,7 @@ class Controller(Arduino):
         if power is None:
             power = self.MAX_POWER
         return self.complex_movement(
-            left_power=min(power, self.MAX_POWER),
+            left_power=-min(power, self.MAX_POWER),
             right_power=power,  # might need this if the second motor is "inversed"
             left_duration=duration
         )
@@ -163,3 +163,6 @@ class Controller(Arduino):
             power = -self.MAX_POWER
         self._write(self.COMMANDS['grab'].format(power=float(power), term=self.ENDL))
         return 0.3
+    
+    def open_grabber(self, power=None):
+        return self.grab(power)

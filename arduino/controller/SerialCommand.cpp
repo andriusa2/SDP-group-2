@@ -111,7 +111,6 @@ void SerialCommand::readSerial() {
         }
       }
       clearBuffer();
-      return;
     }
     else if (isprint(inChar)) {     // Only printable characters into the buffer
       if (bufPos < SERIALCOMMAND_BUFFER) {

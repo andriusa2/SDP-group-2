@@ -2,75 +2,37 @@
 #include "SDPMotors.h"
 #include <Wire.h>
 // test purposes, change to 1 when confident with timings
-#define KICK_POWER 1
-#define KICK_DURATION 300
+#define KICK_POWER -1
+#define GRAB_POWER 1
+#define KICK_DURATION 250
+#define GRAB_DURATION 220
 
-#define KICK_TO_GRAB 90
+#define ACK_COMMS
+// intermediate state
+#define HAPPENING 1
+// finished state
+#define COMPLETE 2
+// negative intermediate state
+#define CLOSING 3
 
-#define KICK_HAPPENING 1
-#define KICK_COOLDOWN 2
-#define GRAB_HAPPENING 3
 MotorBoard motors;
 SerialCommand comm;
-#define ACK_COMMS
-#if (RAMEND < 1000)
-  #define SERIAL_BUFFER_SIZE 16
-#else
-  #define SERIAL_BUFFER_SIZE 64
-#endif
+
 enum MOTORS {
   LEFT_ENGINE = 4,
   RIGHT_ENGINE = 0,
   KICKER = 3,
+  GRABBER = 2,
   MAX_ENGINES = 6
 };
 
-float MAX_SPEED = 1; // TODO: get real value, etc
-
 // 0 -> not kicking, 1 -> kicking, 2 -> getting back to position
 byte IS_KICKING = 0;
-#if (ARDUINO >= 100)
-#include <Arduino.h>
-#else
-#include <WProgram.h>
-#endif
+// 0 -> closed, 1 -> opening, 2 -> opened, 3 -> closing
+byte IS_GRABBER_OPEN = 0;
+byte MATCHED=0;
+byte KICK_AFTERWARDS = 0;
 
-extern unsigned int __heap_start;
-extern void *__brkval;
-
-/*
- * The free list structure as maintained by the 
- * avr-libc memory allocation routines.
- */
-struct __freelist {
-  size_t sz;
-  struct __freelist *nx;
-};
-
-/* The head of the free list structure */
-extern struct __freelist *__flp;
-
-/* Calculates the size of the free list */
-int freeListSize() {
-  struct __freelist* current;
-  int total = 0;
-  for (current = __flp; current; current = current->nx) {
-    total += 2; /* Add two bytes for the memory block's header  */
-    total += (int) current->sz;
-  }
-  return total;
-}
-
-int freeMemory() {
-  int free_memory;
-  if ((int)__brkval == 0) {
-    free_memory = ((int)&free_memory) - ((int)&__heap_start);
-  } else {
-    free_memory = ((int)&free_memory) - ((int)__brkval);
-    free_memory += freeListSize();
-  }
-  return free_memory;
-}
 void setup_pins() {
   pinMode(2,INPUT);
   pinMode(3,OUTPUT);
@@ -117,13 +79,12 @@ Should reset automatically, will block other kicking attempts at the moment
 MOVE LEFT_POWER RIGHT_POWER LEFT_DURATION [RIGHT_DURATION=LEFT_DURATION]
 */
 
-
+long t;
 void setup() {
   Serial.begin(115200);  // 115kb
   setup_pins();
   Wire.begin();  // need this s.t. arduino is mastah
   Serial.println("Team2GO");
-  Serial.println(SERIAL_BUFFER_SIZE);
   Serial.flush();
   motors.stop_all();
   
@@ -131,8 +92,7 @@ void setup() {
   comm.addCommand("KICK", kick);
   
   comm.addCommand("GRAB", grab);
-  
-  
+    
   // sets two speed/accel values for movement engines
   comm.addCommand("MOVE", move_bot);
   
@@ -141,9 +101,7 @@ void setup() {
   comm.addCommand("STOP", stop_engines);
   comm.setDefaultHandler(invalid_command);
   read_all();
-  Serial.print("freeMemory()=");
-    Serial.println(freeMemory());
-    Serial.flush();
+  t = millis();
 }
 
 void read_all() {
@@ -151,88 +109,115 @@ void read_all() {
     Serial.read();
 }
 
+void kick_f(float power) {
+  motors.run_motor(KICKER, power, uint16_t(float(KICK_DURATION) / abs(power)), 0);
+}
 void loop() {
   // check whether something needs to be stopped
   motors.scan_motors();
   
   // if kicking -> check whether we need to start retracting the kicker, etc
   switch(IS_KICKING) {
-  case KICK_HAPPENING:
+  case HAPPENING:
     if (!motors.is_running(KICKER)) {
-      IS_KICKING = KICK_COOLDOWN;
-      motors.stop_motor(KICKER);  // should be stopped by design, but w/e
+      IS_KICKING = 0;
+      break;
+      IS_KICKING = COMPLETE;
+      motors.stop_motor(KICKER);  // should be stopped already, but w/e
       delay(3);  // give it some time to stop properly
-      motors.run_motor(KICKER, -1.0, KICK_TO_GRAB, 0);
+      motors.run_motor(KICKER, -1, KICK_DURATION*7/10, 0);
     }
     break;
-  case KICK_COOLDOWN:
+  case COMPLETE:
     if (!motors.is_running(KICKER)) {
       IS_KICKING = 0;
     }
     break;
-  case GRAB_HAPPENING:
-    if (!motors.is_running(KICKER)) {
-        IS_KICKING = 0;
-    }
   default:
     break; // do nothing
   }
-  
-  // if kicker is running, it will be ignored, all other commands won't be blocked
-  if (Serial.available() > 6){
-    comm.readSerial();
-    Serial.flush();
+  switch(IS_GRABBER_OPEN) {
+  case HAPPENING:
+    if (!motors.is_running(GRABBER)) {
+      IS_GRABBER_OPEN = COMPLETE;
+      motors.stop_motor(GRABBER);
+      if (KICK_AFTERWARDS == 1) {
+          kick_f(KICK_POWER);
+          KICK_AFTERWARDS = 0;
+      }
+      delay(3);
+    }
+    break;
+  case CLOSING:
+    if (!motors.is_running(GRABBER)) {
+      IS_GRABBER_OPEN = 0;
+      motors.stop_motor(GRABBER);
+    }
+    break;
+  default:
+    break;
+  }
+  comm.readSerial();
+  if (MATCHED == 1) {
     read_all();
   }
+  MATCHED=0;
+  Serial.flush();
     // flushing stuff out just in case
   // parsing stuff out every 100ms for debug
-  delay(1);
+  delay(5);
 }
 
 void stop_engines() {
+  MATCHED=1;
   // only stops movement engines!
   motors.stop_motor(LEFT_ENGINE);
   motors.stop_motor(RIGHT_ENGINE);
 }
-
-void kick_master(int flag, uint16_t duration) {  
-  if (IS_KICKING == 0) {
+/* KICK [POWER(0;1]=1] */
+void kick() {
+  MATCHED=1;
+#ifdef ACK_COMMS  
+  Serial.println("ACKKICKACKKICKACKKICK");
+#endif
+  if (IS_GRABBER_OPEN == COMPLETE) {
+    
     float power;
     if (!get_float(power))
       power = KICK_POWER;
-    // if we use 1/2 power the kick should take 2 times as long, no?
-    motors.run_motor(KICKER, power, uint16_t(float(duration) / abs(power)), 0);
-    IS_KICKING = flag;
+    
+  }
+  else {
+    grab();
+    KICK_AFTERWARDS = 1;
   }
 }
-
-/* KICK [POWER(0;1]=1] */
-void kick() {
-  
-#ifdef ACK_COMMS
-  
-  Serial.println("ACK - received KICK");
-  
-#endif
-  kick_master(KICK_HAPPENING, KICK_DURATION);
-}
 void grab() {
-  
+  MATCHED = 1;
 #ifdef ACK_COMMS
-  
-  Serial.println("ACK - received GRAB");
-  
+  Serial.println("ACKGRABACKGRABACKGRAB");
 #endif
-  kick_master(GRAB_HAPPENING, KICK_TO_GRAB);
+  float power;
+  if (!get_float(power))
+    power = GRAB_POWER;
+  if (IS_GRABBER_OPEN == COMPLETE) {
+    power = -power;
+  }
+  if (IS_GRABBER_OPEN == HAPPENING || IS_GRABBER_OPEN == CLOSING)
+    return;
+  if (IS_GRABBER_OPEN == 0)
+    IS_GRABBER_OPEN = HAPPENING;
+  else
+    IS_GRABBER_OPEN = CLOSING;
+  motors.run_motor(GRABBER, power, uint16_t(float(GRAB_DURATION) / abs(power)), 0);
 }
 /* MOVE LEFT_POWER RIGHT_POWER LEFT_DURATION [RIGHT_DURATION=LEFT_DURATION] */
 void move_bot() {
+  MATCHED=1;
   float left, right;
   uint16_t l_time, r_time;
 #ifdef ACK_COMMS
-  
-  Serial.println("ACK - received Move");
-  
+  Serial.println("ACKMOVEACKMOVEACKMOVE");
 #endif
   if (!get_float(left)) { Serial.println("Can't get left");return;}
   if (!get_float(right)) { Serial.println("Can't get right");return;}
@@ -255,13 +240,11 @@ void move_bot() {
 
 /* RUN_ENGINE ENGINE_ID POWER[-1;1] DURATION(0;64k] */
 void run_engine() {
+  MATCHED=1;
   float power;
   uint16_t id, time;
-  
 #ifdef ACK_COMMS
-  
-  Serial.println("ACK - received run_engine");
-  
+  Serial.println("ACKRUN_ENGINEACKRUN_ENGINEACK_RUNENGINE");
 #endif
   if (!get_uint16(id)) {Serial.println("failed to get id"); return;}
   if (!get_float(power)) {Serial.println("failed to get power");return;}
@@ -269,12 +252,11 @@ void run_engine() {
     Serial.println("failed to get time");
     return;
   }
-  
   motors.run_motor(id, power, time, -1);
-  
 }
 
 void invalid_command(const char * command) {
-  Serial.print("Can't understand this: ");
+  MATCHED=0;
+  Serial.print("FAIL: ");
   Serial.println(command);
 }
