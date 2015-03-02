@@ -1,6 +1,7 @@
 from lib.math.vector import Vector2D
 from planning.strategies.strategy import Strategy
 from planning.world.world_state import Zone
+import numpy as np
 
 __author__ = 'Sam Davies'
 
@@ -26,7 +27,7 @@ class PassToZone(Strategy):
         self.m.set_start("Start")
 
         self.friend = self.get_friend()
-        self.preset_pass_locations = [Vector2D(self.robot.position.x, 120), Vector2D(self.robot.position.x, 10)]
+        self.preset_pass_locations = [Vector2D(25, 90), Vector2D(25, 20)]
 
     def act(self):
         self.fetch_world_state()
@@ -58,7 +59,7 @@ class PassToZone(Strategy):
         return new_state
 
     def pass_not_blocked_trans(self):
-        if self.is_robot_facing_point(self.determine_next_location()):
+        if self.is_robot_facing_point(self.get_friend().position, beam_width=self.ROBOT_WIDTH):
             new_state = "Passing"
         else:
             new_state = "Turn to pass"
@@ -69,18 +70,25 @@ class PassToZone(Strategy):
         friend = self.get_friend()
         direction = (friend.position - self.robot.position).unit_vector()
         enemy_robot = self.get_enemy()
-        if self.robot.is_point_within_beam(enemy_robot.position, direction, beam_width=self.ROBOT_WIDTH*2):
+        for zone in range(0, 4):
+            robot = self.world.get_robot(zone)
+            print "robot {2} ({0}, {1})".format(robot.position.x, robot.position.y, zone)
+
+        if self.robot.is_point_within_beam(enemy_robot.position, direction, beam_width=self.ROBOT_WIDTH * 1.5):
             return True
         else:
             return False
 
     def turn_to_location(self):
         to_turn = self.robot.angle_to_point(self.determine_next_location())
+        print "to turn {0}".format(int(360.0 * to_turn / (2 * np.pi)))
         return self.actual_robot.turn(to_turn)
 
     def move_to_location(self):
         v = self.determine_next_location()
         to_move = self.distance_from_robot_to_point(v.x, v.y) * 0.9  # only move 90%
+        print "moving to {0}, {1}".format(v.x, v.y)
+        print "moving distance {0}".format(to_move)
         return self.actual_robot.move(to_move)
 
     def determine_next_location(self):
@@ -94,7 +102,9 @@ class PassToZone(Strategy):
         return v1 if max_distance == dist_to_1 else v2
 
     def turn_to_friend(self):
-        to_turn = self.robot.angle_to_point(self.friend.position)
+        to_turn = self.robot.angle_to_point(self.get_friend().position)
+        print "turning to point ({0}, {1})".format(self.get_friend().position.x, self.get_friend().position.y)
+        print "to turn {0}".format(int(360.0 * to_turn / (2 * np.pi)))
         return self.actual_robot.turn(to_turn)
 
     def pass_to_friend(self):

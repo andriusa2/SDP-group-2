@@ -13,11 +13,11 @@ class Strategy(object):
         self.robot_tag = robot_tag
         self.world = world
 
-        self.grab_threshold_x = 3  # we need to define these (based on kicker)
-        self.grab_threshold_y = 3
-        self.dist_kicker_robot = 8
+        self.grab_threshold_x = 10  # we need to define these (based on kicker)
+        self.grab_threshold_y = 5
+        self.dist_kicker_robot = 12
 
-        self.ROBOT_WIDTH = 2
+        self.ROBOT_WIDTH = 4
 
         # initialise state attributes
         self.robot = None
@@ -44,16 +44,19 @@ class Strategy(object):
             friend = self.world.get_robot(Zone.R_ATT)
         else:
             friend = self.world.get_robot(Zone.L_ATT)
+
+        print "friend pos ({0}, {1})".format(friend.position.x, friend.position.y)
         return friend
 
     def get_enemy(self):
         self.fetch_world_state()
         my_zone = self.world.get_zone(self.robot.position)
         if my_zone == 0 or 1:
-            friend = self.world.get_robot(Zone.L_ATT)
+            enemy = self.world.get_robot(Zone.L_ATT)
         else:
-            friend = self.world.get_robot(Zone.R_ATT)
-        return friend
+            enemy = self.world.get_robot(Zone.R_ATT)
+        print "enemy pos ({0}, {1})".format(enemy.position.x, enemy.position.y)
+        return enemy
 
     def shoot(self):
         """
@@ -80,7 +83,7 @@ class Strategy(object):
         Move the robot forward in a straight line to the ball
         :return: duration that the motors are on
         """
-        dist_to_ball = self.distance_from_kicker_to_ball() * 0.9  # only move 90%
+        dist_to_ball = self.distance_from_kicker_to_ball() * 0.8  # only move 90%
         return self.actual_robot.move(dist_to_ball)
 
     def raise_cage(self):
@@ -132,15 +135,18 @@ class Strategy(object):
         """
         up_pos = Vector2D(self.robot.position.x, 150)
         robot = self.world.get_robot(self.robot_tag)
-        return robot.can_see(point=up_pos, beam_width=self.ROBOT_WIDTH * 20)
+        return robot.can_see(point=up_pos, beam_width=self.ROBOT_WIDTH * 5)
 
-    def is_robot_facing_point(self, point):
+    def is_robot_facing_point(self, point, beam_width=None):
         """
         Check to see if a point is in the robots beam
         :return: whether or not the robot is facing the point
         """
+        if not beam_width:
+            beam_width = self.ROBOT_WIDTH
+        print "pass point ({0}, {1})".format(point.x, point.y)
         robot = self.world.get_robot(self.robot_tag)
-        return robot.can_see(point=point, beam_width=self.ROBOT_WIDTH)
+        return robot.can_see(point=point, beam_width=beam_width)
 
     def fetch_world_state(self):
         """

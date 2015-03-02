@@ -275,7 +275,7 @@ class Planner(Strategy):
     def pretty_grid(angle_to_ball, dist_to_ball):
         brackets = "[][][][][]"
         matrix = {'0': list(brackets), '1': list(brackets), '2': list(brackets), '-2': list(brackets), '-3': list(brackets)}
-        dist_to_x = dist_to_ball * np.cos(abs(angle_to_ball))
+        """dist_to_x = dist_to_ball * np.cos(abs(angle_to_ball))
         index = int(dist_to_x)/2 * 2
         dist_to_y = dist_to_ball * np.sin(abs(angle_to_ball))
         if angle_to_ball < 0:
@@ -287,7 +287,7 @@ class Planner(Strategy):
         else:
             row = int(dist_to_y -1)/2
         matrix[str(row)][index] = ':'
-        matrix[str(row)][index + 1] = ":"
+        matrix[str(row)][index + 1] = ":"""
         return ["".join(matrix['2']), "".join(matrix['1']), "".join(matrix['0']), "".join(matrix['-2']), "".join(matrix['-3'])]
 
 
