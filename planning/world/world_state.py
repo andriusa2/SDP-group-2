@@ -132,6 +132,7 @@ class WorldState(object):
         self.left_goal = Vector2D.to_vector2d(left_goal)
         self.right_goal = Vector2D.to_vector2d(right_goal)
         self.is_grabber_down = False
+        self.do_refresh_kick = True
 
     def fix_robots(self):
         """

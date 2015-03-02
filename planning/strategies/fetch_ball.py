@@ -25,10 +25,10 @@ class FetchBall(Strategy):
         action_state = self.m.run()
         return self.m.do_action(action_state)
 
-    ##------------------------------------ Transitions ------------------------------------
+    # ------------------------------------ Transitions ------------------------------------
 
     def start_trans(self):
-        if self.world.is_grabber_down:
+        if self.world.do_refresh_kick:
             new_state = "Open Grabber"
         else:
             new_state = "Grabber is Open"

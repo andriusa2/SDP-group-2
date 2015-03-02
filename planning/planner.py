@@ -132,18 +132,24 @@ class Planner(Strategy):
             return False
 
     def do_fetch_ball(self):
-        return self.do_strategy(self.fetch_ball)
+        to_return = self.do_strategy(self.fetch_ball)
+        self.world.do_refresh_kick = False
+        return to_return
 
     def do_shoot_goal(self):
+        self.world.do_refresh_kick = True
         return self.do_strategy(self.shoot_goal)
 
     def do_block_goal(self):
+        self.world.do_refresh_kick = True
         return self.do_strategy(self.block_goal)
 
     def do_pass_ball(self):
+        self.world.do_refresh_kick = True
         return self.do_strategy(self.pass_ball)
 
     def do_receive_pass(self):
+        self.world.do_refresh_kick = True
         return self.do_strategy(self.receive_pass)
 
     def do_strategy(self, strategy):
