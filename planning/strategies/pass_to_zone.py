@@ -23,7 +23,7 @@ class PassToZone(Strategy):
         self.m.set_start("Start")
 
         self.friend = self.get_friend()
-        self.preset_pass_locations = [Vector2D(self.robot.position.x, 80), Vector2D(self.robot.position.x, 10)]
+        self.preset_pass_locations = [Vector2D(self.robot.position.x, 120), Vector2D(self.robot.position.x, 10)]
 
     def act(self):
         self.fetch_world_state()
@@ -54,27 +54,10 @@ class PassToZone(Strategy):
             new_state = "Turn to pass"
         return new_state
 
-    def get_friend(self):
-        self.fetch_world_state()
-        my_zone = self.world.get_zone(self.robot.position)
-        if my_zone == 0 or 1:
-            friend = self.world.get_robot(Zone.R_ATT)
-        else:
-            friend = self.world.get_robot(Zone.L_ATT)
-        return friend
-
-    def get_enemy(self):
-        self.fetch_world_state()
-        my_zone = self.world.get_zone(self.robot.position)
-        if my_zone == 0 or 1:
-            friend = self.world.get_robot(Zone.L_ATT)
-        else:
-            friend = self.world.get_robot(Zone.R_ATT)
-        return friend
-
     def is_pass_blocked(self):
         # first find the location of your friend
-        direction = (self.friend.position - self.robot.position).unit_vector()
+        friend = self.get_friend()
+        direction = (friend.position - self.robot.position).unit_vector()
         enemy_robot = self.get_enemy()
         if self.robot.is_point_within_beam(enemy_robot.position, direction, beam_width=self.ROBOT_WIDTH*2):
             return True
@@ -97,8 +80,8 @@ class PassToZone(Strategy):
         dist_to_1 = self.distance_from_robot_to_point(v1.x, v1.y)
         dist_to_2 = self.distance_from_robot_to_point(v2.x, v2.y)
 
-        min_distance = min(dist_to_1, dist_to_2)
-        return v1 if min_distance == dist_to_1 else v2
+        max_distance = max(dist_to_1, dist_to_2)
+        return v1 if max_distance == dist_to_1 else v2
 
     def turn_to_friend(self):
         to_turn = self.robot.angle_to_point(self.friend.position)

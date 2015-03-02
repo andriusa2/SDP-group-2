@@ -252,15 +252,15 @@ class BlockTest(BaseTest):
         self.assertEquals(self.planner.robot.position.x, 10)
         self.assertEquals(self.planner.robot.position.y, 45)
 
-        self.world_state = self.put_robot_and_ball(robot_pos=(35, 50), robot_dir=(0, 1), ball_pos=(30, 60), robot_num=0)
-        self.choose_planner("left")
+        self.world_state = self.put_robot_and_ball(robot_pos=(35, 50), robot_dir=(0, 1), ball_pos=(30, 60), robot_num=3)
+        self.choose_planner("right")
         self.planner.fetch_world_state()
         self.planner.plan()
         self.assertEquals(self.planner.robot.position.x, 35)
         self.assertEquals(self.planner.robot.position.y, 55)
 
-        self.world_state = self.put_robot_and_ball(robot_pos=(35, 50), robot_dir=(0, 1), ball_pos=(30, 40), robot_num=0)
-        self.choose_planner("left")
+        self.world_state = self.put_robot_and_ball(robot_pos=(35, 50), robot_dir=(0, 1), ball_pos=(30, 40), robot_num=3)
+        self.choose_planner("right")
         self.planner.fetch_world_state()
         self.planner.plan()
         self.assertEquals(self.planner.robot.position.x, 35)
@@ -277,12 +277,38 @@ class BlockTest(BaseTest):
 
 
 class PassToZoneTest(BaseTest):
+
+    # ensure that a blocked pass is found to be blocked
+    def test_next_location_top(self):
+        self.world_state = self.put_robots_and_ball((5, 50), [(15.0, 50), (25, 50), (35, 0)], my_direction=(0, 1),
+                                                    ball_pos=(20, 60), robot_num=0)
+        self.choose_planner("left")
+        next_location = self.planner.pass_ball.determine_next_location()
+        self.assertEqual(next_location.x, 5)
+        self.assertEqual(next_location.y, self.planner.pass_ball.preset_pass_locations[0].y)
+
+    # ensure that a blocked pass is found to be blocked
+    def test_next_location_bottom(self):
+        self.world_state = self.put_robots_and_ball((5, 100), [(15.0, 50), (25, 50), (35, 0)], my_direction=(0, 1),
+                                                    ball_pos=(20, 60), robot_num=0)
+        self.choose_planner("left")
+        next_location = self.planner.pass_ball.determine_next_location()
+        self.assertEqual(next_location.x, 5)
+        self.assertEqual(next_location.y, self.planner.pass_ball.preset_pass_locations[1].y)
+
     # ensure that a friend robot is found correctly
-    def test_get_friend(self):
+    def test_get_friend_left(self):
         self.world_state = self.put_robot_and_ball(robot_pos=(10, 50), robot_dir=(0, 1), ball_pos=(20, 60), robot_num=0)
         self.choose_planner("left")
         friend = self.planner.pass_ball.get_friend()
         self.assertEqual(self.planner.world.get_zone(friend.position), Zone.R_ATT)
+
+    """def test_get_friend_right(self):
+        self.world_state = self.put_robot_and_ball(robot_pos=(34, 50), robot_dir=(0, 1), ball_pos=(20, 60), robot_num=3)
+        self.choose_planner("right")
+        self.planner.fetch_world_state()
+        friend = self.planner.pass_ball.get_friend()
+        self.assertEqual(self.planner.world.get_zone(friend.position), Zone.L_ATT)"""
 
     # ensure that the blocking robot is found correctly
     def test_get_enemy(self):
@@ -326,7 +352,7 @@ class PassToZoneTest(BaseTest):
         pass
 
 
-class PrettyPrintTest(BaseTest):
+"""class PrettyPrintTest(BaseTest):
     def test_simple_print(self):
         printed = self.planner.pretty_print(1, 2.8, 45, "GRABBER IS OPEN", "TURN TO BALL", 0.5, True, True, 1)
 
@@ -338,7 +364,7 @@ class PrettyPrintTest(BaseTest):
         self.assertEquals("|    [][][][][]  |--------------------------------", printed[5])
         self.assertEquals("|    [][][][][]  | Ball Angle : 45 deg (IN BEAM)", printed[6])
         self.assertEquals("|    <--10cm-->  | Ball Zone  : 1", printed[7])
-        self.assertEquals("--------------------------------------------------", printed[8])
+        self.assertEquals("--------------------------------------------------", printed[8])"""
 
 
 if __name__ == '__main__':
