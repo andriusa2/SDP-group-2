@@ -29,26 +29,34 @@ class Arduino(object):
             if not self.debug:
                 raise
 
-    def _write(self, string):
+    def _write(self, string, retry=True):
         print("Trying to run command: '{0}'".format(string))
         if self.comms == 1:
             ret_msg = ''
             for _ in range(self.ack_tries if self.ack_tries else 1):
-                if 'ACK' not in ret_msg:
-                    self.serial.write(string)
-                    if not self.is_dummy and self.ack_tries != 0:
-                        self.serial.flush()
-                        ret_msg = self.serial.readline()
-                        if ret_msg:
-                            print "Got msg from upstream: '{0}'".format(ret_msg)
-                        else:
-                            print "Timed out while waiting for msg from upstream"
-                    else:
-                        ret_msg = 'ACK'
-                else:
+                if 'ACK' in ret_msg:
                     break
+                self.serial.flushInput()  # if this breaks ACK - comment out
+                self.serial.write(string)
+                if not self.is_dummy and self.ack_tries != 0:
+                    self.serial.flush()
+                    ret_msg = self.serial.readline()
+                    if ret_msg:
+                        print "Got msg from upstream: '{0}'".format(ret_msg)
+                    else:
+                        print "Timed out while waiting for msg from upstream"
+                else:
+                    ret_msg = 'ACK'
             else:
-                raise Exception("No ACK after {0} tries, giving up".format(self.ack_tries))
+                if retry:
+                    print "Retrying connection"
+                    self.serial.close()
+                    self.serial = None
+                    self.establish_connection()
+                    self.serial.readline()
+                    return self._write(string, retry=False)
+                else:
+                    raise Exception("No answer from UPSTREAM, something is wrong")
         elif not self.debug:
             raise Exception("No comm link established, but trying to send command.")
             
