@@ -178,8 +178,8 @@ class WorldState(object):
         """
         self.robots = dict()
         robot_list.sort(key=lambda a: a.position.x)
-        for key, val in zip(Zone.zone_order, robot_list):
-            self.robots[key] = val
+        for robot in robot_list:
+            self.robots[self.get_zone(robot.position)] = robot
 
         """
         Removed since there won't be 4 robots on pitch during milestone.
