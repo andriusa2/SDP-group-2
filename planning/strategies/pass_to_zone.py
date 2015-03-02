@@ -12,8 +12,11 @@ class PassToZone(Strategy):
         self.m.add_state("Start", self.start_trans)
         self.m.add_state("Pass Blocked", self.pass_blocked_trans)
         self.m.add_state("Pass Not Blocked", self.pass_not_blocked_trans)
+        self.m.add_state("Grabber is Closed", self.grabber_open_trans)
+
 
         # End States / Actions
+        self.m.add_final_state_and_action("Close Grabber", self.lower_cage)
         self.m.add_final_state_and_action("Turn to location", self.turn_to_location)
         self.m.add_final_state_and_action("Move to location", self.move_to_location)
         self.m.add_final_state_and_action("Turn to pass", self.turn_to_friend)
@@ -34,6 +37,13 @@ class PassToZone(Strategy):
     # ------------------------------------ Transitions ------------------------------------
 
     def start_trans(self):
+        if self.world.is_grabber_down:
+            new_state = "Grabber is Closed"
+        else:
+            new_state = "Close Grabber"
+        return new_state
+
+    def grabber_open_trans(self):
         if self.is_pass_blocked():
             new_state = "Pass Blocked"
         else:
