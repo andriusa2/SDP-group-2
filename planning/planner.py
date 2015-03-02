@@ -183,6 +183,8 @@ class Planner(Strategy):
 
             print state_trace
 
+        print state_trace
+
         return to_print
 
     def pretty_print(self, current_zone, dist_to_ball, angle_to_ball, current_state, action, action_duration,
@@ -194,15 +196,20 @@ class Planner(Strategy):
             |    [][][][][]  | Action     : TURN TO BALL
             | R->[][][][][]  | Duration   : 0.5 seconds
             |    []::[][][]  |--------------------------------
-            |    [][][][][]  | Ball Angle : 45 deg (IN BEAM)
-            |    <--10cm-->  | Ball Zone  : 1
+            |    [][][][][]  | Rotating 24 degrees
+            |    <--10cm-->  |
             --------------------------------------------------
             |  Ball is 4cm away
             |  Ball is Far from robot
+            |  Ball at Angle : 45 deg (IN BEAM)
+            |  Ball Zone  : 1
+            --------------------------------------------------
+            |  Previous 3 Actions ...
+            |  [TURN TO BALL] -> [MOVE TO BALL] -> [TURN TO GOAL]
             --------------------------------------------------
             | State Trace ...
             | -> [CAN ACT]          -> [ATTACKER ROBOT]     -> [BALL IN ATTACKER ZONE]
-            | -> [FETCHING BALL]    -> [GRABBER IS OPEN]    -> [MOVE TO BALL]
+            | -> [FETCHING BALL]    -> [GRABBER IS OPEN]    -> [TURN TO BALL]
             | ...
             | ...
             --------------------------------------------------
@@ -223,12 +230,11 @@ class Planner(Strategy):
 
         return [l1, l2, l3, l4, l5, l6, l7, l8, l9]
 
-
     @staticmethod
     def pretty_grid(angle_to_ball, dist_to_ball):
         brackets = "[][][][][]"
-        matrix = {'0' : list(brackets), '1' : list(brackets), '2' : list(brackets), '-2' : list(brackets), '-3' : list(brackets)}
-        if angle_to_ball >=45 or angle_to_ball <= -45:
+        matrix = {'0': list(brackets), '1': list(brackets), '2': list(brackets), '-2': list(brackets), '-3': list(brackets)}
+        if angle_to_ball >= 45 or angle_to_ball <= -45:
             return ["".join(matrix['2']), "".join(matrix['1']), "".join(matrix['0']), "".join(matrix['-2']), "".join(matrix['-3'])]
         if dist_to_ball > 10:
             return ["".join(matrix['2']), "".join(matrix['1']), "".join(matrix['0']), "".join(matrix['-2']), "".join(matrix['-3'])]

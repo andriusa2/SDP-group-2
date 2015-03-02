@@ -328,12 +328,12 @@ class PassToZoneTest(BaseTest):
 
 class PrettyPrintTest(BaseTest):
     def test_simple_print(self):
-        printed = self.planner.pretty_print(1, 4, 45, "GRABBER IS OPEN", "TURN TO BALL", 0.5, True, True, 1)
+        printed = self.planner.pretty_print(1, 2.8, 45, "GRABBER IS OPEN", "TURN TO BALL", 0.5, True, True, 1)
 
         self.assertEquals("Robot - Attacker - Zone 1", printed[0])
         self.assertEquals("--------------------------------------------------", printed[1])
         self.assertEquals("|    [][][][][]  | State      : GRABBER IS OPEN", printed[2])
-        self.assertEquals("|    [][][][][]  | Action     : TURN TO BALL", printed[3])
+        self.assertEquals("|    []::[][][]  | Action     : TURN TO BALL", printed[3])
         self.assertEquals("| R->[][][][][]  | Duration   : 0.5 seconds", printed[4])
         self.assertEquals("|    [][][][][]  |--------------------------------", printed[5])
         self.assertEquals("|    [][][][][]  | Ball Angle : 45 deg (IN BEAM)", printed[6])
