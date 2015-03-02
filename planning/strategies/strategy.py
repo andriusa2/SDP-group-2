@@ -40,12 +40,9 @@ class Strategy(object):
     def get_friend(self):
         self.fetch_world_state()
         my_zone = self.world.get_zone(self.robot.position)
-        print my_zone
         if my_zone == 0 or my_zone == 1:
-            print "friend 2"
             friend = self.world.get_robot(Zone.R_ATT)
         else:
-            print "friend 1"
             friend = self.world.get_robot(Zone.L_ATT)
         return friend
 

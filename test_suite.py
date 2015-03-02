@@ -353,7 +353,7 @@ class PassToZoneTest(BaseTest):
         pass
 
 
-"""class PrettyPrintTest(BaseTest):
+class PrettyPrintTest(BaseTest):
     def test_simple_print(self):
         printed = self.planner.pretty_print(1, 3.8, np.pi/4, "GRABBER IS OPEN", "TURN TO BALL", 0.5, True, True, 1)
 
@@ -365,7 +365,7 @@ class PassToZoneTest(BaseTest):
         self.assertEquals("|    [][][][][]  |--------------------------------", printed[5])
         self.assertEquals("|    [][][][][]  | Ball Angle : 45 deg (IN BEAM)", printed[6])
         self.assertEquals("|    <--10cm-->  | Ball Zone  : 1", printed[7])
-        self.assertEquals("--------------------------------------------------", printed[8])"""
+        self.assertEquals("--------------------------------------------------", printed[8])
 
     def test_simple_print_negative(self):
         printed = self.planner.pretty_print(1, 3.8, np.pi/-4, "GRABBER IS OPEN", "TURN TO BALL", 0.5, True, True, 1)
