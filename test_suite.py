@@ -254,14 +254,14 @@ class BlockTest(BaseTest):
         self.assertEquals(self.planner.robot.position.x, 10)
         self.assertEquals(self.planner.robot.position.y, 45)
 
-        self.world_state = self.put_robot_and_ball(robot_pos=(35, 50), robot_dir=(0, 1), ball_pos=(30, 60), robot_num=3)
+        self.world_state = self.put_robots_and_ball((35, 50), [(5.0, 50), (15, 50), (25, 0)], my_direction=(0, 1), ball_pos=(30, 60), robot_num=3)
         self.choose_planner("right")
         self.planner.fetch_world_state()
         self.planner.plan()
         self.assertEquals(self.planner.robot.position.x, 35)
         self.assertEquals(self.planner.robot.position.y, 55)
 
-        self.world_state = self.put_robot_and_ball(robot_pos=(35, 50), robot_dir=(0, 1), ball_pos=(30, 40), robot_num=3)
+        self.world_state = self.put_robots_and_ball((35, 50), [(5.0, 50), (15, 50), (25, 0)], my_direction=(0, 1), ball_pos=(30, 40), robot_num=3)
         self.choose_planner("right")
         self.planner.fetch_world_state()
         self.planner.plan()
@@ -300,17 +300,16 @@ class PassToZoneTest(BaseTest):
 
     # ensure that a friend robot is found correctly
     def test_get_friend_left(self):
-        self.world_state = self.put_robot_and_ball(robot_pos=(10, 50), robot_dir=(0, 1), ball_pos=(20, 60), robot_num=0)
+        self.world_state = self.put_robots_and_ball((5, 50), [(15.0, 50), (25, 50), (35, 0)], my_direction=(0, 1), ball_pos=(20, 60), robot_num=0)
         self.choose_planner("left")
         friend = self.planner.pass_ball.get_friend()
         self.assertEqual(self.planner.world.get_zone(friend.position), Zone.R_ATT)
 
-    """def test_get_friend_right(self):
-        self.world_state = self.put_robot_and_ball(robot_pos=(34, 50), robot_dir=(0, 1), ball_pos=(20, 60), robot_num=3)
+    def test_get_friend_right(self):
+        self.world_state = self.put_robots_and_ball((34, 50), [(5.0, 50), (15, 50), (25, 0)], my_direction=(0, 1), ball_pos=(20, 60), robot_num=3)
         self.choose_planner("right")
-        self.planner.fetch_world_state()
         friend = self.planner.pass_ball.get_friend()
-        self.assertEqual(self.planner.world.get_zone(friend.position), Zone.L_ATT)"""
+        self.assertEqual(self.planner.world.get_zone(friend.position), Zone.L_ATT)
 
     # ensure that the blocking robot is found correctly
     def test_get_enemy(self):
