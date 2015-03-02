@@ -212,7 +212,7 @@ class WorldState(object):
         self.robots = robot_dict
 
     def get_robot(self, zone):
-        return self.robots[zone]
+        return self.robots.get(zone, None)
 
     def get_robots_list(self):
         return [self.robots[zone] for zone in Zone.zone_order if zone in self.robots]
