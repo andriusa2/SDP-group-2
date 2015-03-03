@@ -30,7 +30,7 @@ class Arduino(object):
                 raise
 
     def _write(self, string, retry=True):
-        print("Trying to run command: '{0}'".format(string))
+        # print("Trying to run command: '{0}'".format(string))
         if self.comms == 1:
             ret_msg = ''
             for _ in range(self.ack_tries if self.ack_tries else 1):

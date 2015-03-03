@@ -43,16 +43,13 @@ class BlockGoal(Strategy):
         if vect_to_point.y < 0:
             dist_to_point = - dist_to_point
 
-        return self.actual_robot.move(dist_to_point)
+        return self.actual_robot.move(dist_to_point), "moving robot {0} cm to ({1}, {2})".format(dist_to_point, vect_to_point.x, vect_to_point.y)
 
     def turn_robot_to_up(self):
         # rotate to face up
         up_pos = Vector2D(self.robot.position.x, 150)
-        print "up is at " + str(up_pos.x) + ", " + str(up_pos.y)
-        print "robot at {0}; {1}".format(self.robot.position.x, self.robot.position.y)
         to_turn = self.robot.angle_to_point(up_pos)
-        print "rotating robot " + str(360.0 * to_turn / (2 * np.pi)) + " degrees"
-        return self.actual_robot.turn(to_turn)
+        return self.actual_robot.turn(to_turn), "turning {0} degrees to ({1}, {2})".format(int(360.0 * to_turn / (2 * np.pi)), up_pos.x, up_pos.y)
 
 
     """def act(self):

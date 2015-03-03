@@ -46,10 +46,8 @@ class Strategy(object):
             friend = self.world.get_robot(Zone.L_ATT)
 
         if friend:
-            print "friend pos ({0}, {1})".format(friend.position.x, friend.position.y)
             return friend
         else:
-            print "no ememy extists"
             return Robot()
 
     def get_enemy(self):
@@ -60,10 +58,20 @@ class Strategy(object):
         else:
             enemy = self.world.get_robot(Zone.R_ATT)
         if enemy:
-            print "enemy pos ({0}, {1})".format(enemy.position.x, enemy.position.y)
             return enemy
         else:
-            print "no friend extists"
+            return Robot()
+
+    def get_enemy_defender(self):
+        self.fetch_world_state()
+        my_zone = self.world.get_zone(self.robot.position)
+        if my_zone == 0 or 1:
+            enemy = self.world.get_robot(Zone.L_DEF)
+        else:
+            enemy = self.world.get_robot(Zone.R_DEF)
+        if enemy:
+            return enemy
+        else:
             return Robot()
 
     def shoot(self):
@@ -72,11 +80,11 @@ class Strategy(object):
         :return: duration that the motors are on
         """
         self.world.is_grabber_down = False
-        return self.actual_robot.kick()  # kick
+        return self.actual_robot.kick(), "Kicking"  # kick
 
     def turn_robot_to_goal(self):
         to_turn = self.robot.angle_to_point(self.goal)
-        return self.actual_robot.turn(to_turn)  # turn towards the the goal
+        return self.actual_robot.turn(to_turn), "turning {0} degrees to ({1}, {2})".format(int(360.0 * to_turn / (2 * np.pi)), self.goal.x, self.goal.y)
 
     def turn_robot_to_ball(self):
         """
@@ -84,7 +92,7 @@ class Strategy(object):
         :return: duration that the motors are on
         """
         to_turn = self.robot.angle_to_point(self.ball.position)
-        return self.actual_robot.turn(to_turn)  # turn towards the the ball
+        return self.actual_robot.turn(to_turn), "turning {0} degrees to ({1}, {2})".format(int(360.0 * to_turn / (2 * np.pi)), self.ball.position.x, self.ball.position.y)
 
     def move_robot_to_ball(self):
         """
@@ -92,7 +100,7 @@ class Strategy(object):
         :return: duration that the motors are on
         """
         dist_to_ball = self.distance_from_kicker_to_ball() * 0.8  # only move 90%
-        return self.actual_robot.move(dist_to_ball)
+        return self.actual_robot.move(dist_to_ball), "moving {0} cm".format(dist_to_ball)
 
     def raise_cage(self):
         """
@@ -100,7 +108,7 @@ class Strategy(object):
         :return: time it takes for the grabbers to open
         """
         self.world.is_grabber_down = False
-        return self.actual_robot.kick()
+        return self.actual_robot.kick(), "Kicking and opening grabber"
 
     def lower_cage(self):
         """
@@ -108,7 +116,7 @@ class Strategy(object):
         :return: time it takes for the grabbers to close
         """
         self.world.is_grabber_down = True
-        return self.actual_robot.grab()
+        return self.actual_robot.grab(), "Closing grabber"
 
     def is_ball_in_robot_zone(self):
         zone_ball = self.world.get_zone(self.ball.position)

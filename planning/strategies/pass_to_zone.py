@@ -76,15 +76,12 @@ class PassToZone(Strategy):
 
     def turn_to_location(self):
         to_turn = self.robot.angle_to_point(self.determine_next_location())
-        print "to turn {0}".format(int(360.0 * to_turn / (2 * np.pi)))
-        return self.actual_robot.turn(to_turn)
+        return self.actual_robot.turn(to_turn), "turning {0} degrees".format(int(360.0 * to_turn / (2 * np.pi)))
 
     def move_to_location(self):
         v = self.determine_next_location()
         to_move = self.distance_from_robot_to_point(v.x, v.y) * 0.9  # only move 90%
-        print "moving to {0}, {1}".format(v.x, v.y)
-        print "moving distance {0}".format(to_move)
-        return self.actual_robot.move(to_move)
+        return self.actual_robot.move(to_move), "moving {0} cm to ({1}, {2})".format(to_move, v.x, v.y)
 
     def determine_next_location(self):
         # find the furthest preset location
@@ -98,10 +95,9 @@ class PassToZone(Strategy):
         return v1 if max_distance == dist_to_1 else v2
 
     def turn_to_friend(self):
-        to_turn = self.robot.angle_to_point(self.get_friend().position)
-        print "turning to point ({0}, {1})".format(self.get_friend().position.x, self.get_friend().position.y)
-        print "to turn {0}".format(int(360.0 * to_turn / (2 * np.pi)))
-        return self.actual_robot.turn(to_turn)
+        friend_pos = self.get_friend().position
+        to_turn = self.robot.angle_to_point(friend_pos)
+        return self.actual_robot.turn(to_turn), "turning {0} degrees to ({1}, {2})".format(int(360.0 * to_turn / (2 * np.pi)), friend_pos.x, friend_pos.y)
 
     def pass_to_friend(self):
         return self.shoot()
