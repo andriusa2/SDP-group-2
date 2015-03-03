@@ -202,22 +202,22 @@ class Planner(Strategy):
 
         my_pos = self.robot.position
 
-        self.action_trace.append(action)
-        if len(self.action_trace) > 9:
-            self.action_trace.pop(0)
+        to_print = ""
 
-        to_print = self.pretty_print(current_zone, dist_to_ball, angle_to_ball, current_state, action, action_duration,
-                                     is_attacker, in_beam, ball_zone, state_trace, action_info, is_ball_close,
-                                     self.action_trace, friend, friend_zone, enemy_att, enemey_att_zone, enemy_def,
-                                     enemey_def_zone, my_pos)
         if action != 'WAITING':
-            print ""
+            
+            self.action_trace.append(action)
+            if len(self.action_trace) > 9:
+                self.action_trace.pop(0)
+
+            to_print = self.pretty_print(current_zone, dist_to_ball, angle_to_ball, current_state, action, action_duration,
+                                        is_attacker, in_beam, ball_zone, state_trace, action_info, is_ball_close,
+                                        self.action_trace, friend, friend_zone, enemy_att, enemey_att_zone, enemy_def,
+                                        enemey_def_zone, my_pos)
+            print "\n"
             for line in to_print:
                 print line
 
-            #print state_trace
-
-        #print state_trace
 
         return to_print
 
