@@ -13,8 +13,8 @@ class Strategy(object):
         self.robot_tag = robot_tag
         self.world = world
 
-        self.grab_threshold_x = 10  # we need to define these (based on kicker)
-        self.grab_threshold_y = 5
+        self.grab_threshold_x = 8  # we need to define these (based on kicker)
+        self.grab_threshold_y = 8
         self.dist_kicker_robot = 12
 
         self.ROBOT_WIDTH = 4
