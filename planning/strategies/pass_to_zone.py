@@ -25,8 +25,8 @@ class PassToZone(Strategy):
 
         # set start state
         self.m.set_start("Start")
-
-        self.preset_pass_locations = [Vector2D(25, 90), Vector2D(25, 20)]
+        x = {Zone.L_DEF: 25, Zone.R_DEF: 190}[robot_tag]
+        self.preset_pass_locations = [Vector2D(x, 90), Vector2D(x, 20)]
 
     def act(self):
         self.fetch_world_state()
@@ -69,7 +69,9 @@ class PassToZone(Strategy):
         friend = self.get_friend()
         direction = (friend.position - self.robot.position).unit_vector()
         enemy_robot = self.get_enemy()
-        if self.robot.is_point_within_beam(enemy_robot.position, direction, beam_width=self.ROBOT_WIDTH * 1.5):
+        if self.robot.is_point_within_beam(
+            enemy_robot.position, direction,
+            beam_width=self.ROBOT_WIDTH * 1.5):
             return True
         else:
             return False
@@ -92,7 +94,10 @@ class PassToZone(Strategy):
         dist_to_2 = self.distance_from_robot_to_point(v2.x, v2.y)
 
         max_distance = max(dist_to_1, dist_to_2)
-        return v1 if max_distance == dist_to_1 else v2
+        v = v1 if max_distance == dist_to_1 else v2
+        print "Safe pass point: {0}".format(v)
+        print "Robot {0}".format(self.robot)
+        return v
 
     def turn_to_friend(self):
         friend_pos = self.get_friend().position
