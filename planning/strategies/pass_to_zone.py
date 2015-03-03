@@ -26,7 +26,6 @@ class PassToZone(Strategy):
         # set start state
         self.m.set_start("Start")
 
-        self.friend = self.get_friend()
         self.preset_pass_locations = [Vector2D(25, 90), Vector2D(25, 20)]
 
     def act(self):
@@ -70,10 +69,6 @@ class PassToZone(Strategy):
         friend = self.get_friend()
         direction = (friend.position - self.robot.position).unit_vector()
         enemy_robot = self.get_enemy()
-        for zone in range(0, 4):
-            robot = self.world.get_robot(zone)
-            print "robot {2} ({0}, {1})".format(robot.position.x, robot.position.y, zone)
-
         if self.robot.is_point_within_beam(enemy_robot.position, direction, beam_width=self.ROBOT_WIDTH * 1.5):
             return True
         else:
@@ -93,6 +88,7 @@ class PassToZone(Strategy):
 
     def determine_next_location(self):
         # find the furthest preset location
+        self.fetch_world_state()
         v1 = self.preset_pass_locations[0]
         v2 = self.preset_pass_locations[1]
         dist_to_1 = self.distance_from_robot_to_point(v1.x, v1.y)

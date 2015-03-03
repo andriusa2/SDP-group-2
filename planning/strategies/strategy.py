@@ -1,7 +1,7 @@
 import numpy as np
 from lib.math.vector import Vector2D
 from planning.strategies.state_machine import StateMachine
-from planning.world.world_state import Zone
+from planning.world.world_state import Zone, Robot
 
 __author__ = 'Sam'
 
@@ -45,8 +45,12 @@ class Strategy(object):
         else:
             friend = self.world.get_robot(Zone.L_ATT)
 
-        print "friend pos ({0}, {1})".format(friend.position.x, friend.position.y)
-        return friend
+        if friend:
+            print "friend pos ({0}, {1})".format(friend.position.x, friend.position.y)
+            return friend
+        else:
+            print "no ememy extists"
+            return Robot()
 
     def get_enemy(self):
         self.fetch_world_state()
@@ -55,8 +59,12 @@ class Strategy(object):
             enemy = self.world.get_robot(Zone.L_ATT)
         else:
             enemy = self.world.get_robot(Zone.R_ATT)
-        print "enemy pos ({0}, {1})".format(enemy.position.x, enemy.position.y)
-        return enemy
+        if enemy:
+            print "enemy pos ({0}, {1})".format(enemy.position.x, enemy.position.y)
+            return enemy
+        else:
+            print "no friend extists"
+            return Robot()
 
     def shoot(self):
         """
@@ -181,7 +189,6 @@ class Strategy(object):
         :return: vector from the kicker to the ball
         """
         kicker_pos = self.get_kicker_position()
-
         ball_kicker_dist_x = kicker_pos.x-self.ball.position.x
         ball_kicker_dist_y = kicker_pos.y-self.ball.position.y
         return Vector2D(ball_kicker_dist_x, ball_kicker_dist_y)

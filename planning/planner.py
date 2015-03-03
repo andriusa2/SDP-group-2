@@ -219,8 +219,14 @@ class Planner(Strategy):
             |  Ball at Angle : 45 deg (IN BEAM)
             |  Ball Zone  : 1
             --------------------------------------------------
-            |  Previous 3 Actions ...
-            |  [TURN TO BALL] -> [MOVE TO BALL] -> [TURN TO GOAL]
+            | Friend in zone 3 at (0, 0)
+            | Enemy attacker in zone 2 at (0, 0)
+            | Enemy defender in zone 4 at (0, 0)
+            --------------------------------------------------
+            |  Previous 9 Actions ...
+            |  -> [TURN TO BALL] -> [MOVE TO BALL] -> [TURN TO GOAL]
+            |  -> [TURN TO BALL] -> [MOVE TO BALL] -> [TURN TO GOAL]
+            |  -> [TURN TO BALL] -> [MOVE TO BALL] -> [TURN TO GOAL] <- NEW ACTION
             --------------------------------------------------
             | State Trace ...
             | -> [CAN ACT]          -> [ATTACKER ROBOT]     -> [BALL IN ATTACKER ZONE]

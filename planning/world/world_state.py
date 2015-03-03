@@ -184,13 +184,13 @@ class WorldState(object):
         """
         Removed since there won't be 4 robots on pitch during milestone.
         """
-        """
-        Try to initialize self.robots from a list of robots.
-        If there are no zone boundaries set, it assumes that robot ordering is from left
-        to right. If there aren't 4 robots given, it should error out.
-
-        If zone boundaries are set, then it tries to allocate robots properly to their zones.
-        """
+        # """
+        # Try to initialize self.robots from a list of robots.
+        # If there are no zone boundaries set, it assumes that robot ordering is from left
+        # to right. If there aren't 4 robots given, it should error out.
+        #
+        # If zone boundaries are set, then it tries to allocate robots properly to their zones.
+        # """
         # if not self.zone_boundaries:
         #     if len(robot_list) != 4:
         #         raise TypeError("Provided robot list of length < 4, but no zone boundary map is found")

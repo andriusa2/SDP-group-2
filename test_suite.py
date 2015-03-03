@@ -34,7 +34,7 @@ class BaseTest(unittest.TestCase):
         self.planner = Planner(self.world_state, Zone.L_ATT, actual_robot, True)
 
     def put_robot_and_ball(self, robot_pos, robot_dir, ball_pos, robot_num):
-        return self.put_robots_and_ball(robot_pos, [(18.0, 8.0), (25, 25), (35, 35)], robot_dir, ball_pos, robot_num)
+        return self.put_robots_and_ball(robot_pos, [(5.0, 8.0), (25, 25), (35, 35)], robot_dir, ball_pos, robot_num)
 
     def put_robots_and_ball(self, my_position, other_positions, my_direction, ball_pos, robot_num):
         robot1_pos_x, robot1_pos_y = my_position
@@ -84,7 +84,7 @@ class BaseTest(unittest.TestCase):
 
 class FetchBallTest(BaseTest):
     def setUp(self):
-        self.world_state = self.put_robot_and_ball(robot_pos=(15, 15), robot_dir=(0, 1), ball_pos=(5, 5), robot_num=1)
+        self.world_state = self.put_robots_and_ball((15, 15), ([(5, 15), (25, 15), (35, 15)]), my_direction=(0, 1), ball_pos=(5, 5), robot_num=1)
         # make a dummy robot which can change the world
         actual_robot = DummyRobot(self.world_state, Zone.L_ATT)
         # give the strategies the world the dummy and the zone of the dummy
@@ -104,7 +104,7 @@ class FetchBallTest(BaseTest):
 
     # ensure that a non close ball is found to be not close
     def test_non_close_ball(self):
-        self.change_ball_location(19, 19)
+        self.change_ball_location(25, 15.0 + self.attacker1.dist_kicker_robot)
         # check that the ball is close
         self.assertFalse(self.attacker1.is_ball_close())
 
@@ -186,7 +186,8 @@ class PlannerTest(BaseTest):
     def test_fetch_world_state(self):
         self.planner.fetch_world_state()
         # check that the correct location is fetched for robot and ball
-        self.assertEquals(self.planner.robot.position, Vector2D(15, 0))
+        self.assertEquals(self.planner.robot.position.x, 15)
+        self.assertEquals(self.planner.robot.position.y, 0)
         self.assertEquals(self.planner.ball.position, Vector2D(15, 15))
 
     # ensure that real world values work
@@ -286,7 +287,7 @@ class PassToZoneTest(BaseTest):
                                                     ball_pos=(20, 60), robot_num=0)
         self.choose_planner("left")
         next_location = self.planner.pass_ball.determine_next_location()
-        self.assertEqual(next_location.x, 5)
+        self.assertEqual(next_location.x, self.planner.pass_ball.preset_pass_locations[0].x)
         self.assertEqual(next_location.y, self.planner.pass_ball.preset_pass_locations[0].y)
 
     # ensure that a blocked pass is found to be blocked
@@ -295,7 +296,7 @@ class PassToZoneTest(BaseTest):
                                                     ball_pos=(20, 60), robot_num=0)
         self.choose_planner("left")
         next_location = self.planner.pass_ball.determine_next_location()
-        self.assertEqual(next_location.x, 5)
+        self.assertEqual(next_location.x, self.planner.pass_ball.preset_pass_locations[1].x)
         self.assertEqual(next_location.y, self.planner.pass_ball.preset_pass_locations[1].y)
 
     # ensure that a friend robot is found correctly
@@ -313,7 +314,7 @@ class PassToZoneTest(BaseTest):
 
     # ensure that the blocking robot is found correctly
     def test_get_enemy(self):
-        self.world_state = self.put_robot_and_ball(robot_pos=(5, 50), robot_dir=(0, 1), ball_pos=(20, 60), robot_num=0)
+        self.world_state = self.put_robot_and_ball(robot_pos=(15, 50), robot_dir=(0, 1), ball_pos=(20, 60), robot_num=0)
         self.choose_planner("left")
         friend = self.planner.pass_ball.get_enemy()
         self.assertEqual(self.planner.world.get_zone(friend.position), Zone.L_ATT)
@@ -329,7 +330,7 @@ class PassToZoneTest(BaseTest):
     # ensure that unblocked pass is found to be open
     def test_unblocked_pass(self):
         self.world_state = self.put_robots_and_ball((10, 50), [(8.0, 8.0), (25, 25), (35, 35)], my_direction=(0, 1),
-                                                    ball_pos=(20, 60), robot_num=0)
+                                                    ball_pos=(20, 60), robot_num=1)
         self.choose_planner("left")
         is_blocked = self.planner.pass_ball.is_pass_blocked()
         self.assertFalse(is_blocked)
