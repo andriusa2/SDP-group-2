@@ -82,7 +82,7 @@ class PassToZone(Strategy):
 
     def move_to_location(self):
         v = self.determine_next_location()
-        to_move = self.distance_from_robot_to_point(v.x, v.y) * 0.9  # only move 90%
+        to_move = self.distance_from_robot_to_point(v.x, v.y) * 0.4  # only move 90%
         return self.actual_robot.move(to_move), "moving {0} cm to ({1}, {2})".format(to_move, v.x, v.y)
 
     def determine_next_location(self):
