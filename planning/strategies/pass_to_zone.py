@@ -52,9 +52,9 @@ class PassToZone(Strategy):
 
     def pass_blocked_trans(self):
         if self.is_robot_facing_point(self.determine_next_location()):
-            new_state = "Turn to location"
-        else:
             new_state = "Move to location"
+        else:
+            new_state = "Turn to location"
         return new_state
 
     def pass_not_blocked_trans(self):
