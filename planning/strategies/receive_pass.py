@@ -1,3 +1,5 @@
+from lib.math.util import clamp
+
 __author__ = 'Sam Davies'
 
 from lib.math.vector import Vector2D
@@ -36,7 +38,7 @@ class ReceivePass(Strategy):
 
     def follow_friend(self):
         x = self.robot.position.x
-        y = self.get_friend().position.y
+        y = clamp(self.get_friend().position.y, 20, 90)
         vect_to_point = self.vector_from_robot_to_point(x, y)
         dist_to_point = vect_to_point.length()
 

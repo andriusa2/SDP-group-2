@@ -44,3 +44,6 @@ def rotate_vector(vector, angle, anchor=(0, 0)):
         ny = ny + anchor[1]
 
         return Vector2D(nx, ny)
+
+def clamp(num, max_val, min_val):
+    return max(min(num, max_val), min_val)

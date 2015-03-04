@@ -205,7 +205,7 @@ class Planner(Strategy):
         to_print = ""
 
         if action != 'WAITING':
-            
+
             self.action_trace.append(action)
             if len(self.action_trace) > 9:
                 self.action_trace.pop(0)
