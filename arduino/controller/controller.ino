@@ -4,8 +4,8 @@
 // test purposes, change to 1 when confident with timings
 #define KICK_POWER -1
 #define GRAB_POWER 1
-#define KICK_DURATION 250
-#define GRAB_DURATION 220
+#define KICK_DURATION 180
+#define GRAB_DURATION 180
 
 #define ACK_COMMS
 // intermediate state
@@ -120,12 +120,12 @@ void loop() {
   switch(IS_KICKING) {
   case HAPPENING:
     if (!motors.is_running(KICKER)) {
-      IS_KICKING = 0;
-      break;
       IS_KICKING = COMPLETE;
+      Serial.println("Returning to rest");
       motors.stop_motor(KICKER);  // should be stopped already, but w/e
-      delay(3);  // give it some time to stop properly
-      motors.run_motor(KICKER, -1, KICK_DURATION*7/10, 0);
+      delay(3);
+      kick_f(-1.0 * KICK_POWER);
+      
     }
     break;
   case COMPLETE:
@@ -144,6 +144,7 @@ void loop() {
       if (KICK_AFTERWARDS == 1) {
           kick_f(KICK_POWER);
           KICK_AFTERWARDS = 0;
+          IS_KICKING = HAPPENING;
       }
       delay(3);
     }
@@ -185,7 +186,8 @@ void kick() {
     float power;
     if (!get_float(power))
       power = KICK_POWER;
-    
+    IS_KICKING=HAPPENING;
+    kick_f(abs(power)*KICK_POWER);
   }
   else {
     grab();
