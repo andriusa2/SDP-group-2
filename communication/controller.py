@@ -30,7 +30,7 @@ class Arduino(object):
                 raise
 
     def _write(self, string, retry=True):
-        # print("Trying to run command: '{0}'".format(string))
+        print("Trying to run command: '{0}'".format(string))
         if self.comms == 1:
             ret_msg = ''
             for _ in range(self.ack_tries if self.ack_tries else 1):
@@ -68,11 +68,12 @@ class Controller(Arduino):
     ENDL = '\r\n'  # at least the lib believes so
     
     COMMANDS = {
-        'kick': 'KICK {term}',
-        'move': 'MOVE {left_power:.5} {right_power:.5} {left_duration} {right_duration}{term}',
-        'run_engine': 'RUN_ENGINE {engine_id} {power:.5} {duration}{term}',
-        'grab': 'GRAB{term}',
-        'stop': 'STOP{term}',
+        'kick': '{term}KICK {power:.2}{term}',
+        'move': '{term}MOVE {lf} {lb} {rf} {rb}{term}',
+        'run_engine': '{term}RUN_ENGINE {engine_id} {power:.2} {duration}{term}',
+        'grab_open': '{term}OPEN {power:.2}{term}',
+        'grab_close': '{term}CLOSE {power:.2}{term}',
+        'stop': '{term}STOP{term}',
     }
 
     # NB not a real radius, just one that worked
@@ -86,9 +87,10 @@ class Controller(Arduino):
         if power is None:
             power = self.MAX_POWER
         self._write(self.COMMANDS['kick'].format(power=float(power), term=self.ENDL))
-        return 0.6
+        return 0.4
 
     def move(self, distance, power=None):
+        raise NotImplementedError
         if power is not None:
             print "I don't support different powers, defaulting to 1"
         power = 1
@@ -106,6 +108,8 @@ class Controller(Arduino):
 
     def turn(self, angle):
         """ Turns robot over 'angle' radians in place. """
+        
+        raise NotImplementedError
         angle = convert_angle(angle)  # so it's in [-pi;pi] range
         # if angle is positive move clockwise, otw just inverse it
         power = self.MAX_POWER if angle >= 0 else -self.MAX_POWER
@@ -120,8 +124,15 @@ class Controller(Arduino):
             left_duration=duration
         )
 
+    def special_move(self, lf, lb, rf, rb):
+        self._write(
+            self.COMMANDS['move'].format(term=self.ENDL, **locals())
+        )
+        return max(map(abs, [lf, lb, rf, rb])) * 0.001
+    
     def go(self, duration, power=None):
         """ Makes robot go in a straight line for a given duration. """
+        raise NotImplementedError
         if power is None:
             power = self.MAX_POWER
         return self.complex_movement(
@@ -132,6 +143,7 @@ class Controller(Arduino):
     
     def complex_movement(self, left_power, left_duration, right_power=None, right_duration=None):
         """ Moves robot with given parameters, if "right" aren't given, will copy over "left". """
+        raise NotImplementedError
         def fix_pair(power, duration):
             """ Helper for making sure everything is nice and in correct units. """
             # positive durations
@@ -169,8 +181,18 @@ class Controller(Arduino):
         """ power is negative atm """
         if power is None:
             power = -self.MAX_POWER
-        self._write(self.COMMANDS['grab'].format(power=float(power), term=self.ENDL))
+        self._write(self.COMMANDS['grab_close'].format(power=float(power), term=self.ENDL))
         return 0.3
     
     def open_grabber(self, power=None):
-        return self.grab(power)
+        """ power is negative atm """
+        if power is None:
+            power = self.MAX_POWER
+        self._write(self.COMMANDS['grab_open'].format(power=float(power), term=self.ENDL))
+        return 0.3
+
+    def close_grabber(self, power=None):
+        if power is None:
+            power = self.MAX_POWER
+        self._write(self.COMMANDS['grab_close'].format(power=float(power), term=self.ENDL))
+        return 0.3
