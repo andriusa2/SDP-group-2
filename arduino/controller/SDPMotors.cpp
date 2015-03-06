@@ -139,4 +139,19 @@ void MotorBoard::diagnostics(uint8_t bitmask) {
   Serial.println("Diagnostics finished");
 #endif
 }
-    
+
+uint16_t MotorBoard::get_min_lag(uint8_t mask[], uint8_t count) {
+  uint16_t min_lag = -1;
+  for (int i = 0; i < count; i++) {
+    if (min_lag > ENGINE_ACTIVATION[mask[i]]) {
+      min_lag = ENGINE_ACTIVATION[mask[i]];
+    }
+  }
+}
+
+uint16_t MotorBoard::get_adj_lag(uint8_t id, int16_t d) {
+  int16_t lag = ENGINE_ACTIVATION[id] + d;
+  if (lag < 0)
+    return 0;
+  return (uint16_t)lag;
+}
