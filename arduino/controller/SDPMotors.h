@@ -15,7 +15,7 @@ public:
   void diagnostics(uint8_t motor_bitmask);
   void scan_motors();
   bool is_running(uint8_t id) { return (id >= 0 && id < MAX_ENGINES_BOARD) ? stop_timers[id] > 0 : false; }
-  static uint16_t get_min_lag(uint8_t mask[], uint8_t count);
+  static uint16_t get_max_lag(uint8_t mask[], uint8_t count);
   static uint16_t get_adj_lag(uint8_t id, int16_t d);
 private:
   uint16_t stop_timers[MAX_ENGINES_BOARD];

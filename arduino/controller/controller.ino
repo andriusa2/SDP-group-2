@@ -245,7 +245,7 @@ void grab_close() {
 void move_bot() {
   MATCHED=1;
   int16_t lf, lb, rf, rb;
-  uint16_t lag = motors.get_min_lag(movement_motors, 4);
+  uint16_t lag = motors.get_max_lag(movement_motors, 4);
   if (!get_int16(lf)) {
     Serial.println("Can't get left time");
     return;
@@ -267,10 +267,10 @@ void move_bot() {
   Serial.println("ACKMOVEACKMOVEACKMOVE");
 #endif
   
-  motors.run_motor(LF_MOTOR, lf > 0? 1 : -1, abs(lf), motors.get_adj_lag(LF_MOTOR, -lag));
-  motors.run_motor(LB_MOTOR, lb > 0? 1 : -1, abs(lb), motors.get_adj_lag(LB_MOTOR, -lag));
-  motors.run_motor(RF_MOTOR, rf > 0? 1 : -1, abs(rf), motors.get_adj_lag(RF_MOTOR, -lag));
-  motors.run_motor(RB_MOTOR, rb > 0? 1 : -1, abs(rb), motors.get_adj_lag(RB_MOTOR, -lag));
+  motors.run_motor(LF_MOTOR, lf > 0? 1 : -1, abs(lf), motors.get_adj_lag(LF_MOTOR, lag));
+  motors.run_motor(LB_MOTOR, lb > 0? 1 : -1, abs(lb), motors.get_adj_lag(LB_MOTOR, lag));
+  motors.run_motor(RF_MOTOR, rf > 0? 1 : -1, abs(rf), motors.get_adj_lag(RF_MOTOR, lag));
+  motors.run_motor(RB_MOTOR, rb > 0? 1 : -1, abs(rb), motors.get_adj_lag(RB_MOTOR, lag));
 }
 
 /* RUN_ENGINE ENGINE_ID POWER[-1;1] DURATION(0;64k] */
