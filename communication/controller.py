@@ -59,12 +59,15 @@ class Arduino(object):
                     raise Exception("No answer from UPSTREAM, something is wrong")
         elif not self.debug:
             raise Exception("No comm link established, but trying to send command.")
-            
-            
+
+
+def scale_list(scale, l):
+    return map(lambda a: scale * a, l)
+
+
 class Controller(Arduino):
     """ Implements an interface for Arduino device. """
-    
-    # TODO: get signs on turning right. Depends on wiring. :/
+
     ENDL = '\r\n'  # at least the lib believes so
     
     COMMANDS = {
@@ -77,9 +80,11 @@ class Controller(Arduino):
     }
 
     # NB not a real radius, just one that worked
-    RADIUS = 7.2
+    RADIUS = 9.6
     """ Radius of the robot, used to determine what distance should it cover when turning. """
-    
+    FWD = [1, 1, 1, 1]
+    LEFT = [-1, 1, 1, -1]
+    TURN = [1, 1, -1, -1]
     MAX_POWER = 1.
     """ Max speed of any engine. """
 
@@ -89,18 +94,30 @@ class Controller(Arduino):
         self._write(self.COMMANDS['kick'].format(power=float(power), term=self.ENDL))
         return 0.4
 
-    def move(self, distance, power=None):
-        raise NotImplementedError
+    def move(self, x=None, y=None, power=None):
+        """
+        Moves robot for a given distance on a given axis.
+        NB. currently doesn't support movements on both axes (i.e. one of x and y must be 0 or None)
+        :param x: distance to move in x axis (+x is towards robot's shooting direction)
+        :param y: distance to move in y axis (+y is 90' ccw from robot's shooting direction)
+        :param power: deprecated
+        :return: duration it will be blocked
+        """
         if power is not None:
             print "I don't support different powers, defaulting to 1"
-        power = 1
+        assert x or y, "You need to supply some distance"
+        assert not(x and y), "You can only supply distance in one axis"
+        distance = x or y
         if distance < 0:
-            duration = get_duration(-distance, 1)
-            power = -1
+            duration = -get_duration(-distance, 1)
         else:
             duration = get_duration(distance, 1)
-        assert 0 < duration < 6000, 'Something looks wrong in the distance calc'
-        return self.go(duration, power)
+        assert -6000 < duration < 6000, 'Something looks wrong in the distance calc'
+
+        return self.special_move(*scale_list(duration, self.FWD if x else self.LEFT))
+
+    def go(self, duration):
+        return self.special_move(*scale_list(duration, self.FWD))
 
     def stop(self):
         self._write(self.COMMANDS['stop'].format(term=self.ENDL))
@@ -109,7 +126,6 @@ class Controller(Arduino):
     def turn(self, angle):
         """ Turns robot over 'angle' radians in place. """
         
-        raise NotImplementedError
         angle = convert_angle(angle)  # so it's in [-pi;pi] range
         # if angle is positive move clockwise, otw just inverse it
         power = self.MAX_POWER if angle >= 0 else -self.MAX_POWER
@@ -117,59 +133,17 @@ class Controller(Arduino):
         angle = abs(angle)
         distance = angle * self.RADIUS
         duration = get_duration(distance, abs(power))  # magic...
+        duration = -duration if power < 0 else duration
+
         # print('Trying to turn for {0} seconds'.format(duration))
-        return self.complex_movement(
-            left_power=power,
-            right_power=power,
-            left_duration=duration
-        )
+        return self.special_move(*scale_list(duration, self.TURN))
 
     def special_move(self, lf, lb, rf, rb):
+
         self._write(
             self.COMMANDS['move'].format(term=self.ENDL, **locals())
         )
-        return max(map(abs, [lf, lb, rf, rb])) * 0.001
-    
-    def go(self, duration, power=None):
-        """ Makes robot go in a straight line for a given duration. """
-        raise NotImplementedError
-        if power is None:
-            power = self.MAX_POWER
-        return self.complex_movement(
-            left_power=-min(power, self.MAX_POWER),
-            right_power=power,  # might need this if the second motor is "inversed"
-            left_duration=duration
-        )
-    
-    def complex_movement(self, left_power, left_duration, right_power=None, right_duration=None):
-        """ Moves robot with given parameters, if "right" aren't given, will copy over "left". """
-        raise NotImplementedError
-        def fix_pair(power, duration):
-            """ Helper for making sure everything is nice and in correct units. """
-            # positive durations
-            if duration < 0:
-                power *= -1.0
-                duration *= -1.0
-            power = min(max(power, -self.MAX_POWER), self.MAX_POWER)
-            return float(power), int(duration)
-            
-        assert (left_power is not None) and (left_duration is not None)
-        
-        if right_power is None:
-            right_power = left_power
-        if right_duration is None:
-            right_duration = left_duration
-
-        left_power, left_duration = fix_pair(left_power, left_duration)
-        right_power, right_duration = fix_pair(right_power, right_duration)
-        assert 0 <= left_duration <= 6000, "Wrong left duration"
-        assert 0 <= right_duration <= 6000, "Wrong right duration"
-        #self.stop()
-        command = self.COMMANDS['move'].format(term=self.ENDL, **locals())
-        self._write(command)
-        wait_time = float(max(left_duration, right_duration)) / 1000.0 + 0.3
-        # print("waiting " + str(wait_time) + " for motors")
-        return wait_time
+        return max(map(abs, [lf, lb, rf, rb])) * 0.001 + 0.1  # typically motors lag for that much
         
     def run_engine(self, id, power, duration):
         assert (-1.0 <= power <= 1.0) and (0 <= id <= 5)
