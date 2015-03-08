@@ -1,23 +1,25 @@
 from math import pi, sin, cos
 from lib.math.vector import Vector2D
+import numpy as np
+# that is how numpy fit the thing to 3rd degree poly
+# it is somewhat accurate
+# I believe that we will have worse problems with accuracy either way
+# x=np.array([0.,0.1,0.15,0.2,0.25,0.3])
+# y=np.array([0.,2.56,4.8,7.68,12.8,18.9])
+# z=np.polyfit(y, x, 3)  # as we want f: Y -> X, not f: X -> Y
+
+distance_polynomial = np.poly1d(np.array([6.6e-5, -2.66e-3, 4.24e-2, 2.82e-3]))
 
 
 def get_duration(distance, power):
     """ Calculates how long does a bot need to move at power to cover distance. """
-    # up to 200 it's nice and 40cm/s
-    # then up to 300 it's faster (60 cm/s)
-    # then again gets to 40cm/s
     assert power == 1
-    if distance <= 5:
-        # s = (t - 100)/0.04 + 1.0
-        t = (distance + 3) / 0.04
-    elif distance <= 11.3:
-        # s = (t - 200) * 0.063 + 5
-        t = (distance + 7) / 0.063
+    if distance <= 18.9:
+        t = distance_polynomial(distance) * 1000.0
     else:
-        # s = (t - 300) * 0.04 + 11.3
-        t = (distance + 1.3) / 0.04
-    return t
+        # s = (t - 300) * 0.063 + 18.9
+        t = (distance - 18.9) / 0.063 + 300
+    return int(t)
 
 
 def convert_angle(radians):
