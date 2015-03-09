@@ -2,7 +2,9 @@ import datetime
 import serial
 
 from lib.math.util import convert_angle, get_duration
+import numpy as np
 
+angle_poly = np.poly1d([-0.1735, 0.279, 0])
 
 class Arduino(object):
     """ Basic class for Arduino communications. """
@@ -80,7 +82,7 @@ class Controller(Arduino):
     }
 
     # NB not a real radius, just one that worked
-    RADIUS = 9.6
+    RADIUS = 5
     """ Radius of the robot, used to determine what distance should it cover when turning. """
     FWD = [1, 1, 1, 1]
     LEFT = [-1, 1, 1, -1]
@@ -129,12 +131,15 @@ class Controller(Arduino):
         angle = convert_angle(angle)  # so it's in [-pi;pi] range
         # if angle is positive move clockwise, otw just inverse it
         power = self.MAX_POWER if angle >= 0 else -self.MAX_POWER
-        
-        angle = abs(angle)
-        distance = angle * self.RADIUS
-        duration = get_duration(distance, abs(power))  # magic...
-        duration = -duration if power < 0 else duration
 
+        angle = abs(angle)
+        if angle < 0.67:
+            duration = int(angle_poly(angle) * 1000)
+        else:
+            # pi/2 -> 200, pi/4 -> 110
+            # ax+b=y, api/2+b = 200, api/4+b=150, b=20, a=360/pi
+            duration = int(360.0/3.14 * angle + 20.0)
+        duration = -duration if power < 0 else duration
         # print('Trying to turn for {0} seconds'.format(duration))
         return self.special_move(*scale_list(duration, self.TURN))
 
