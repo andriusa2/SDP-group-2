@@ -37,8 +37,8 @@ class ReceivePass(Strategy):
     # -------------------------------------- Actions --------------------------------------
 
     def follow_friend(self):
-        x = self.robot.position.x
-        y = clamp(self.get_friend().position.y, max_val=90, min_val=20)
+        x = self.get_zone_centre()
+        y = clamp(self.get_friend().position.y, max_val=80, min_val=30)
         vect_to_point = self.vector_from_robot_to_point(x, y)
         dist_to_point = vect_to_point.length()
 

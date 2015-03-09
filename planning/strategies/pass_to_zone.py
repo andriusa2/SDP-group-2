@@ -25,8 +25,9 @@ class PassToZone(Strategy):
 
         # set start state
         self.m.set_start("Start")
-        x = {Zone.L_DEF: 25, Zone.R_DEF: 190}[robot_tag]
-        self.preset_pass_locations = [Vector2D(x, 90), Vector2D(x, 20)]
+        self.fetch_world_state()
+        zone_centre = self.get_zone_centre()
+        self.preset_pass_locations = [Vector2D(zone_centre, 90), Vector2D(zone_centre, 20)]
 
     def act(self):
         self.fetch_world_state()

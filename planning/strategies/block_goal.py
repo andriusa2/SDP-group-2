@@ -34,8 +34,21 @@ class BlockGoal(Strategy):
 
     # -------------------------------------- Actions --------------------------------------
 
+    def rotate_to_closest_square_angle(self):
+        pass
+
+    def move_to_centre_x(self):
+        vect_to_point = self.vector_from_robot_to_point(self.get_zone_centre(), self.robot.y)
+        dist_to_point = vect_to_point.length()
+
+        # reverse the distance when the intercept point is below the robot
+        if vect_to_point.x < 0:
+            dist_to_point = - dist_to_point
+
+        return self.actual_robot.move(dist_to_point, self.robot.y), "moving robot {0} cm to ({1}, {2})".format(dist_to_point, vect_to_point.x, vect_to_point.y)
+
     def intercept_ball(self):
-        x, y = self.y_intercept_of_ball_goal(self.robot.position, self.goal, self.ball.position)
+        x, y = self.y_intercept_of_ball_goal(self.goal, self.ball.position)
         vect_to_point = self.vector_from_robot_to_point(x, y)
         dist_to_point = vect_to_point.length()
 

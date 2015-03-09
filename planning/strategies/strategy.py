@@ -25,6 +25,15 @@ class Strategy(object):
         self.goal = None
         self.m = StateMachine()
 
+    def get_zone_centre(self):
+        my_zone = self.world.get_zone(self.robot.position)
+        zone_edges = [0] + self.world.zone_boundaries
+        edge_L = zone_edges[my_zone]
+        edge_R = zone_edges[my_zone+1]
+        zone_centre = edge_L + (edge_R - edge_L)/2.0
+        # print "Left: {0}, right {1}, centre: {2}".format(edge_L, edge_R, zone_centre)
+        return zone_centre
+
     def is_ball_in_friend_zone(self):
         friend_zone = self.world.get_zone(self.get_friend().position)
         ball_zone = self.world.get_zone(self.world.get_ball().position)
@@ -230,9 +239,6 @@ class Strategy(object):
         ball_velocity = self.world.get_ball().velocity.length()
         return ball_velocity > velocity_threshold
 
-    def get_zone_centre(self):
-        return Vector2D(0, 0)  # TODO
-
     def predict_y(self, predict_for_x):
         """
         Predict the y coordinate the ball will have when it reaches the x coordinate of the robot.
@@ -248,13 +254,12 @@ class Strategy(object):
         else:
             return ball_y + (ball_v.y / ball_v.x) * distance_ball_robot
 
-    @staticmethod
-    def y_intercept_of_ball_goal(robot_pos, goal_pos, ball_pos):
-        to_move_x = robot_pos.x
+    def y_intercept_of_ball_goal(self, goal_pos, ball_pos):
+        to_move_x = self.robot.position.x
 
         m = 1.0*(goal_pos.y - ball_pos.y)/(goal_pos.x - ball_pos.x)
 
-        to_move_y = (m * (robot_pos.x - goal_pos.x)) + goal_pos.y
+        to_move_y = (m * (to_move_x - goal_pos.x)) + goal_pos.y
 
         return to_move_x, to_move_y
 
