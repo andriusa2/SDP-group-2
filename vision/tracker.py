@@ -70,13 +70,26 @@ class Tracker(object):
         frame_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
         # Create a mask
-        frame_mask = cv2.inRange(frame_hsv, min_color, max_color)
+        h_min, _, _ = min_color
+        h_max, _, _ = max_color
+        if h_max < h_min:
+            max_color[0] = 180
+            frame_mask = cv2.inRange(frame_hsv, min_color, max_color)
+            min_color[0] = 0
+            max_color[0] = h_max
+            frame_mask1 = cv2.inRange(frame_hsv, min_color, max_color)
+            frame_mask = cv2.bitwise_or(frame_mask1, frame_mask)
+        else:
+            frame_mask = cv2.inRange(frame_hsv, min_color, max_color)
 
+        min_color[0] = h_min
+        max_color[0] = h_max
         kernel = np.ones((5, 5), np.uint8)
         erosion = cv2.erode(frame_mask, kernel, iterations=1)
 
         # Apply threshold to the masked image, no idea what the values mean
         return_val, threshold = cv2.threshold(frame_mask, 127, 255, 0)
+        # return_val, threshold = cv2.threshold(erosion, 127, 255, 0)
 
         # Find contours, they describe the masked image - our T
         contours, hierarchy = cv2.findContours(
@@ -84,6 +97,7 @@ class Tracker(object):
             cv2.RETR_TREE,
             cv2.CHAIN_APPROX_SIMPLE
         )
+        # return (contours, hierarchy, erosion)
         return (contours, hierarchy, frame_mask)
 
     def get_contour_extremes(self, cnt):
@@ -412,7 +426,6 @@ class BallTracker(Tracker):
                 color['contrast'],
                 color['blur']
             )
-
             if len(contours) <= 0:
                 # print 'No ball found.'
                 pass
@@ -420,18 +433,17 @@ class BallTracker(Tracker):
             else:
                 # Trim contours matrix
                 cnt = self.get_largest_contour(contours)
-
                 # Get center
                 (x, y), radius = cv2.minEnclosingCircle(cnt)
-
-                queue.put({
-                    'name': self.name,
-                    'x': x,
-                    'y': y,
-                    'angle': None,
-                    'velocity': None
-                })
-                return
+                if radius > 1:
+                    queue.put({
+                        'name': self.name,
+                        'x': x,
+                        'y': y,
+                        'angle': None,
+                        'velocity': None
+                    })
+                    return
 
         queue.put(None)
         return
