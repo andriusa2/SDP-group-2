@@ -9,10 +9,13 @@ class BlockGoal(Strategy):
     def __init__(self, world, robot_tag, actual_robot):
         super(BlockGoal, self).__init__(world, robot_tag, actual_robot)
         self.m.add_state("Start", self.start_trans)
+        self.m.add_state("Robot is Square", self.is_square_trans)
 
         # End States / Actions
         self.m.add_final_state_and_action("Intercept Ball", self.intercept_ball)
         self.m.add_final_state_and_action("Turn To Face Up", self.turn_robot_to_up)
+        self.m.add_final_state_and_action("Rotating To Be Square", self.turn_to_closest_square_angle)
+        self.m.add_final_state_and_action("Move Robot To Centre", self.actions.move_to_centre)
 
         # set start state
         self.m.set_start("Start")
@@ -26,26 +29,38 @@ class BlockGoal(Strategy):
     # ------------------------------------ Transitions ------------------------------------
 
     def start_trans(self):
-        if self.is_robot_facing_up():
+        if self.is_at_square_angles():
+            new_state = "Robot is Square"
+        else:
+            new_state = "Rotating To Be Square"
+        return new_state
+
+    def is_square_trans(self):
+        if self.is_robot_in_centre():
             new_state = "Intercept Ball"
         else:
-            new_state = "Turn To Face Up"
+            new_state = "Move Robot To Centre"
         return new_state
 
     # -------------------------------------- Actions --------------------------------------
 
-    def rotate_to_closest_square_angle(self):
-        pass
+    def turn_to_closest_square_angle(self):
 
-    def move_to_centre_x(self):
-        vect_to_point = self.vector_from_robot_to_point(self.get_zone_centre(), self.robot.y)
-        dist_to_point = vect_to_point.length()
+        # angle in range 0..2pi
+        angle_to_turn = self.robot.direction.get_angle(Vector2D(1, 0)) + np.pi
+        assert 0 <= angle_to_turn <= 2*np.pi
 
-        # reverse the distance when the intercept point is below the robot
-        if vect_to_point.x < 0:
-            dist_to_point = - dist_to_point
+        while angle_to_turn > np.pi/2:
+            angle_to_turn -= np.pi/2
 
-        return self.actual_robot.move(dist_to_point, self.robot.y), "moving robot {0} cm to ({1}, {2})".format(dist_to_point, vect_to_point.x, vect_to_point.y)
+        if angle_to_turn > np.pi/4:
+            angle_to_turn -= np.pi/2
+
+        to_turn = -angle_to_turn
+        info = "turning {0} degrees)".format(to_turn)
+        return self.actual_robot.turn(to_turn), info
+
+
 
     def intercept_ball(self):
         x, y = self.y_intercept_of_ball_goal(self.goal, self.ball.position)
@@ -64,33 +79,3 @@ class BlockGoal(Strategy):
         to_turn = self.robot.angle_to_point(up_pos)
         return self.actual_robot.turn(to_turn), "turning {0} degrees to ({1}, {2})".format(int(360.0 * to_turn / (2 * np.pi)), up_pos.x, up_pos.y)
 
-
-    """def act(self):
-        self.fetch_world_state()
-
-        # is the robot facing up?
-        if self.is_robot_facing_up():
-            print "robot is facing up"
-            to_move_x = self.robot.position.x
-            to_move_y = self.predict_y(to_move_x)
-            if not (0 < to_move_y < 110):
-                to_move_y = 55
-            print 'Moving to {0!r}'.format((to_move_x, to_move_y))
-            # should the robot move up?
-            to_move = self.distance_from_robot_to_point(to_move_x, to_move_y)
-            if to_move_y > self.robot.position.y:
-
-                print "moving robot up " + str(to_move)
-                return self.actual_robot.move(to_move)
-            else:
-                print "moving robot down " + str(to_move)
-                return self.actual_robot.move(-to_move)
-        else:
-            # rotate to face up
-            print "rotating to face up"
-            up_pos = Vector2D(self.robot.position.x, 150)
-            print "up is at " + str(up_pos.x) + ", " + str(up_pos.y) 
-            print "robot at {0}; {1}".format(self.robot.position.x, self.robot.position.y)
-            to_turn = self.robot.angle_to_point(up_pos)
-            print "rotating robot " + str(360.0 * to_turn / (2 * np.pi)) + " degrees"
-            return self.actual_robot.turn(to_turn) # turn towards up"""

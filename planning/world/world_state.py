@@ -29,7 +29,7 @@ class Robot(_WorldObject):
 
     def __init__(self, direction=(0, 0), position=(0, 0), velocity=(0, 0), enemy=False):
         self.enemy = enemy if enemy else False
-        self.direction = Vector2D.to_vector2d(direction)
+        self.direction = Vector2D.to_vector2d(direction).unit_vector()
         self.is_moving = False
         super(Robot, self).__init__(position, velocity)
 

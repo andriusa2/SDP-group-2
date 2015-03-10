@@ -33,6 +33,9 @@ class BaseTest(unittest.TestCase):
         # give the strategies the world the dummy and the zone of the dummy
         self.planner = Planner(self.world_state, Zone.L_ATT, actual_robot, True)
 
+    def last_action(self):
+        return self.planner.action_trace[len(self.planner.action_trace)-1]
+
     def put_robot_and_ball(self, robot_pos, robot_dir, ball_pos, robot_num):
         return self.put_robots_and_ball(robot_pos, [(5.0, 8.0), (25, 25), (35, 35)], robot_dir, ball_pos, robot_num)
 
@@ -205,6 +208,7 @@ class PlannerTest(BaseTest):
         self.world_state.set_zone_boundaries(boundries)
         self.world_state.set_robots(robots)
         self.world_state.set_ball(ball)
+        self.planner.fetch_world_state()
         self.assertFalse(self.planner.is_robot_facing_ball())
 
         # raise cage
@@ -226,15 +230,24 @@ class BlockTest(BaseTest):
         self.planner.fetch_world_state()
         self.assertAlmostEqual(self.planner.get_zone_centre(), 35)
 
-    # ensure that a robot turns
+    # ensure that a robot turns to up
     def test_turn_to_face_up(self):
-        self.world_state = self.put_robot_and_ball(robot_pos=(5, 50), robot_dir=(1, 0), ball_pos=(15, 60), robot_num=0)
+        self.world_state = self.put_robots_and_ball((5, 10), [(15.0, 50), (25, 50), (35, 0)], my_direction=(2, 5), ball_pos=(12, 60), robot_num=0)
         self.set_up_y_intercept_of_ball_goal("left")
+        self.assertFalse(self.planner.is_at_square_angles())
 
         self.planner.plan()
-        direction = self.planner.robot.direction
-        self.assertAlmostEqual(direction.x, 0)
-        self.assertAlmostEqual(direction.y, 1)
+        self.assertEqual(self.last_action(), "ROTATING TO BE SQUARE")
+        self.assertTrue(self.planner.is_at_square_angles())
+
+    def test_turn_to_face_right(self):
+        pass
+
+    def test_turn_to_face_down(self):
+        pass
+
+    def test_turn_to_face_left(self):
+        pass
 
     def test_y_intercept_of_ball_goal(self):
         self.world_state = self.put_robot_and_ball(robot_pos=(5, 50), robot_dir=(0, 1), ball_pos=(10, 60), robot_num=0)
@@ -253,7 +266,7 @@ class BlockTest(BaseTest):
         pos = self.set_up_y_intercept_of_ball_goal("right")
         self.assertEquals(pos, (35, 45))
 
-    def test_intercept_ball(self):
+    """def test_intercept_ball(self):
         self.world_state = self.put_robots_and_ball((6, 50), [(15.0, 50), (25, 50), (35, 0)], my_direction=(0, 1), ball_pos=(12, 60), robot_num=0)
         self.choose_planner("left")
         self.planner.plan()
@@ -283,7 +296,7 @@ class BlockTest(BaseTest):
         self.planner.plan()
         self.assertEquals(self.planner.action_trace[len(self.planner.action_trace)-1], "INTERCEPT BALL")
         self.assertEquals(self.planner.robot.position.x, 35)
-        self.assertEquals(self.planner.robot.position.y, 45)
+        self.assertEquals(self.planner.robot.position.y, 45)"""
 
     def set_up_y_intercept_of_ball_goal(self, side):
         self.choose_planner(side)
