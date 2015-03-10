@@ -1,5 +1,6 @@
 import numpy as np
 from lib.math.vector import Vector2D
+from planning.strategies.actions import Actions
 from planning.strategies.state_machine import StateMachine
 from planning.world.world_state import Zone, Robot
 
@@ -18,12 +19,90 @@ class Strategy(object):
         self.dist_kicker_robot = 12
 
         self.ROBOT_WIDTH = 4
+        self.zone_centre_width = 8
+        self.square_angle_threshold = 0.05
 
         # initialise state attributes
         self.robot = None
         self.ball = None
         self.goal = None
         self.m = StateMachine()
+        self.actions = Actions()
+
+    def fetch_world_state(self):
+        """
+        grab the latest state of the world and set this objects attribute
+        :return: nothing
+        """
+        self.robot = self.world.get_robot(self.robot_tag)
+        self.ball = self.world.get_ball()
+        self.goal = self.get_goal()
+
+        # update rotation and movement
+        self.actions.__int__(self)
+
+    """
+    -------------------------------------------------------
+        Complex World State Checks
+    -------------------------------------------------------
+    """
+
+    def is_robot_facing_goal(self):
+        """
+        Check if the angle between the robot and
+        the centre of the goal is less than a threshold
+        :return: whether or not the robot is facing the ball
+        """
+        goal = self.goal
+        return self.robot.can_see(point=goal, beam_width=self.ROBOT_WIDTH)
+
+    def is_robot_facing_ball(self):
+        """
+        Check if the angle between the robot and
+        the ball is less than a threshold
+        :return: whether or not the robot is facing the ball
+        """
+        ball_pos = self.ball.position
+        return self.robot.can_see(point=ball_pos, beam_width=self.ROBOT_WIDTH/2)
+
+    def is_at_square_angles(self):
+        print self.robot.direction
+        dir_x = self.robot.direction.x
+        dir_y = self.robot.direction.y
+
+        major_axis = max(abs(dir_x), abs(dir_y))
+
+        return major_axis > 1-self.square_angle_threshold
+
+    def is_robot_facing_up(self):
+        """
+        Check the up position is
+        inside the beam projected from the robot
+        :return: whether or not the robot is facing the ball
+        """
+        up_pos = Vector2D(self.robot.position.x, 150)
+        return self.robot.can_see(point=up_pos, beam_width=self.ROBOT_WIDTH * 5)
+
+    def is_robot_facing_point(self, point, beam_width=None):
+        """
+        Check to see if a point is in the robots beam
+        :return: whether or not the robot is facing the point
+        """
+        if not beam_width:
+            beam_width = self.ROBOT_WIDTH
+        return self.robot.can_see(point=point, beam_width=beam_width)
+
+    def is_robot_in_centre(self):
+        zone_centre = self.get_zone_centre()
+        centre_bound_l = zone_centre - (self.zone_centre_width/2)
+        centre_bound_r = zone_centre + (self.zone_centre_width/2)
+        return centre_bound_l > self.robot.position.x > centre_bound_r
+
+    """
+    -------------------------------------------------------
+        Fetching of Objects in World State
+    -------------------------------------------------------
+    """
 
     def get_zone_centre(self):
         my_zone = self.world.get_zone(self.robot.position)
@@ -83,104 +162,10 @@ class Strategy(object):
         else:
             return Robot()
 
-    def shoot(self):
-        """
-        We are facing the goal so just kick
-        :return: duration that the motors are on
-        """
-        self.world.is_grabber_down = False
-        return self.actual_robot.kick(), "Kicking"  # kick
-
-    def turn_robot_to_goal(self):
-        to_turn = self.robot.angle_to_point(self.goal)
-        return self.actual_robot.turn(to_turn), "turning {0} degrees to ({1}, {2})".format(int(360.0 * to_turn / (2 * np.pi)), self.goal.x, self.goal.y)
-
-    def turn_robot_to_ball(self):
-        """
-        Turn the robot to face the ball
-        :return: duration that the motors are on
-        """
-        to_turn = self.robot.angle_to_point(self.ball.position)
-        return self.actual_robot.turn(to_turn), "turning {0} degrees to ({1}, {2})".format(int(360.0 * to_turn / (2 * np.pi)), self.ball.position.x, self.ball.position.y)
-
-    def move_robot_to_ball(self):
-        """
-        Move the robot forward in a straight line to the ball
-        :return: duration that the motors are on
-        """
-        dist_to_ball = self.distance_from_kicker_to_ball() * 0.8  # only move 90%
-        return self.actual_robot.move(dist_to_ball), "moving {0} cm".format(dist_to_ball)
-
-    def raise_cage(self):
-        """
-        opens the grabber arms
-        :return: time it takes for the grabbers to open
-        """
-        self.world.is_grabber_down = False
-        return self.actual_robot.kick(), "Kicking and opening grabber"
-
-    def lower_cage(self):
-        """
-        closes the grabber in an attempt to collect the ball
-        :return: time it takes for the grabbers to close
-        """
-        self.world.is_grabber_down = True
-        return self.actual_robot.grab(), "Closing grabber"
-
     def is_ball_in_robot_zone(self):
         zone_ball = self.world.get_zone(self.ball.position)
         zone_robot = self.world.get_zone(self.robot.position)
         return zone_ball == zone_robot
-
-    def is_robot_facing_goal(self):
-        """
-        Check if the angle between the robot and
-        the centre of the goal is less than a threshold
-        :return: whether or not the robot is facing the ball
-        """
-        goal = self.goal
-        robot = self.world.get_robot(self.robot_tag)
-        return robot.can_see(point=goal, beam_width=self.ROBOT_WIDTH)
-
-    def is_robot_facing_ball(self):
-        """
-        Check if the angle between the robot and
-        the ball is less than a threshold
-        :return: whether or not the robot is facing the ball
-        """
-        robot = self.world.get_robot(self.robot_tag)
-        ball_pos = self.world.get_ball().position
-        return robot.can_see(point=ball_pos, beam_width=self.ROBOT_WIDTH/2)
-
-    def is_robot_facing_up(self):
-        """
-        Check the up position is
-        inside the beam projected from the robot
-        :return: whether or not the robot is facing the ball
-        """
-        up_pos = Vector2D(self.robot.position.x, 150)
-        robot = self.world.get_robot(self.robot_tag)
-        return robot.can_see(point=up_pos, beam_width=self.ROBOT_WIDTH * 5)
-
-    def is_robot_facing_point(self, point, beam_width=None):
-        """
-        Check to see if a point is in the robots beam
-        :return: whether or not the robot is facing the point
-        """
-        if not beam_width:
-            beam_width = self.ROBOT_WIDTH
-        print "pass point ({0}, {1})".format(point.x, point.y)
-        robot = self.world.get_robot(self.robot_tag)
-        return robot.can_see(point=point, beam_width=beam_width)
-
-    def fetch_world_state(self):
-        """
-        grab the latest state of the world and set this objects attribute
-        :return: nothing
-        """
-        self.robot = self.world.get_robot(self.robot_tag)
-        self.ball = self.world.get_ball()
-        self.goal = self.get_goal()
 
     def is_ball_close(self):
         """
