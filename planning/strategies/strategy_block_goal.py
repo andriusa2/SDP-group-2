@@ -3,7 +3,7 @@ import numpy as np
 from lib.math.vector import Vector2D
 
 
-__author__ = 'samdavies'
+__author__ = 'Sam Davies'
 from planning.strategies.strategy import Strategy
 
 
