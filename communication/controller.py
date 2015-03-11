@@ -96,7 +96,7 @@ class Controller(Arduino):
         self._write(self.COMMANDS['kick'].format(power=float(power), term=self.ENDL))
         return 0.4
 
-    def move(self, x=None, y=None, power=None):
+    def move(self, x=None, y=None, direction=None, power=None):
         """
         Moves robot for a given distance on a given axis.
         NB. currently doesn't support movements on both axes (i.e. one of x and y must be 0 or None)

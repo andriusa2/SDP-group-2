@@ -70,7 +70,7 @@ class BlockGoal(Strategy):
         info = "moving robot ({0}, {1}) cm to ({2}, {3})".format(to_move.x, to_move.y, vect_to_point.x,
                                                                  vect_to_point.y)
         print info
-        return self.actual_robot.move(to_move.x, to_move.y), info
+        return self.actual_robot.move(to_move.x, to_move.y, self.robot.direction), info
 
     def turn_robot_to_up(self):
         # rotate to face up
