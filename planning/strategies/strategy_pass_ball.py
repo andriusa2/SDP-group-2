@@ -1,7 +1,8 @@
+import numpy as np
+
 from lib.math.vector import Vector2D
 from planning.strategies.strategy import Strategy
-from planning.world.world_state import Zone
-import numpy as np
+
 
 __author__ = 'Sam Davies'
 

@@ -1,7 +1,5 @@
 __author__ = 'Sam Davies'
-import numpy as np
 from planning.strategies.strategy import Strategy
-from planning.strategies.state_machine import StateMachine
 
 
 class FetchBall(Strategy):
