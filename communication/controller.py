@@ -105,6 +105,11 @@ class Controller(Arduino):
         :param power: deprecated
         :return: duration it will be blocked
         """
+        print "attempting move ({0}, {1})".format(x, y)
+        x = None if -0.01 < x < 0.01 else x
+        y = None if -0.01 < y < 0.01 else y
+        print "clamp move ({0}, {1})".format(x, y)
+
         if power is not None:
             print "I don't support different powers, defaulting to 1"
         assert x or y, "You need to supply some distance"

@@ -38,12 +38,10 @@ class DummyRobot(Controller):
         # artificially set the world state
         robot = self.world.get_robot(self.robot_tag)
 
-        if x_distance != 0:
-            add_distance = robot.direction.unit_vector().scale(x_distance)
-        else:
-            inverse_direction = Vector2D(robot.direction.y, robot.direction.x)
-            add_distance = inverse_direction.unit_vector().scale(y_distance)
-        robot.position += add_distance
+
+        print "old position {0}".format(robot.position)
+        robot.position += Vector2D(x_distance, y_distance)
+        print "new position {0}".format(robot.position)
         self.world.add_robot(self.robot_tag, robot)
         return super(DummyRobot, self).move(x_distance, y_distance)
 

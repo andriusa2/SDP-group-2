@@ -52,8 +52,12 @@ class Actions(object):
         if vect_to_point.x < 0:
             dist_to_point = - dist_to_point
 
-        info = "moving robot {0} cm to ({1}, {2})".format(dist_to_point, vect_to_point.x, vect_to_point.y)
-        return self.strategy.actual_robot.move(dist_to_point, robot_y), info
+        # multiply with the robots direction
+        to_move = self.strategy.get_local_move(vect_to_point, self.strategy.robot.direction)
+
+        info = "moving robot ({0}, {1}) cm to ({2}, {3})".format(to_move.x, to_move.y, vect_to_point.x,
+                                                                 vect_to_point.y)
+        return self.strategy.actual_robot.move(to_move.x, to_move.y), info
 
     def shoot(self):
         """

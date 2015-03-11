@@ -96,7 +96,7 @@ class Strategy(object):
         zone_centre = self.get_zone_centre()
         centre_bound_l = zone_centre - (self.zone_centre_width/2)
         centre_bound_r = zone_centre + (self.zone_centre_width/2)
-        return centre_bound_l > self.robot.position.x > centre_bound_r
+        return centre_bound_l < self.robot.position.x < centre_bound_r
 
     """
     -------------------------------------------------------
@@ -215,6 +215,16 @@ class Strategy(object):
         robot_point_dist_x = -self.robot.position.x+x
         robot_point_dist_y = -self.robot.position.y+y
         return Vector2D(robot_point_dist_x, robot_point_dist_y)
+
+    @staticmethod
+    def get_local_move(to_move, direction):
+        # For a vector, all that you have to do is rotate it by the angle difference between
+        # your local and global coordinate systems. You can calculate this by taking the
+        # inverse cosine of the dot product of your two x-axes
+        angle = np.arccos(Vector2D(direction.x, direction.y).dot(Vector2D(1, 0)))
+
+        rotated_v = Vector2D(to_move.x * np.cos(angle) - to_move.y * np.sin(angle), to_move.x * np.sin(angle) + to_move.y * np.cos(angle))
+        return rotated_v
 
     def ball_going_quickly(self):
         """

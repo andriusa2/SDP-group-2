@@ -266,22 +266,55 @@ class BlockTest(BaseTest):
         pos = self.set_up_y_intercept_of_ball_goal("right")
         self.assertEquals(pos, (35, 45))
 
-    """def test_intercept_ball(self):
-        self.world_state = self.put_robots_and_ball((6, 50), [(15.0, 50), (25, 50), (35, 0)], my_direction=(0, 1), ball_pos=(12, 60), robot_num=0)
+    def test_move_facing_up(self):
+        self.world_state = self.put_robots_and_ball((5, 5), [(15.0, 50), (25, 50), (35, 0)], my_direction=(0, 1), ball_pos=(20, 70), robot_num=0)
         self.choose_planner("left")
+        self.planner.fetch_world_state()
+        self.assert_movement_in_a_square()
+
+    def assert_movement_in_a_square(self):
+        self.strafe_robot(Vector2D(1, 0))
+        self.assertEquals(self.planner.robot.position, Vector2D(6, 5))
+
+        self.strafe_robot(Vector2D(0, 1))
+        self.assertEquals(self.planner.robot.position, Vector2D(6, 6))
+
+        self.strafe_robot(Vector2D(-1, 0))
+        self.assertEquals(self.planner.robot.position, Vector2D(5, 6))
+
+        self.strafe_robot(Vector2D(0, -1))
+        self.assertEquals(self.planner.robot.position, Vector2D(5, 5))
+
+    def strafe_robot(self, vector):
+        to_move = self.planner.get_local_move(vector, self.planner.robot.direction)
+        print to_move
+        self.planner.actual_robot.move(to_move.x, to_move.y)
+        self.planner.fetch_world_state()
+
+    def test_intercept_ball_1(self):
+        self.world_state = self.put_robots_and_ball((6, 50), [(15.0, 50), (25, 50), (35, 0)], my_direction=(0, 1), ball_pos=(20, 70), robot_num=0)
+        self.choose_planner("left")
+        self.planner.block_goal.zone_centre_width = 0.1
+        time.sleep(self.planner.plan())
+        self.assertEquals(self.last_action(), "MOVE ROBOT TO CENTRE")
+        self.assertTrue(self.planner.is_robot_in_centre())
         self.planner.plan()
-        self.assertEquals(self.planner.action_trace[len(self.planner.action_trace)-1], "INTERCEPT BALL")
-        self.assertEquals(self.planner.robot.position.x, 6)
+        self.assertEquals(self.last_action(), "INTERCEPT BALL")
+        self.assertEquals(self.planner.robot.position.x, 5)
         self.assertEquals(self.planner.robot.position.y, 55)
 
+    def test_intercept_ball_2(self):
         self.world_state = self.put_robots_and_ball((6, 50), [(15.0, 50), (25, 50), (35, 0)], my_direction=(0, 1), ball_pos=(12, 40), robot_num=0)
         self.choose_planner("left")
         self.planner.fetch_world_state()
+        time.sleep(self.planner.plan())
+        self.assertEquals(self.last_action(), "MOVE ROBOT TO CENTRE")
         self.planner.plan()
-        self.assertEquals(self.planner.action_trace[len(self.planner.action_trace)-1], "INTERCEPT BALL")
+        self.assertEquals(self.last_action(), "INTERCEPT BALL")
         self.assertEquals(self.planner.robot.position.x, 6)
         self.assertEquals(self.planner.robot.position.y, 45)
 
+    def test_intercept_ball_3(self):
         self.world_state = self.put_robots_and_ball((35, 50), [(5.0, 50), (15, 50), (25, 0)], my_direction=(0, 1), ball_pos=(30, 60), robot_num=3)
         self.choose_planner("right")
         self.planner.fetch_world_state()
@@ -290,13 +323,14 @@ class BlockTest(BaseTest):
         self.assertEquals(self.planner.robot.position.x, 35)
         self.assertEquals(self.planner.robot.position.y, 55)
 
+    def test_intercept_ball_4(self):
         self.world_state = self.put_robots_and_ball((35, 50), [(5.0, 50), (15, 50), (25, 0)], my_direction=(0, 1), ball_pos=(30, 40), robot_num=3)
         self.choose_planner("right")
         self.planner.fetch_world_state()
         self.planner.plan()
         self.assertEquals(self.planner.action_trace[len(self.planner.action_trace)-1], "INTERCEPT BALL")
         self.assertEquals(self.planner.robot.position.x, 35)
-        self.assertEquals(self.planner.robot.position.y, 45)"""
+        self.assertEquals(self.planner.robot.position.y, 45)
 
     def set_up_y_intercept_of_ball_goal(self, side):
         self.choose_planner(side)
