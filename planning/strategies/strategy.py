@@ -223,6 +223,15 @@ class Strategy(object):
         # inverse cosine of the dot product of your two x-axes
         angle = np.arccos(Vector2D(direction.x, direction.y).dot(Vector2D(1, 0)))
 
+        print "rotating vector by: {0} rads".format(angle)
+
+        rotated_v = Vector2D(to_move.x * np.cos(angle) - to_move.y * np.sin(angle), to_move.x * np.sin(angle) + to_move.y * np.cos(angle))
+        return rotated_v
+
+    @staticmethod
+    def get_global_move(to_move, direction):
+        angle = -np.arccos(Vector2D(1, 0).dot(Vector2D(direction.x, direction.y)))
+
         rotated_v = Vector2D(to_move.x * np.cos(angle) - to_move.y * np.sin(angle), to_move.x * np.sin(angle) + to_move.y * np.cos(angle))
         return rotated_v
 

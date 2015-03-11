@@ -272,34 +272,55 @@ class BlockTest(BaseTest):
         self.planner.fetch_world_state()
         self.assert_movement_in_a_square()
 
+    def test_move_facing_down(self):
+        self.world_state = self.put_robots_and_ball((5, 5), [(15.0, 50), (25, 50), (35, 0)], my_direction=(0, -1), ball_pos=(20, 70), robot_num=0)
+        self.choose_planner("left")
+        self.planner.fetch_world_state()
+
+    def test_move_facing_left(self):
+        self.world_state = self.put_robots_and_ball((5, 5), [(15.0, 50), (25, 50), (35, 0)], my_direction=(1, 0), ball_pos=(20, 70), robot_num=0)
+        self.choose_planner("left")
+        self.planner.fetch_world_state()
+
+    def test_move_facing_right(self):
+        self.world_state = self.put_robots_and_ball((5, 5), [(15.0, 50), (25, 50), (35, 0)], my_direction=(-1, 0), ball_pos=(20, 70), robot_num=0)
+        self.choose_planner("left")
+        self.planner.fetch_world_state()
+
+    def test_global_move(self):
+        direction = Vector2D(0, 1)
+        to_move = Vector2D(5, 4)
+        local_move = self.planner.get_local_move(to_move, direction)
+        global_move = self.planner.get_global_move(local_move, direction)
+        self.assertEquals(global_move, to_move)
+
     def assert_movement_in_a_square(self):
-        self.strafe_robot(Vector2D(1, 0))
-        self.assertEquals(self.planner.robot.position, Vector2D(6, 5))
-
         self.strafe_robot(Vector2D(0, 1))
-        self.assertEquals(self.planner.robot.position, Vector2D(6, 6))
-
-        self.strafe_robot(Vector2D(-1, 0))
         self.assertEquals(self.planner.robot.position, Vector2D(5, 6))
 
+        self.strafe_robot(Vector2D(1, 0))
+        self.assertEquals(self.planner.robot.position, Vector2D(6, 6))
+
         self.strafe_robot(Vector2D(0, -1))
+        self.assertEquals(self.planner.robot.position, Vector2D(6, 5))
+
+        self.strafe_robot(Vector2D(-1, 0))
         self.assertEquals(self.planner.robot.position, Vector2D(5, 5))
 
     def strafe_robot(self, vector):
         to_move = self.planner.get_local_move(vector, self.planner.robot.direction)
         print to_move
-        self.planner.actual_robot.move(to_move.x, to_move.y)
+        self.planner.actual_robot.move(to_move.x, to_move.y, self.planner.robot.direction)
         self.planner.fetch_world_state()
 
     def test_intercept_ball_1(self):
         self.world_state = self.put_robots_and_ball((6, 50), [(15.0, 50), (25, 50), (35, 0)], my_direction=(0, 1), ball_pos=(20, 70), robot_num=0)
         self.choose_planner("left")
+        self.planner.fetch_world_state()
         self.planner.block_goal.zone_centre_width = 0.1
-        time.sleep(self.planner.plan())
-        self.assertEquals(self.last_action(), "MOVE ROBOT TO CENTRE")
         self.assertTrue(self.planner.is_robot_in_centre())
         self.planner.plan()
-        self.assertEquals(self.last_action(), "INTERCEPT BALL")
+        self.assertEquals("INTERCEPT BALL", self.last_action())
         self.assertEquals(self.planner.robot.position.x, 5)
         self.assertEquals(self.planner.robot.position.y, 55)
 

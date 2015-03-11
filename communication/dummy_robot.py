@@ -1,4 +1,5 @@
 from lib.math.vector import Vector2D
+from planning.strategies.strategy import Strategy
 
 __author__ = 'samdavies'
 import time
@@ -34,13 +35,12 @@ class DummyRobot(Controller):
         self.world.add_robot(self.robot_tag, robot)
         return super(DummyRobot, self).turn(angle)
 
-    def move(self, x_distance, y_distance=0):
+    def move(self, x_distance, y_distance=0, direction=Vector2D(1, 0)):
         # artificially set the world state
         robot = self.world.get_robot(self.robot_tag)
 
-
         print "old position {0}".format(robot.position)
-        robot.position += Vector2D(x_distance, y_distance)
+        robot.position += Strategy.get_global_move(Vector2D(x_distance, y_distance), direction)
         print "new position {0}".format(robot.position)
         self.world.add_robot(self.robot_tag, robot)
         return super(DummyRobot, self).move(x_distance, y_distance)
