@@ -1,8 +1,10 @@
 import numpy as np
+
 from lib.math.vector import Vector2D
 from planning.strategies.actions import Actions
 from planning.strategies.state_machine import StateMachine
-from planning.world.world_state import Zone, Robot
+from planning.world_state import Zone, Robot
+
 
 __author__ = 'Sam'
 

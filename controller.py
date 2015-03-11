@@ -1,5 +1,5 @@
 from planning.planner import Planner
-from planning.world.world_state import WorldState, Zone, Robot, Ball
+from planning.world_state import WorldState, Zone, Robot, Ball
 from vision.vision_controller import VisionController
 from communication import Controller as CommController
 __author__ = "Sam Davies"

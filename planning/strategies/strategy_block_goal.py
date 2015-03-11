@@ -1,5 +1,7 @@
-from lib.math.vector import Vector2D
 import numpy as np
+
+from lib.math.vector import Vector2D
+
 
 __author__ = 'samdavies'
 from planning.strategies.strategy import Strategy

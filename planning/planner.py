@@ -1,13 +1,13 @@
-from planning.strategies.pass_to_zone import PassToZone
-from planning.strategies.receive_pass import ReceivePass
+from planning.strategies.strategy_pass_ball import PassToZone
+from planning.strategies.strategy_receive_pass import ReceivePass
 
 __author__ = 'Sam Davies'
 import time
 import numpy as np
 
-from planning.strategies.fetch_ball import FetchBall
-from planning.strategies.shoot_for_goal import ShootForGoal
-from planning.strategies.block_goal import BlockGoal
+from planning.strategies.strategy_fetch_ball import FetchBall
+from planning.strategies.strategy_shoot_goal import ShootForGoal
+from planning.strategies.strategy_block_goal import BlockGoal
 from planning.strategies.strategy import Strategy
 from planning.strategies.state_machine import StateMachine
 

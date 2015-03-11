@@ -2,7 +2,6 @@ from lib.math.vector import Vector2D
 from planning.strategies.strategy import Strategy
 
 __author__ = 'samdavies'
-import time
 from lib.math.util import rotate_vector
 import os
 import pty
