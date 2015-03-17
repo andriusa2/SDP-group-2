@@ -1,5 +1,0 @@
-
-
-class PostProcessing(object):
-
-	pass
