@@ -187,7 +187,6 @@ class Controller(Arduino):
             bytes += list(struct.pack('<' + fmt, v))
 
         def xor_bytes(a, b):
-            print '{0} - {1}'.format(a, b)
             b = struct.unpack('B', b)[0]
             return a ^ b
 
