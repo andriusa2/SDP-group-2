@@ -23,6 +23,22 @@ class Actions(object):
         """
         return self.turn_robot_to_point(self.strategy.ball.position)
 
+    def turn_to_closest_square_angle(self):
+
+        # angle in range 0..2pi
+        angle_to_turn = self.strategy.robot.direction.get_angle(Vector2D(1, 0)) + np.pi
+        assert 0 <= angle_to_turn <= 2 * np.pi
+
+        while angle_to_turn > np.pi / 2:
+            angle_to_turn -= np.pi / 2
+
+        if angle_to_turn > np.pi / 4:
+            angle_to_turn -= np.pi / 2
+
+        to_turn = -angle_to_turn
+        info = "turning {0} degrees)".format(to_turn)
+        return self.turn_robot(to_turn, info)
+
     def turn_robot_to_point(self, point):
         """
         turn the robot to face the a Vector2D point
@@ -33,7 +49,22 @@ class Actions(object):
         ball_x = self.strategy.ball.position.x
         ball_y = self.strategy.ball.position.y
         info = "turning {0} degrees to ({1}, {2})".format(rotation_in_deg, ball_x, ball_y)
+        return self.turn_robot(to_turn, info)
+
+    def turn_robot(self, to_turn, info):
         return self.strategy.actual_robot.turn(to_turn), info
+
+    def intercept_ball(self):
+        s = self.strategy
+        x, y = s.y_intercept_of_ball_goal(s.goal, s.ball.position)
+        vect_to_point = s.vector_from_robot_to_point(x, y)
+
+        # multiply with the robots direction
+        to_move = s.get_local_move(vect_to_point, s.robot.direction)
+
+        info = "moving robot ({0}, {1}) cm to ({2}, {3})".format(to_move.x, to_move.y, vect_to_point.x,
+                                                                 vect_to_point.y)
+        return s.actual_robot.move(to_move.x, to_move.y, s.robot.direction), info
 
     def move_robot_to_ball(self):
         """
@@ -46,11 +77,6 @@ class Actions(object):
     def move_to_centre(self):
         robot_y = self.strategy.robot.position.y
         vect_to_point = self.strategy.vector_from_robot_to_point(self.strategy.get_zone_centre(), robot_y)
-        dist_to_point = vect_to_point.length()
-
-        # reverse the distance when the intercept point is below the robot
-        if vect_to_point.x < 0:
-            dist_to_point = - dist_to_point
 
         # multiply with the robots direction
         to_move = self.strategy.get_local_move(vect_to_point, self.strategy.robot.direction)

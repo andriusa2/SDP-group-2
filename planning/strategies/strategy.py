@@ -68,22 +68,12 @@ class Strategy(object):
         return self.robot.can_see(point=ball_pos, beam_width=self.ROBOT_WIDTH/2)
 
     def is_at_square_angles(self):
-        print self.robot.direction
         dir_x = self.robot.direction.x
         dir_y = self.robot.direction.y
 
         major_axis = max(abs(dir_x), abs(dir_y))
-
+        print "Major axis is {0}, and is at square angles if > {1}".format(major_axis, 1-self.square_angle_threshold)
         return major_axis > 1-self.square_angle_threshold
-
-    def is_robot_facing_up(self):
-        """
-        Check the up position is
-        inside the beam projected from the robot
-        :return: whether or not the robot is facing the ball
-        """
-        up_pos = Vector2D(self.robot.position.x, 150)
-        return self.robot.can_see(point=up_pos, beam_width=self.ROBOT_WIDTH * 5)
 
     def is_robot_facing_point(self, point, beam_width=None):
         """
