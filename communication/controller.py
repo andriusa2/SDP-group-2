@@ -14,7 +14,6 @@ angle_poly = np.poly1d([-0.1735, 0.279, 0])
 def msg_resender(s, msg, avail, timeout, retries):
     if not retries:
         retries = 30
-
     avail.value = 0  # set as unavailable now
     retval = True
     for i in range(retries):
@@ -49,15 +48,15 @@ def msg_resender(s, msg, avail, timeout, retries):
         print 'Got ack for msg, waiting for ready now'
     else:
         print 'No ack for msg, waiting for ready now'
-    if not Arduino.ready_waiter(s, avail, retries):
-        return False
+    #if not Arduino.ready_waiter(s, avail):
+    #    return False
     return retval
 
 
 class Arduino(object):
     """ Basic class for Arduino communications. """
     
-    def __init__(self, port='/dev/ttyUSB0', rate=115200, timeOut=0.2, comms=1, debug=False, is_dummy=False, ack_tries=4):
+    def __init__(self, port='/dev/ttyUSB0', rate=115200, timeOut=0.4, comms=1, debug=False, is_dummy=False, ack_tries=4):
         self.serial = None
         self.comms = comms
         self.port = port
@@ -80,7 +79,7 @@ class Arduino(object):
                 break
             # empty message will trigger READY response if available
             if s:
-                s.write('{0}{1}'.format('\t', chr(0)))
+                s.write('{0}{1}'.format('\t', '\t'))
                 s.flush()
                 r = s.readline()
             else:
@@ -104,7 +103,8 @@ class Arduino(object):
         try:
             self.serial = serial.Serial(self.port, self.rate, timeout=self.timeout)
             # wait till it's actually ready
-            if not self.ready_waiter(self.serial, self.available):
+            # time.sleep(3)
+            if False and not self.ready_waiter(self.serial, self.available):
                 raise Exception("Not ready...")
         except Exception:
             print("No Arduino detected, dying!")
@@ -117,6 +117,7 @@ class Arduino(object):
 
     def _write(self, string, important=False):
         print("Trying to run command: '{0}'".format(string))
+        string += '\n'
         if not self.is_available() and not important:
             print "Available flag is set to {0}, can't send a message".format(self.available.value)
             return
@@ -132,10 +133,8 @@ class Arduino(object):
                 p.terminate()
             self.processes = []
         self.available.value = 0
-        self.processes.append(
-            Process(target=msg_resender, args=(self.serial, string, self.available, self.timeout, self.ack_tries))
-        )
-        self.processes[-1].start()
+        
+        msg_resender(self.serial, string, self.available, self.timeout, self.ack_tries)
 
     def is_available(self):
         return self.available.value != 0
@@ -176,6 +175,7 @@ class Controller(Arduino):
         :param params: a list of parameters of form (value, struct.pack format).
         """
         bytes = []
+        print params
         for param in params:
             try:
                 v, fmt = param
@@ -192,7 +192,7 @@ class Controller(Arduino):
 
         parity = reduce(xor_bytes, bytes, 0)
         parity = chr(parity)
-        return cmd.format(*bytes, parity=parity, ts=chr(0), te=chr(0))
+        return cmd.format(*bytes, parity=parity, ts='\t', te='\t')
 
     def kick(self, power=None):
         if power is None:
@@ -252,7 +252,7 @@ class Controller(Arduino):
         return duration * 0.001 + 0.07
 
     def stop(self):
-        self._write(self.COMMANDS['stop'].format(ts=chr(0), te=chr(0)), important=True)
+        self._write(self.COMMANDS['stop'].format(ts='\t', te='\t'), important=True)
         return 0.01
 
     def turn(self, angle):

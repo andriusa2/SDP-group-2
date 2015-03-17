@@ -19,7 +19,7 @@
 #define BUFF_SIZE 32
 uint8_t buffer[BUFF_SIZE] = "";
 uint8_t buff_head = 0;
-uint8_t ready = 1;
+uint8_t READY = 1;
 MotorBoard motors;
 
 enum MOTORS {
@@ -61,11 +61,11 @@ void setup_pins() {
   pinMode(A3,INPUT);
   digitalWrite(8,HIGH); //Pin 8 must be high to turn the radio on!
 }
-
+void parse_packet();
 void read_serial() {
   while(Serial.available() > 0) {
     char a = Serial.read();
-    if (a != 0) {
+    if (a != '\t') {
       switch (buff_head) {
       case 0: break;
       case 1:
@@ -87,6 +87,7 @@ void read_serial() {
       default: if (buff_head >= 11) buff_head = 0; buffer[buff_head++] = a; break;
       }
     }
+    buffer[buff_head] = 0;
     if (buff_head >= BUFF_SIZE) buff_head = 0;
   }
 }
@@ -105,15 +106,15 @@ and then acknowledged.
 void parse_packet() {
   // uses static buffer ^^^^
   if (buff_head <= 1) return;
-  if (buffer[0] != 0 || buff_head >= BUFF_SIZE) buff_head = 0; return;
-  if (buffer[buff_head - 1] != 0) return;
+  if ((char)buffer[0] != '\t' || buff_head >= BUFF_SIZE){ buff_head = 0; return;}
+  if ((char)buffer[buff_head - 1] != '\t') return;
   uint8_t b = buff_head;
   buff_head = 0;
   switch(b) {
   case 2:
     // empty message, retransmit READY if needed
-    if (ready != 0) {
-      Serial.println('READY');
+    if (READY != 0) {
+      Serial.println("READY");
       Serial.flush();
     }
     return;
@@ -242,14 +243,14 @@ void loop() {
   default:
     break;
   }
-  if (!ready && motors.all_stopped())
-    ready = 1;
+  if (READY == 0 && motors.all_stopped())
+    READY = 1;
   read_serial();
   delay(5);
 }
 
 void command(char cmd, uint8_t b1, uint8_t b2) {
-  ready = 0;
+  READY = 0;
   switch (cmd) {
   case 'K': kick(b1); return;
   case 'F': move_front(b1, b2); return;
@@ -258,7 +259,7 @@ void command(char cmd, uint8_t b1, uint8_t b2) {
   case 'O': grab_open(b1); return;
   case 'C': grab_close(b1); return;
   case 'S': stop_engines(); return;
-  default: ready = 1;
+  default: READY = 1;
   }
 }
 int16_t reint(uint8_t a, uint8_t b) {

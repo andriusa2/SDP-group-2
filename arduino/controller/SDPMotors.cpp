@@ -142,11 +142,12 @@ void MotorBoard::diagnostics(uint8_t bitmask) {
 
 uint16_t MotorBoard::get_max_lag(uint8_t mask[], uint8_t count) {
   uint16_t max_lag = 0;
-  for (int i = 0; i < count; i++) {
+  for (int i = 0; i < count; i++) { 
     if (max_lag < ENGINE_ACTIVATION[mask[i]]) {
       max_lag = ENGINE_ACTIVATION[mask[i]];
     }
   }
+  return max_lag;
 }
 
 uint16_t MotorBoard::get_adj_lag(uint8_t id, int16_t d) {
