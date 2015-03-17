@@ -64,10 +64,10 @@ class Arduino(object):
         self.rate = rate
         self.timeout = timeOut
         self.debug = debug
-        self.establish_connection()
         self.is_dummy = is_dummy
         self.ack_tries = ack_tries
         self.available = Value('i', 0)
+        self.establish_connection()
         self.processes = []
 
     @staticmethod
