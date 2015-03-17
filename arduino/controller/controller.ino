@@ -65,7 +65,17 @@ void setup_pins() {
 void read_serial() {
   while(Serial.available() > 0) {
     char a = Serial.read();
-    if (a != 0) if(buff_head != 0) buffer[buff_head++] = a;
+    if (a != 0) {
+      switch (buff_head) {
+      case 0: break;
+      case 1:
+        if (a <= 'Z' && a >= 'A')
+          buffer[buff_head++] = a;
+        else buff_head = 0;
+        break;  // reject impossible things
+      default: buffer[buff_head++] = a;
+      }
+    }
     else {
       switch(buff_head) {
       case 0: buffer[buff_head++] = a; break;  // init hit
@@ -168,7 +178,7 @@ void parse_packet() {
   }
   default:
     Serial.print("FAIL: Got msg:");
-    Serial.println((char*)buffer);
+    Serial.println((char*)buffer + 1);
     Serial.flush();
     return;
   }
