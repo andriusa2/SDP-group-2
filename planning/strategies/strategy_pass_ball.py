@@ -71,8 +71,8 @@ class PassToZone(Strategy):
         direction = (friend.position - self.robot.position).unit_vector()
         enemy_robot = self.get_enemy()
         if self.robot.is_point_within_beam(
-            enemy_robot.position, direction,
-            beam_width=self.ROBOT_WIDTH * 1.5):
+                enemy_robot.position, direction,
+                beam_width=self.ROBOT_WIDTH * 1.5):
             return True
         else:
             return False
@@ -106,4 +106,4 @@ class PassToZone(Strategy):
         return self.actual_robot.turn(to_turn), "turning {0} degrees to ({1}, {2})".format(int(360.0 * to_turn / (2 * np.pi)), friend_pos.x, friend_pos.y)
 
     def pass_to_friend(self):
-        return self.shoot()
+        return self.actions.shoot()
