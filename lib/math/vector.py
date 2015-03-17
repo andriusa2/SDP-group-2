@@ -20,6 +20,8 @@ class Vector2D(object):
     def to_vector2d(args):
         if isinstance(args, Vector2D):
             return args
+        if args is None:
+            return Vector2D(0, 0)
         x, y = args
         return Vector2D(x, y)
 

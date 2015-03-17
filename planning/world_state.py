@@ -157,10 +157,11 @@ class WorldState(object):
         for zone_id, right_bound in zip(Zone.zone_order, self.zone_boundaries):
             if point.x <= right_bound:
                 return zone_id
-        raise Exception("Point does not fit into any zone")
+        raise Exception("Point {0!r} does not fit into any zone".format(point))
 
     def set_zone_boundaries(self, boundaries):
         self.zone_boundaries = boundaries
+        print "zone boundaries: {0}".format(boundaries)
 
     def add_robot(self, zone, robot):
         """ Add a robot to a given zone. Replaces any robot which was there already. """
