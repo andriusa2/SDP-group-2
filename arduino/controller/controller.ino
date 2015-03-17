@@ -70,11 +70,11 @@ void read_serial() {
       switch(buff_head) {
       case 0: buffer[buff_head++] = a; break;  // init hit
       case 1:
+      case 5:
       case 6:
-      case 7:
-      case 11: buffer[buff_head++] = a; parse_packet(); break; // finishing byte
-      // longest packet is 12B long, if we somehow reach this, just reset it all
-      default: if (buff_head >= 12) buff_head = 0; buffer[buff_head++] = a; break;
+      case 10: buffer[buff_head++] = a; parse_packet(); break; // finishing byte
+      // longest packet is 11B long, if we somehow reach this, just reset it all
+      default: if (buff_head >= 11) buff_head = 0; buffer[buff_head++] = a; break;
       }
     }
     if (buff_head >= BUFF_SIZE) buff_head = 0;
@@ -94,7 +94,7 @@ and then acknowledged.
 
 void parse_packet() {
   // uses static buffer ^^^^
-  if (buff_head == 0) return;
+  if (buff_head <= 1) return;
   if (buffer[0] != 0 || buff_head >= BUFF_SIZE) buff_head = 0; return;
   if (buffer[buff_head - 1] != 0) return;
   uint8_t b = buff_head;
@@ -110,6 +110,10 @@ void parse_packet() {
   case 6: {
     // command message, extract relevant parts and stuff to handler
     char cmd = buffer[1];
+    if (cmd == 'V' || cmd == 'R') {
+      buff_head = b;
+      return;
+    }
     uint8_t b1 = buffer[2], b2 = buffer[3];
     uint8_t p = b1 ^ b2 ^ 0;
     if (p != (byte)buffer[4]) {
@@ -134,6 +138,10 @@ void parse_packet() {
     // reinterpret_cast<int16_t>(buffer[4]) -> 4;5
     int16_t duration = *(int16_t*)(&buffer[4]);
     if (cmd != 'R') {
+      if (cmd == 'V') {
+        buff_head = b;
+        return;
+      }
       Serial.println("FAIL: Got run engine-like packet, but cmd isn't R, wat");
       return;
     }

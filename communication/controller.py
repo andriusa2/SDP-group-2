@@ -183,7 +183,8 @@ class Controller(Arduino):
                 print 'get_command got parameter {0}, assuming that this needs to be a short'.format(param)
                 v, fmt = param, 'h'
             v = int(v)
-            bytes += list(struct.pack(fmt, v))
+            # arduino is little endian!
+            bytes += list(struct.pack('<' + fmt, v))
 
         def xor_bytes(a, b):
             print '{0} - {1}'.format(a, b)
