@@ -51,3 +51,7 @@ def rotate_vector(vector, angle, anchor=(0, 0)):
 
 def clamp(num, max_val, min_val):
     return max(min(num, max_val), min_val)
+
+
+def rad_to_deg(rad):
+    return int(360.0 * rad / (2 * np.pi))

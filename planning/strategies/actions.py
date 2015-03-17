@@ -1,3 +1,4 @@
+from lib.math.util import rad_to_deg
 from lib.math.vector import Vector2D
 import numpy as np
 
@@ -36,8 +37,8 @@ class Actions(object):
             angle_to_turn -= np.pi / 2
 
         to_turn = -angle_to_turn
-        info = "turning {0} degrees)".format(to_turn)
-        return self.turn_robot(to_turn, info)
+        info = "turning {0} degrees)".format(rad_to_deg(to_turn))
+        return self.turn_robot(to_turn,), info
 
     def turn_robot_to_point(self, point):
         """
@@ -45,14 +46,13 @@ class Actions(object):
         :return: duration and info
         """
         to_turn = self.strategy.robot.angle_to_point(point)
-        rotation_in_deg = int(360.0 * to_turn / (2 * np.pi))
         ball_x = self.strategy.ball.position.x
         ball_y = self.strategy.ball.position.y
-        info = "turning {0} degrees to ({1}, {2})".format(rotation_in_deg, ball_x, ball_y)
-        return self.turn_robot(to_turn, info)
+        info = "turning {0} degrees to ({1}, {2})".format(rad_to_deg(to_turn), ball_x, ball_y)
+        return self.turn_robot(to_turn,), info
 
-    def turn_robot(self, to_turn, info):
-        return self.strategy.actual_robot.turn(to_turn), info
+    def turn_robot(self, to_turn):
+        return self.strategy.actual_robot.turn(to_turn)
 
     def intercept_ball(self):
         s = self.strategy
@@ -76,13 +76,13 @@ class Actions(object):
 
     def move_to_centre(self):
         robot_y = self.strategy.robot.position.y
-        vect_to_point = self.strategy.vector_from_robot_to_point(self.strategy.get_zone_centre(), robot_y)
+        centre_x = self.strategy.get_zone_centre()
+        vect_to_point = self.strategy.vector_from_robot_to_point(centre_x, robot_y)
 
         # multiply with the robots direction
         to_move = self.strategy.get_local_move(vect_to_point, self.strategy.robot.direction)
 
-        info = "moving robot ({0}, {1}) cm to ({2}, {3})".format(to_move.x, to_move.y, vect_to_point.x,
-                                                                 vect_to_point.y)
+        info = "moving robot ({0}, {1}) cm to ({2}, {3})".format(to_move.x, to_move.y, centre_x, robot_y)
         return self.strategy.actual_robot.move(to_move.x, to_move.y, self.strategy.robot.direction), info
 
     def shoot(self):
