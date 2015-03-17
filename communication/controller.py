@@ -7,8 +7,11 @@ import time
 from lib.math.util import convert_angle, get_duration
 import numpy as np
 
+# polynomial approximating low angle durations
 angle_poly = np.poly1d([-0.1735, 0.279, 0])
-def msg_resender(serial, msg, avail, timeout, retries):
+
+
+def msg_resender(s, msg, avail, timeout, retries):
     if not retries:
         retries = 30
 
@@ -16,17 +19,17 @@ def msg_resender(serial, msg, avail, timeout, retries):
     retval = True
     for i in range(retries):
         print 'Attempt {0}'.format(i)
-        if serial:
-            serial.write(msg)
-            serial.flush()
+        if s:
+            s.write(msg)
+            s.flush()
 
         start_time = time.time()
         end_time = time.time()
         r = ''
         buff = ''
         while end_time - start_time < timeout:
-            if serial:
-                r = serial.readline()
+            if s:
+                r = s.readline()
             else:
                 time.sleep(timeout)
             buff += r
@@ -43,9 +46,10 @@ def msg_resender(serial, msg, avail, timeout, retries):
         print 'Got ack for msg, waiting for ready now'
     else:
         print 'No ack for msg, waiting for ready now'
-    if not Arduino.ready_waiter(serial, avail, retries):
+    if not Arduino.ready_waiter(s, avail, retries):
         return False
     return retval
+
 
 class Arduino(object):
     """ Basic class for Arduino communications. """
@@ -64,7 +68,7 @@ class Arduino(object):
         self.processes = []
 
     @staticmethod
-    def ready_waiter(serial, avail, retries=None):
+    def ready_waiter(s, avail, retries=None):
         if not retries:
             retries = 255  # big number till we give up on it
         buff = ''
@@ -72,10 +76,10 @@ class Arduino(object):
             if avail.value != 0:
                 break
             # empty message will trigger READY response if available
-            if serial:
-                serial.write('{0}{1}'.format('\t', chr(0)))
-                serial.flush()
-                r = serial.readline()
+            if s:
+                s.write('{0}{1}'.format('\t', chr(0)))
+                s.flush()
+                r = s.readline()
             else:
                 r = 'READY'
 
@@ -108,7 +112,7 @@ class Arduino(object):
     def maintain_processes(self):
         self.processes = [p for p in self.processes if p.is_alive()]
 
-    def _write(self, string, retry=True, important=False):
+    def _write(self, string, important=False):
         print("Trying to run command: '{0}'".format(string))
         if not self.is_available() and not important:
             print "Available flag is set to {0}, can't send a message".format(self.available.value)
@@ -182,7 +186,6 @@ class Controller(Arduino):
             print '{0} - {1}'.format(a, b)
             b = struct.unpack('B', b)[0]
             return a ^ b
-        print bytes
         parity = reduce(xor_bytes, bytes, 0)
         parity = chr(parity)
         return cmd.format(*bytes, parity=parity, ts=chr(1), te=chr(0))
