@@ -1,13 +1,14 @@
-#include "SerialCommand.h"
 #include "SDPMotors.h"
 #include <Wire.h>
-// test purposes, change to 1 when confident with timings
+// determines the direction of "outwards" movement
 #define KICK_POWER 1
 #define GRAB_POWER -1
+// determines durations at max power
 #define KICK_DURATION 190
 #define GRAB_DURATION 200
 
 #define ACK_COMMS
+#define DO_PARITY
 // intermediate state
 #define HAPPENING 1
 // finished state
@@ -15,10 +16,11 @@
 // negative intermediate state
 #define CLOSING 3
 
+#define BUFF_SIZE 32
+uint8_t buffer[BUFF_SIZE] = "";
+uint8_t buff_head = 0;
+uint8_t ready = 1;
 MotorBoard motors;
-SerialCommand comm;
-
-
 
 enum MOTORS {
   LF_MOTOR = 0,
@@ -60,66 +62,117 @@ void setup_pins() {
   digitalWrite(8,HIGH); //Pin 8 must be high to turn the radio on!
 }
 
-/* pushing this as a utility as it's used quite often */
-bool get_float(float &first) {
-  char *tmp = comm.next();
-  if (!tmp) return false;
-  first = atof(tmp);
-  return true;
+void read_serial() {
+  while(Serial.available() > 0) {
+    char a = Serial.read();
+    if (a != 0) if(buff_head != 0) buffer[buff_head++] = a;
+    else {
+      switch(buff_head) {
+      case 0: buffer[buff_head++] = a; break;  // init hit
+      case 1:
+      case 6:
+      case 7:
+      case 11: buffer[buff_head++] = a; parse_packet(); break; // finishing byte
+      // longest packet is 12B long, if we somehow reach this, just reset it all
+      default: if (buff_head >= 12) buff_head = 0; buffer[buff_head++] = a; break;
+      }
+    }
+    if (buff_head >= BUFF_SIZE) buff_head = 0;
+  }
 }
 
-// actually will never read a full unsigned int, but we don't need it.
-bool get_uint16(uint16_t &first) {
-  char *tmp = comm.next();
-  if (!tmp) return false;
-  first = (uint16_t)atoi(tmp);  // should probably check with numerical limits
-  return true;
-}
-
-bool get_int16(int16_t &first) {
-  char * tmp = comm.next();
-  if (!tmp) return false;
-  first = (int)atoi(tmp);
-  return true;
-}
 /*
-command format:
-RUN_ENGINE ENGINE_ID POWER[-1;1] DURATION(0;64k]
-POWER -> % of engine load, DURATION -> how long should a given engine run in ms (needs to fit into uint16_t)
-
-KICK [POWER(0;1]=1]
-Should reset automatically, will block other kicking attempts at the moment
-
-MOVE LEFT_POWER RIGHT_POWER LEFT_DURATION [RIGHT_DURATION=LEFT_DURATION]
+Packet format:
+0x00(K|F|L|T|O|C|S)BBP0x00  [6B]
+where B is a byte, P is parity byte (xor'd Bs + 0)
+0x00VBBBBBBBB0x00 [11B]
+0x00RBBBB0x00 [7B]
+0x000x00  -> heartbeat
+When packet is identified it will be sent to a function to do things
+and then acknowledged.
 */
+
+void parse_packet() {
+  // uses static buffer ^^^^
+  if (buff_head == 0) return;
+  if (buffer[0] != 0 || buff_head >= BUFF_SIZE) buff_head = 0; return;
+  if (buffer[buff_head - 1] != 0) return;
+  uint8_t b = buff_head;
+  buff_head = 0;
+  switch(b) {
+  case 2:
+    // empty message, retransmit READY if needed
+    if (ready != 0) {
+      Serial.println('READY');
+      Serial.flush();
+    }
+    return;
+  case 6: {
+    // command message, extract relevant parts and stuff to handler
+    char cmd = buffer[1];
+    uint8_t b1 = buffer[2], b2 = buffer[3];
+    uint8_t p = b1 ^ b2 ^ 0;
+    if (p != (byte)buffer[4]) {
+      Serial.print("FAIL: Parity fail, got ");
+      Serial.print(p);
+      Serial.print(", but expected: ");
+      Serial.println((byte)buffer[4]);
+      Serial.flush();
+      return;
+    }
+    // parity passed, handle it now
+    command(cmd, b1, b2);
+    Serial.println("ACK");
+    Serial.flush();
+    return;
+  }
+  case 7: {
+    // run engine message, no parity
+    char cmd = buffer[1];
+    uint8_t id = buffer[2];
+    int8_t pwr = buffer[3];
+    // reinterpret_cast<int16_t>(buffer[4]) -> 4;5
+    int16_t duration = *(int16_t*)(&buffer[4]);
+    if (cmd != 'R') {
+      Serial.println("FAIL: Got run engine-like packet, but cmd isn't R, wat");
+      return;
+    }
+    run_engine(id, pwr, duration);
+    Serial.println("ACK");
+    Serial.flush();
+    return;
+  }
+  case 11: {
+    // full move message, no parity
+    char cmd = buffer[1];
+    int16_t lf = *(int16_t*)(&buffer[2]);
+    int16_t rf = *(int16_t*)(&buffer[4]);
+    int16_t lb = *(int16_t*)(&buffer[6]);
+    int16_t rb = *(int16_t*)(&buffer[8]);
+    if (cmd != 'M') {
+      Serial.println("FAIL: Got move-like packet, but cmd isn't M, wat");
+      return;
+    }
+    move_bot(lf, rf, lb, rb);
+    Serial.println("ACK");
+    Serial.flush();
+    return;
+  }
+  default:
+    Serial.print("FAIL: Got msg:");
+    Serial.println((char*)buffer);
+    Serial.flush();
+    return;
+  }
+}
 
 void setup() {
   Serial.begin(115200);  // 115kb
   setup_pins();
   Wire.begin();  // need this s.t. arduino is mastah
-  Serial.println("Team2GO");
+  Serial.println("Team2READY");
   Serial.flush();
   motors.stop_all();
-  
-  // performs a kick
-  comm.addCommand("KICK", kick);
-  
-  comm.addCommand("OPEN", grab);
-  comm.addCommand("CLOSE", grab_close);
-    
-  // sets two speed/accel values for movement engines
-  comm.addCommand("MOVE", move_bot);
-  
-  // sets speed/accel values for a given engine
-  comm.addCommand("RUN_ENGINE", run_engine);
-  comm.addCommand("STOP", stop_engines);
-  comm.setDefaultHandler(invalid_command);
-  read_all();
-}
-
-void read_all() {
-  for (int i = 0; i < 128 && Serial.available(); i++)
-    Serial.read();
 }
 
 void kick_f(float power) {
@@ -171,22 +224,45 @@ void loop() {
   default:
     break;
   }
-  comm.readSerial();
-  if (MATCHED == 1) {
-    read_all();
-  }
-  MATCHED=0;
-  Serial.flush();
+  if (!ready && motors.all_stopped())
+    ready = 1;
+  read_serial();
   delay(5);
 }
 
+void command(char cmd, uint8_t b1, uint8_t b2) {
+  ready = 0;
+  switch (cmd) {
+  case 'K': kick(b1); return;
+  case 'F': move_front(b1, b2); return;
+  case 'L': move_left(b1, b2); return;
+  case 'T': turn(b1, b2); return;
+  case 'O': grab_open(b1); return;
+  case 'C': grab_close(b1); return;
+  case 'S': stop_engines(); return;
+  default: ready = 1;
+  }
+}
+int16_t reint(uint8_t a, uint8_t b) {
+  // I am aware that I could try to mess with &a and &b, but no. Just no.
+  uint8_t tmp[] = {a, b};
+  return *(int16_t*)(&tmp);
+}
+void move_front(uint8_t a, uint8_t b) {
+  int16_t d = reint(a, b);
+  return move_bot(d, d, d, d);
+}
+void move_left(uint8_t a, uint8_t b) {
+  int16_t d = reint(a, b);
+  return move_bot(-d, d, d, -d);
+}
+void turn(uint8_t a, uint8_t b) {
+  int16_t d = reint(a, b);
+  return move_bot(d, d, -d, -d);
+}
+
 void stop_engines() {
-  MATCHED=1;
   // only stops movement engines!
-  
-#ifdef ACK_COMMS  
-  Serial.println("ACKSTOPACKSTOPACKSTOP");
-#endif
   motors.stop_motor(LF_MOTOR);
   motors.stop_motor(LB_MOTOR);
   motors.stop_motor(RF_MOTOR);
@@ -194,104 +270,48 @@ void stop_engines() {
 }
 
 /* KICK [POWER(0;1]=1] */
-void kick() {
+void kick(uint8_t pwr) {
   MATCHED=1;
-#ifdef ACK_COMMS  
-  Serial.println("ACKKICKACKKICKACKKICK");
-#endif
   if (IS_GRABBER_OPEN == COMPLETE) {
     
-    float power;
-    if (!get_float(power))
-      power = 1;
-    kick_f(abs(power) * KICK_POWER);
+    float power = float(pwr) / 255.0;
+    
+    kick_f(power * KICK_POWER);
   }
   else {
-    grab();
+    grab_open(255);
     KICK_AFTERWARDS = 1;
   }
 }
 
 // OPEN GRABBER
-void grab() {
-  MATCHED = 1;
-#ifdef ACK_COMMS
-  Serial.println("ACKOPENACKOPENACKOPEN");
-#endif
-  float power;
-  if (!get_float(power))
-    power = GRAB_POWER;
+void grab_open(uint8_t pwr) {
+  float power = float(pwr) / 255.0;
   if (IS_GRABBER_OPEN != 0)
     return;
   IS_GRABBER_OPEN = HAPPENING;
-  motors.run_motor(GRABBER, abs(power) * GRAB_POWER, uint16_t(float(GRAB_DURATION) / abs(power)), 0);
+  motors.run_motor(GRABBER, power * GRAB_POWER, uint16_t(float(GRAB_DURATION) / power), 0);
 }
 // close grab
-void grab_close() {
-  MATCHED = 1;
-#ifdef ACK_COMMS
-  Serial.println("ACKCLOSEACKCLOSEACKCLOSE");
-#endif
-  float power;
-  if (!get_float(power))
-    power = GRAB_POWER;
+void grab_close(uint8_t pwr) {
+  float power = float(pwr) / 255.0;
   if (IS_GRABBER_OPEN != COMPLETE)
     return;
   IS_GRABBER_OPEN = CLOSING;
-  motors.run_motor(GRABBER, -abs(power) * GRAB_POWER, uint16_t(float(GRAB_DURATION) / abs(power)), 0);
+  motors.run_motor(GRABBER, -power * GRAB_POWER, uint16_t(float(GRAB_DURATION) / power), 0);
 }
 
-/* MOVE LEFT_POWER RIGHT_POWER LEFT_DURATION [RIGHT_DURATION=LEFT_DURATION] */
-void move_bot() {
-  MATCHED=1;
-  int16_t lf, lb, rf, rb;
+void move_bot(int16_t lf, int16_t lb, int16_t rf, int16_t rb) {
   uint16_t lag = motors.get_max_lag(movement_motors, 4);
-  if (!get_int16(lf)) {
-    Serial.println("Can't get left time");
-    return;
-  }
-  if (!get_int16(lb)) {
-    Serial.println("Can't get left time");
-    return;
-  }
-  if (!get_int16(rf)) {
-    Serial.println("Can't get left time");
-    return;
-  }
-  if (!get_int16(rb)) {
-    Serial.println("Can't get left time");
-    return;
-  }
-  
-#ifdef ACK_COMMS
-  Serial.println("ACKMOVEACKMOVEACKMOVE");
-#endif
-  
   motors.run_motor(LF_MOTOR, lf > 0? 1 : -1, abs(lf), motors.get_adj_lag(LF_MOTOR, lag));
   motors.run_motor(LB_MOTOR, lb > 0? 1 : -1, abs(lb), motors.get_adj_lag(LB_MOTOR, lag));
   motors.run_motor(RF_MOTOR, rf > 0? 1 : -1, abs(rf), motors.get_adj_lag(RF_MOTOR, lag));
   motors.run_motor(RB_MOTOR, rb > 0? 1 : -1, abs(rb), motors.get_adj_lag(RB_MOTOR, lag));
 }
 
-/* RUN_ENGINE ENGINE_ID POWER[-1;1] DURATION(0;64k] */
-void run_engine() {
-  MATCHED=1;
-  float power;
-  uint16_t id, time;
-#ifdef ACK_COMMS
-  Serial.println("ACKRUN_ENGINEACKRUN_ENGINEACK_RUNENGINE");
-#endif
-  if (!get_uint16(id)) {Serial.println("failed to get id"); return;}
-  if (!get_float(power)) {Serial.println("failed to get power");return;}
-  if (!get_uint16(time)) {
-    Serial.println("failed to get time");
-    return;
-  }
+void run_engine(uint8_t id, int8_t pwr, uint16_t time) {
+  float power = float(pwr) / 127.0;
   motors.run_motor(id, power, time, -1);
 }
 
-void invalid_command(const char * command) {
-  MATCHED=0;
-  Serial.print("FAIL: ");
-  Serial.println(command);
-}
+

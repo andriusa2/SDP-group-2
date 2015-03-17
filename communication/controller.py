@@ -35,6 +35,9 @@ def msg_resender(s, msg, avail, timeout, retries):
             buff += r
             if r:
                 print 'msg from upstream: {0}'.format(r)
+                if 'FAIL' in r:
+                    print "Found FAIL, resending"
+                    break
                 if 'ACK' in buff:
                     break
             end_time = time.time()
@@ -186,15 +189,16 @@ class Controller(Arduino):
             print '{0} - {1}'.format(a, b)
             b = struct.unpack('B', b)[0]
             return a ^ b
+
         parity = reduce(xor_bytes, bytes, 0)
         parity = chr(parity)
-        return cmd.format(*bytes, parity=parity, ts=chr(1), te=chr(0))
+        return cmd.format(*bytes, parity=parity, ts=chr(0), te=chr(0))
 
     def kick(self, power=None):
         if power is None:
             power = self.MAX_POWER
         if abs(power) < 1.0:
-            power = int(power * 255.5)
+            power = int(power * 255.)
         cmd = self.COMMANDS['kick']
         cmd = self.get_command(cmd, (abs(power), 'B'))  # uchar
         self._write(cmd)
@@ -248,7 +252,7 @@ class Controller(Arduino):
         return duration * 0.001 + 0.07
 
     def stop(self):
-        self._write(self.COMMANDS['stop'].format(ts=chr(1), te=chr(0)), important=True)
+        self._write(self.COMMANDS['stop'].format(ts=chr(0), te=chr(0)), important=True)
         return 0.01
 
     def turn(self, angle):
