@@ -157,15 +157,15 @@ class Controller(Arduino):
     """ Implements an interface for Arduino device. """
 
     COMMANDS = {
-        'kick': '{ts}K{0}0{parity}{te}',
+        'kick': '{ts}K{0}{1}{parity}{te}',
         'move_straight': '{ts}F{0}{1}{parity}{te}',
         'move_left': '{ts}L{0}{1}{parity}{te}',
         'move': '{ts}V{0}{1}{2}{3}{4}{5}{6}{7}{8}{te}',
         'turn': '{ts}T{0}{1}{parity}{te}',
         'run_engine': '{ts}R{0}{1}{2}{3}{te}',
-        'grab_open': '{ts}O{0}0{parity}{te}',
-        'grab_close': '{ts}C{0}0{parity}{te}',
-        'stop': '{ts}STOP{te}',
+        'grab_open': '{ts}O{0}{1}{parity}{te}',
+        'grab_close': '{ts}C{0}{1}{parity}{te}',
+        'stop': '{ts}S{0}{1}{parity}{te}',
     }
 
     # NB not a real radius, just one that worked
@@ -184,7 +184,6 @@ class Controller(Arduino):
         :param params: a list of parameters of form (value, struct.pack format).
         """
         bytes = []
-        print params
         for param in params:
             try:
                 v, fmt = param
@@ -205,11 +204,10 @@ class Controller(Arduino):
 
     def kick(self, power=None):
         if power is None:
-            power = self.MAX_POWER
-        if abs(power) < 1.0:
-            power = int(power * 255.)
+            power = 1.0
+        power = int(abs(power) * 255.)
         cmd = self.COMMANDS['kick']
-        cmd = self.get_command(cmd, (abs(power), 'B'))  # uchar
+        cmd = self.get_command(cmd, (abs(power), 'B'), (0, 'B'))  # uchar
         self._write(cmd)
         return 0.4
 
@@ -262,7 +260,8 @@ class Controller(Arduino):
         return duration * 0.001 + 0.07
 
     def stop(self):
-        self._write(self.COMMANDS['stop'].format(ts='\t', te='\t'), important=True)
+        cmd = self.get_command(self.COMMANDS['stop'], (ord('T'), 'B'), (ord('O'), 'B'))
+        self._write(cmd, important=True)
         return 0.01
 
     def turn(self, angle):
@@ -305,7 +304,7 @@ class Controller(Arduino):
             power = 1.0
         power = int(abs(power) * 255.0)
         cmd = self.COMMANDS['grab_close']
-        cmd = self.get_command(cmd, (power, 'B'))
+        cmd = self.get_command(cmd, (power, 'B'), (0, 'B'))
         self._write(cmd)
         return 0.3
 
@@ -315,7 +314,7 @@ class Controller(Arduino):
             power = 1.0
         power = int(abs(power) * 255.0)
         cmd = self.COMMANDS['grab_open']
-        cmd = self.get_command(cmd, (power, 'B'))
+        cmd = self.get_command(cmd, (power, 'B'), (0, 'B'))
         self._write(cmd)
         return 0.3
 
@@ -324,6 +323,6 @@ class Controller(Arduino):
             power = self.MAX_POWER
         power = int(abs(power) * 255.0)
         cmd = self.COMMANDS['grab_close']
-        cmd = self.get_command(cmd, (power, 'B'))
+        cmd = self.get_command(cmd, (power, 'B'), (0, 'B'))
         self._write(cmd)
         return 0.3
