@@ -1,9 +1,9 @@
 import serial
-from multiprocessing import Value, Process
+from multiprocessing import Value, Process, Pipe
 import struct
 import itertools
 import time
-
+import atexit
 from lib.math.util import convert_angle, get_duration
 import numpy as np
 
@@ -11,133 +11,142 @@ import numpy as np
 angle_poly = np.poly1d([-0.1735, 0.279, 0])
 
 
-def msg_resender(s, msg, avail, timeout, retries):
-    if not retries:
-        retries = 30
-    avail.value = 0  # set as unavailable now
-    retval = True
+def send_msg(s, msg, timeout, retries, ack):
+    buff = ''
     for i in range(retries):
-        print 'Attempt {0}'.format(i)
-        if s:
-            s.write(msg)
-            s.flush()
-
+        s.write(msg)
+        s.flush()
         start_time = time.time()
         end_time = time.time()
-        r = ''
-        buff = ''
         while end_time - start_time < timeout:
-            if s:
-                r = s.readline()
-            else:
-                time.sleep(timeout)
+            r = s.readline()
             buff += r
             if r:
-                print 'msg from upstream: {0}'.format(r)
+                print 'Got msg "{0}" from upstream'.format(r)
                 if 'FAIL' in r:
-                    print "Found FAIL, resending"
+                    print 'Found failure condition in response, resending'
                     break
-                if 'ACK' in buff:
+
+                if ack in buff:
+                    print 'Found ACK condition in response, accepting'
                     break
             end_time = time.time()
-        if 'ACK' in buff:
-            break
+        if ack in buff:
+            return True
     else:
-        retval = False
-    if retval:
-        print 'Got ack for msg, waiting for ready now'
-    else:
-        print 'No ack for msg, waiting for ready now'
-    #if not Arduino.ready_waiter(s, avail):
-    #    return False
-    return retval
+        return False
+
+
+def ready_waiter(s, avail, timeout, retries=None):
+    if avail.value == 1:
+        return True
+    if not retries:
+        retries = 100  # big number till we give up on it
+    if send_msg(s, '\t\t', timeout, retries, 'READY'):
+        print 'Arduino seems to be ready'
+        avail.value = 1
+        return True
+    print 'Arduino not ready :/'
+    avail.value = 0
+    return False
+
+
+class MockSerial(object):
+    def __init__(self, *args, **kwargs):
+        self.buff = None
+
+    def flush(self):
+        pass
+
+    def write(self, msg):
+        self.buff = msg
+
+    def readline(self):
+        if not self.buff:
+            return ''
+        if self.buff.startswith('\t\t'):
+            return 'READY\n'
+        return 'ACK\n'
+
+
+def msg_sender(pipe, avail, port, rate, timeout, retries):
+    # establish serial connection
+    s = serial.Serial(port, rate, timeout=timeout)
+    # s = MockSerial(port, rate, timeout=timeout)
+    print 'Established connection, commencing initial wait for handshakes(5s)'
+    time.sleep(5)
+    print 'Connection should be up now, testing with ready'
+    if not ready_waiter(s, avail, timeout):
+        print 'Arduino not ready, what is going on??'
+        print 'waiting more'
+        time.sleep(10)
+        if not ready_waiter(s, avail, timeout):
+            raise Exception("Arduino down for good")
+    # we should be fine now
+    while True:
+        t, msg = pipe.recv()
+        if 'HEARTBEAT' in msg:
+            # special case, try to update avail value
+            ready_waiter(s, avail, timeout, retries=10)
+            continue
+        if 'TERMINATE' in msg:
+            print 'exitting...'
+            return
+        if time.time() - t > timeout * 4:
+            print 'Got msg {0} which is {1:.2f}s old, rejecting'.format(msg, time.time() - t)
+            continue
+        print 'Trying to send msg "{0}"'.format(msg)
+
+        if 'STOP' not in msg:
+            ready_waiter(s, avail, timeout, retries=2)
+            if avail.value == 0:
+                print "Can't send msg to arduino as it is not available, try again"
+                continue
+        avail.value = 0
+        if send_msg(s, msg, timeout, retries, 'ACK'):
+            print 'msg properly sent to arduino'
+            continue
 
 
 class Arduino(object):
     """ Basic class for Arduino communications. """
-    
-    def __init__(self, port='/dev/ttyUSB0', rate=115200, timeOut=0.4, comms=1, debug=False, is_dummy=False, ack_tries=4):
-        self.serial = None
-        self.comms = comms
+
+    def __init__(self, port='/dev/ttyUSB0', rate=115200, timeOut=0.4, comms=1, debug=False, is_dummy=False,
+                 ack_tries=4):
         self.port = port
         self.rate = rate
         self.timeout = timeOut
-        self.debug = debug
         self.is_dummy = is_dummy
         self.ack_tries = ack_tries
         self.available = Value('i', 0)
+        self.serial_thread = None
+        self.pipe = None
         self.establish_connection()
-        self.processes = []
-
-    @staticmethod
-    def ready_waiter(s, avail, retries=None):
-        if not retries:
-            retries = 255  # big number till we give up on it
-        buff = ''
-        for _ in range(retries):
-            if avail.value != 0:
-                break
-            # empty message will trigger READY response if available
-            if s:
-                s.write('{0}{1}'.format('\t', '\t'))
-                s.flush()
-                r = s.readline()
-            else:
-                r = 'READY'
-
-            buff += r
-            if r:
-                print 'msg from upstream: {0}'.format(r)
-                if 'READY' in buff:
-                    print 'Arduino seems to be ready'
-                    avail.value = 1
-            else:
-                print 'no msg from upstream :['
-        else:
-            return False
-        return True
 
     def establish_connection(self):
-        self.comms = 1
-        assert self.serial is None, "Serial connection is already established."
-        try:
-            self.serial = serial.Serial(self.port, self.rate, timeout=self.timeout)
-            # wait till it's actually ready
-            # time.sleep(3)
-            if False and not self.ready_waiter(self.serial, self.available):
-                raise Exception("Not ready...")
-        except Exception:
-            print("No Arduino detected, dying!")
-            self.comms = 0
-            if not self.debug:
-                raise
-
-    def maintain_processes(self):
-        self.processes = [p for p in self.processes if p.is_alive()]
+        pipe_in, pipe_out = Pipe()
+        self.serial_thread = Process(target=msg_sender, args=(
+        pipe_out, self.available, self.port, self.rate, self.timeout, self.ack_tries))
+        self.serial_thread.start()
+        atexit.register(self.destr)
+        self.pipe = pipe_in
 
     def _write(self, string, important=False):
+        # NB - the sender thread will try to check whether it can run it actually, so it should probably work
         print("Trying to run command: '{0}'".format(string))
         string += '\n'
-        if not self.is_available() and not important:
-            print "Available flag is set to {0}, can't send a message".format(self.available.value)
-            return
-        self.maintain_processes()
-        if len(self.processes) > 0 and not important:
-            print "There are some things happening already, failing"
-            return
-        if self.comms != 1 and not self.debug:
-            raise Exception("No comm link established.")
-        if important:
-            # BAD BAD BAD
-            for p in self.processes:
-                p.terminate()
-            self.processes = []
-        self.available.value = 0
-        
-        msg_resender(self.serial, string, self.available, self.timeout, self.ack_tries)
+        self.pipe.send((time.time(), string))
 
     def is_available(self):
+        # if not available - query just in case
+        if self.available.value == 0:
+            self._write('HEARTBEAT')
         return self.available.value != 0
+
+    def destr(self):
+        self.pipe.send('TERMINATE')
+        self.serial_thread.terminate()
+        self.serial_thread.join()
 
 
 def scale_list(scale, l):
@@ -222,7 +231,7 @@ class Controller(Arduino):
             print "I don't support different powers, defaulting to 1"
         try:
             assert x or y, "You need to supply some distance"
-            assert not(x and y), "You can only supply distance in one axis"
+            assert not (x and y), "You can only supply distance in one axis"
         except Exception as e:
             print e
             return 0
@@ -236,7 +245,8 @@ class Controller(Arduino):
             assert -6000 < duration < 6000, 'Something looks wrong in the distance calc'
         except Exception as e:
             print e
-            print "Calculated duration {duration}ms for distance {distance:.2f}".format(duration=duration, distance=distance)
+            print "Calculated duration {duration}ms for distance {distance:.2f}".format(duration=duration,
+                                                                                        distance=distance)
             return 0
         if x:
             cmd = self.COMMANDS['move_straight']
@@ -257,7 +267,7 @@ class Controller(Arduino):
 
     def turn(self, angle):
         """ Turns robot over 'angle' radians in place. """
-        
+
         angle = convert_angle(angle)  # so it's in [-pi;pi] range
         # if angle is positive move clockwise, otw just inverse it
         power = self.MAX_POWER if angle >= 0 else -self.MAX_POWER
@@ -268,7 +278,7 @@ class Controller(Arduino):
         else:
             # pi/2 -> 200, pi/4 -> 110
             # ax+b=y, api/2+b = 200, api/4+b=150, b=20, a=360/pi
-            duration = int(360.0/3.14 * angle + 20.0)
+            duration = int(360.0 / 3.14 * angle + 20.0)
         duration = -duration if power < 0 else duration
         cmd = self.COMMANDS['turn']
         cmd = self.get_command(cmd, (duration, 'h'))  # short
@@ -280,7 +290,7 @@ class Controller(Arduino):
         cmd = self.get_command(cmd, *zip((lf, lb, rf, rb), itertools.repeat('h')))
         self._write(cmd)
         return max(map(abs, [lf, lb, rf, rb])) * 0.001 + 0.1  # typically motors lag for that much
-        
+
     def run_engine(self, id, power, duration):
         assert (-1.0 <= power <= 1.0) and (0 <= id <= 5) and abs(duration) <= 30000
         power = int(power * 127)
@@ -298,7 +308,7 @@ class Controller(Arduino):
         cmd = self.get_command(cmd, (power, 'B'))
         self._write(cmd)
         return 0.3
-    
+
     def open_grabber(self, power=None):
         """ power is negative atm """
         if power is None:
