@@ -90,6 +90,9 @@ class Strategy(object):
         centre_bound_r = zone_centre + (self.zone_centre_width/2)
         return centre_bound_l < self.robot.position.x < centre_bound_r
 
+    def is_robot_safe(self):
+        return True
+
     """
     -------------------------------------------------------
         Fetching of Objects in World State

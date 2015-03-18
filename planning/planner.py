@@ -1,5 +1,6 @@
 from planning.strategies.strategy_pass_ball import PassToZone
 from planning.strategies.strategy_receive_pass import ReceivePass
+from planning.strategies.strategy_save_robot import SaveRobot
 
 __author__ = 'Sam Davies'
 import time
@@ -32,9 +33,11 @@ class Planner(Strategy):
         self.block_goal = BlockGoal(world, robot_tag, actual_robot)
         self.pass_ball = PassToZone(world, robot_tag, actual_robot)
         self.receive_pass = ReceivePass(world, robot_tag, actual_robot)
+        self.save_robot = SaveRobot(world, robot_tag, actual_robot)
 
         self.m = StateMachine()
         self.m.add_state("Start", self.start_trans)
+        self.m.add_state("Robot is Safe", self.safe_robot_trans)
         self.m.add_state("Can Act", self.can_act_trans)
 
         self.m.add_state("Attacker Robot", self.attacker_robot_trans)
@@ -52,6 +55,7 @@ class Planner(Strategy):
         self.m.add_final_state_and_action("blocking goal", action=self.do_block_goal)
         self.m.add_final_state_and_action("passing ball", action=self.do_pass_ball)
         self.m.add_final_state_and_action("receiving pass", action=self.do_receive_pass)
+        self.m.add_final_state_and_action("Saving Robot", action=self.save_robot)
 
         # set start state
         self.m.set_start("Start")
@@ -68,6 +72,13 @@ class Planner(Strategy):
         return self.next_action_wait
 
     def start_trans(self):
+        if self.is_robot_safe():
+            new_state = "Robot is Safe"
+        else:
+            new_state = "Saving Robot"
+        return new_state
+
+    def safe_robot_trans(self):
         if self.can_act():
             new_state = "Can Act"
         else:
