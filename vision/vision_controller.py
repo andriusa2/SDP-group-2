@@ -23,7 +23,7 @@ class VisionController(object):
         self.zone_filter = CropZone(crop_filter=self.crop_filters[0])
         self.capture = cv2.VideoCapture(video_port) if video_port is not None else None
         self.demo = itertools.cycle([
-            cv2.imread("SideArena\sample2\{0:08}.png".format(i), 1) for i in range(1, 11)
+            cv2.imread("SideArena\sample5\{0:08}.png".format(i), 1) for i in range(1, 11)
         ]) if video_port is None else []
         _ = self.get_frame()
         frame = self.get_frame()

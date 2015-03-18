@@ -295,6 +295,14 @@ class RectTracker(Tracker):
             cv2.destroyWindow("rect mask")
           
         cnt, h = cv2.findContours(mask,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+        
+        if dbg:
+            self.my_print(self.tgt)
+            cv2.drawContours(mask, cnt, -1, 255, 1)
+            cv2.imshow("rect mask", mask)
+            if cv2.waitKey(0) & 0xFF == 27:
+                exit(0)
+            cv2.destroyWindow("rect mask")
         cnt = [(cv2.minAreaRect(c), c) for c in cnt]
         
         if dbg:
@@ -309,7 +317,15 @@ class RectTracker(Tracker):
                     self.my_print("No rects")
                 raise TrackingException("No rect hits after refining")
             self.my_print("too many rects")
-            raise TrackingException("Too many rect hits")
+            def get_box_fitness(box):
+                _, (w, h), _ = box
+                x, y = self.sz_target
+                return (w * h - x * y) ** 2
+            #self.my_print(map(lambda a: get_box_fitness(a[0]), cnt))
+            # approximate thing, CARE
+            cnt.sort(key=lambda a: get_box_fitness(a[0]))
+            
+            # raise TrackingException("Too many rect hits")
         return self._postprocess_hit(cnt[0])
     
     def _hit_fitness(self, hit):
@@ -324,7 +340,7 @@ class RectTracker(Tracker):
         
     def get_centroid(self, cnt):
         M = cv2.moments(cnt)
-        return int(M['m10']/M['m00']), int(M['m01']/M['m00'])
+        return float(M['m10']/M['m00']), float(M['m01']/M['m00'])
 
 class PlateTracker(Tracker):
     """
@@ -338,16 +354,16 @@ class PlateTracker(Tracker):
         self.ytag_tracker = RectTracker(
             name=''.join([str(kwargs['name']), "-ytag"]),
             tgt=((10, 25), (160, 255), (65, 255)),  # NB - yellow
-            sz_range=(4, 18),
-            sz_target=(3, 14),
+            sz_range=(4, 20),
+            sz_target=(5, 15),
             search_space=(range(10,20,2), range(70, 200, 30), (65, )), # no range, SHOULD work
             ch_width_range=(range(5, 15, 5), (255,), (255,))
         )
         self.btag_tracker = RectTracker(
             name=''.join([str(kwargs['name']), "-btag"]),
             tgt=((70, 100), (0, 255), (65, 255)),  # NB - blue
-            sz_range=(4, 18),
-            sz_target=(3, 14),
+            sz_range=(4, 20),
+            sz_target=(5, 15),
             search_space=(range(55,90,5), (0, ), (65, )), # no ranges, SHOULD work
             ch_width_range=((30, ), (255,), (255,))
         )
@@ -406,7 +422,7 @@ class PlateTracker(Tracker):
         reorder = False
         for tag, r in zip(self.tag_order, (False, True)):
             try:
-                ((tx, ty), _), reorder = tag.find(plate_hsv, origin=top, mask=mask), r
+                ((tx, ty), _), reorder = tag.find(plate_hsv, dbg=False, origin=top, mask=mask), r
                 break
             except TrackingException:
                 continue
