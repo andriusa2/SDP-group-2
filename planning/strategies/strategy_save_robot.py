@@ -15,6 +15,12 @@ class SaveRobot(Strategy):
         # set start state
         self.m.set_start("Start")
 
+    def act(self):
+        self.fetch_world_state()
+
+        action_state = self.m.run()
+        return self.m.do_action(action_state)
+
     def start_trans(self):
         if True:
             new_state = ""
