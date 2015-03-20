@@ -129,14 +129,13 @@ class Planner(Strategy):
     def ball_not_in_defender_zone_trans(self):
         print "friend zone is {0}".format(self.world.get_zone(self.get_friend().position))
         if self.is_ball_in_friend_zone():
-            print "receiving pass"
             new_state = "receiving pass"
         else:
-            print "blocking goal"
             new_state = "blocking goal"
         return new_state
 
-    def do_nothing(self):
+    @staticmethod
+    def do_nothing():
         return False, "No Info"
 
     def can_act(self):
