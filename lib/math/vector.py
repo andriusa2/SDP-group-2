@@ -72,5 +72,8 @@ class Vector2D(object):
             unit_vector = Vector2D(0, 1)
         return unit_vector
 
+    def to_array(self):
+        return [self.x, self.y]
+
     def __repr__(self):
         return "<{0};{1}>".format(self.x, self.y)

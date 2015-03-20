@@ -1,2 +1,3 @@
+requests
 numpy
 pyserial==2.7

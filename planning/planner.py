@@ -1,3 +1,6 @@
+import json
+import requests
+from planning.decorators import async
 from planning.strategies.strategy_pass_ball import PassToZone
 from planning.strategies.strategy_receive_pass import ReceivePass
 from planning.strategies.strategy_save_robot import SaveRobot
@@ -221,16 +224,32 @@ class Planner(Strategy):
             if len(self.action_trace) > 9:
                 self.action_trace.pop(0)
 
+            data = {'current_zone': current_zone, 'dist_to_ball': dist_to_ball,
+                    'angle_to_ball': angle_to_ball, 'current_state': current_state, 'action': action,
+                    'action_duration': action_duration, 'is_attacker': is_attacker, 'in_beam': in_beam,
+                    'ball_zone': ball_zone, 'state_trace': state_trace, 'action_info': action_info,
+                    'is_ball_close': is_ball_close, 'action_trace': self.action_trace, 'friend': friend.to_array(),
+                    'friend_zone': friend_zone, 'enemy_att': enemy_att.to_array(), 'enemy_att_zone': enemey_att_zone,
+                    'enemy_def': enemy_def.to_array(), 'enemy_def_zone': enemey_def_zone, 'my_pos': my_pos.to_array()}
+
+            payload_json = json.dumps(data)
+            self.send_async_heartbeat(payload_json)
+
             to_print = self.pretty_print(current_zone, dist_to_ball, angle_to_ball, current_state, action, action_duration,
-                                        is_attacker, in_beam, ball_zone, state_trace, action_info, is_ball_close,
-                                        self.action_trace, friend, friend_zone, enemy_att, enemey_att_zone, enemy_def,
-                                        enemey_def_zone, my_pos)
+                                         is_attacker, in_beam, ball_zone, state_trace, action_info, is_ball_close,
+                                         self.action_trace, friend, friend_zone, enemy_att, enemey_att_zone, enemy_def,
+                                         enemey_def_zone, my_pos)
             print "\n"
             for line in to_print:
                 print line
 
 
         return to_print
+
+    @async
+    def send_async_heartbeat(self, payload_json):
+        r = requests.post('https://robot-heartbeat.herokuapp.com/set/', data=dict(payload=payload_json))
+        print r
 
     def pretty_print(self, current_zone, dist_to_ball, angle_to_ball, current_state, action, action_duration,
                      is_attacker, in_beam, ball_zone, state_trace, action_info, is_ball_close, action_trace,
