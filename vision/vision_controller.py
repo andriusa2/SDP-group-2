@@ -17,7 +17,7 @@ class VisionController:
     Primary source of robot control. Ties vision and planning together.
     """
 
-    def __init__(self, pitch, color, our_side, video_port=0):
+    def __init__(self, pitch, color, our_side, video_port=0, debug=False):
         """
         Entry point for the SDP system.
 
@@ -26,6 +26,7 @@ class VisionController:
             [int] pitch                     0 - main pitch, 1 - secondary pitch
             [string] our_side               the side we're on - 'left' or 'right'
         """
+        self.debug = debug
         assert pitch in [0, 1]
         assert color in ['yellow', 'blue']
         assert our_side in ['left', 'right']
@@ -79,7 +80,14 @@ class VisionController:
                 model_positions = self.postprocessing.analyze(model_positions)
 
                 #---------------------- PLANNER ---------------------------
-                planner = planning_function(model_positions)
+
+                if not self.debug:
+                    planner = planning_function(model_positions)
+                else:
+                    if c == 10:
+                        planner = planning_function(model_positions)
+
+
                 print_list = (planner.m.state_trace[len(planner.m.state_trace)-2],
                               planner.m.state_trace[len(planner.m.state_trace)-1])
                 # print print_list

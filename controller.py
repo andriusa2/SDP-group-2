@@ -7,8 +7,9 @@ __author__ = "Sam Davies"
 
 class Controller(object):
 
-    def __init__(self, pitch, color, our_side):
+    def __init__(self, pitch, color, our_side, debug):
 
+        self.debug = debug
         boundaries = [47, 106, 165, 212]
         self.world = WorldState()
         self.actual_robot = CommController("/dev/ttyACM0", ack_tries=10)
@@ -20,7 +21,7 @@ class Controller(object):
 
         # this is our chosen strategy
         """R_ATT, L_ATT, R_DEF, L_DEF"""
-        self.vision = VisionController(pitch, color, our_side)
+        self.vision = VisionController(pitch, color, our_side, debug)
 
         self.planner = None
 
@@ -40,7 +41,7 @@ class Controller(object):
         """
         assert zone_num in [1, 2, 3, 4]
 
-    def update_world_state(self, model_positions):
+    def update_world_state(self, model_positions, debug):
         """
         Change the state of the world based on the current frame
         :param model_positions: the values to change to world to
@@ -69,7 +70,11 @@ class Controller(object):
         # self.planner.plan_defence()
         if not self.planner:
             self.planner = Planner(self.world, Zone.L_DEF, self.actual_robot, False)
-        self.planner.plan()
+
+        if not debug:
+            self.planner.plan()
+        else:
+
 
         return self.planner
 
@@ -79,7 +84,8 @@ if __name__ == '__main__':
     parser.add_argument("pitch", help="[0] Main pitch, [1] Secondary pitch")
     parser.add_argument("side", help="The side of our defender ['left', 'right'] allowed.")
     parser.add_argument("color", help="The color of our team - ['yellow', 'blue'] allowed.")
+    parser.add_argument("debug", help="Should we run commands manually")
 
     args = parser.parse_args()
-    c = Controller(pitch=int(args.pitch), color=args.color, our_side=args.side)
+    c = Controller(pitch=int(args.pitch), color=args.color, our_side=args.side, debug=bool(args.debug))
     c.main()
