@@ -140,10 +140,11 @@ class Planner(Strategy):
 
     def can_act(self):
         # has the robot finished moving
-        if self.can_act_after <= time.time():
-            return True
-        else:
-            return False
+        # if self.can_act_after <= time.time():
+        #     return True
+        # else:
+        #     return False
+        return self.actual_robot.is_available()
 
     def do_fetch_ball(self):
         to_return = self.do_strategy(self.fetch_ball)
@@ -173,10 +174,10 @@ class Planner(Strategy):
         :param strategy: the strategies on which to act
         :return: the time that we have to wait
         """
-        cool_down_time_period, info = strategy.act()
+        _, info = strategy.act()
         self.m.state_trace += strategy.m.state_trace
-        self.can_act_after = time.time() + cool_down_time_period
-        return cool_down_time_period, info
+        # self.can_act_after = time.time() + cool_down_time_period
+        return 0, info
 
     def check_for_re_plan(self):
         # if ball moves while collecting the ball, re-plan

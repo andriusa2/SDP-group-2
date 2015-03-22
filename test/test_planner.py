@@ -22,7 +22,6 @@ class TestWorldState(unittest.TestCase):
 
 
 class BaseTest(unittest.TestCase):
-
     def setUp(self):
         # create a world object
         self.world_state = self.put_robot_and_ball(robot_pos=(15, 0), robot_dir=(1, 0), ball_pos=(15, 15), robot_num=1)
@@ -33,7 +32,7 @@ class BaseTest(unittest.TestCase):
         self.planner = Planner(self.world_state, Zone.L_ATT, actual_robot, True)
 
     def last_action(self):
-        return self.planner.action_trace[len(self.planner.action_trace)-1]
+        return self.planner.action_trace[len(self.planner.action_trace) - 1]
 
     def put_robot_and_ball(self, robot_pos, robot_dir, ball_pos, robot_num):
         return self.put_robots_and_ball(robot_pos, [(5.0, 8.0), (25, 25), (35, 35)], robot_dir, ball_pos, robot_num)
@@ -86,7 +85,8 @@ class BaseTest(unittest.TestCase):
 
 class FetchBallTest(BaseTest):
     def setUp(self):
-        self.world_state = self.put_robots_and_ball((15, 15), ([(5, 15), (25, 15), (35, 15)]), my_direction=(0, 1), ball_pos=(5, 5), robot_num=1)
+        self.world_state = self.put_robots_and_ball((15, 15), ([(5, 15), (25, 15), (35, 15)]), my_direction=(0, 1),
+                                                    ball_pos=(5, 5), robot_num=1)
         # make a dummy robot which can change the world
         actual_robot = DummyRobot(self.world_state, Zone.L_ATT)
         # give the strategies the world the dummy and the zone of the dummy
@@ -174,15 +174,13 @@ class PlannerTest(BaseTest):
     # ensure that the timer stops an action from being performed
     def test_timer_prevents_action(self):
         # raise cage
-        act_timer1 = self.planner.plan()
-        self.assertTrue(act_timer1)
+        self.assertTrue(self.planner.can_act())
         # prevent action
-        act_timer2 = self.planner.plan()
+        self.planner.plan()
         # make sure that the planning could not act
-        self.assertFalse(act_timer2)
-        time.sleep(act_timer1)
-        act_timer3 = self.planner.plan()
-        self.assertTrue(act_timer3)
+        self.assertFalse(self.planner.can_act())
+        time.sleep(1)
+        self.assertTrue(self.planner.can_act())
 
     # ensure that the world state is fetched
     def test_fetch_world_state(self):
@@ -211,27 +209,29 @@ class PlannerTest(BaseTest):
         self.assertFalse(self.planner.is_robot_facing_ball())
 
         # raise cage
-        timer = self.planner.plan()
+        self.planner.plan()
         self.assertFalse(self.planner.can_act())
 
 
 class BlockTest(BaseTest):
-
     # ensure that the centre of a zone is returned
     def test_get_zone_centre(self):
-        self.world_state = self.put_robots_and_ball((8, 50), [(15.0, 50), (25, 50), (35, 0)], my_direction=(0, 1), ball_pos=(30, 60), robot_num=0)
+        self.world_state = self.put_robots_and_ball((8, 50), [(15.0, 50), (25, 50), (35, 0)], my_direction=(0, 1),
+                                                    ball_pos=(30, 60), robot_num=0)
         self.choose_planner("left")
         self.planner.fetch_world_state()
         self.assertAlmostEqual(self.planner.get_zone_centre(), 5)
 
-        self.world_state = self.put_robots_and_ball((38, 50), [(5.0, 50), (15, 50), (25, 0)], my_direction=(0, 1), ball_pos=(30, 60), robot_num=3)
+        self.world_state = self.put_robots_and_ball((38, 50), [(5.0, 50), (15, 50), (25, 0)], my_direction=(0, 1),
+                                                    ball_pos=(30, 60), robot_num=3)
         self.choose_planner("right")
         self.planner.fetch_world_state()
         self.assertAlmostEqual(self.planner.get_zone_centre(), 35)
 
     # ensure that a robot turns to up
     def test_turn_to_face_up(self):
-        self.world_state = self.put_robots_and_ball((5, 10), [(15.0, 50), (25, 50), (35, 0)], my_direction=(2, 5), ball_pos=(12, 60), robot_num=0)
+        self.world_state = self.put_robots_and_ball((5, 10), [(15.0, 50), (25, 50), (35, 0)], my_direction=(2, 5),
+                                                    ball_pos=(12, 60), robot_num=0)
         self.set_up_y_intercept_of_ball_goal("left")
         self.assertFalse(self.planner.is_at_square_angles())
 
@@ -266,23 +266,27 @@ class BlockTest(BaseTest):
         self.assertEquals(pos, (35, 45))
 
     def test_move_facing_up(self):
-        self.world_state = self.put_robots_and_ball((5, 5), [(15.0, 50), (25, 50), (35, 0)], my_direction=(0, 1), ball_pos=(20, 70), robot_num=0)
+        self.world_state = self.put_robots_and_ball((5, 5), [(15.0, 50), (25, 50), (35, 0)], my_direction=(0, 1),
+                                                    ball_pos=(20, 70), robot_num=0)
         self.choose_planner("left")
         self.planner.fetch_world_state()
         self.assert_movement_in_a_square()
 
     def test_move_facing_down(self):
-        self.world_state = self.put_robots_and_ball((5, 5), [(15.0, 50), (25, 50), (35, 0)], my_direction=(0, -1), ball_pos=(20, 70), robot_num=0)
+        self.world_state = self.put_robots_and_ball((5, 5), [(15.0, 50), (25, 50), (35, 0)], my_direction=(0, -1),
+                                                    ball_pos=(20, 70), robot_num=0)
         self.choose_planner("left")
         self.planner.fetch_world_state()
 
     def test_move_facing_left(self):
-        self.world_state = self.put_robots_and_ball((5, 5), [(15.0, 50), (25, 50), (35, 0)], my_direction=(1, 0), ball_pos=(20, 70), robot_num=0)
+        self.world_state = self.put_robots_and_ball((5, 5), [(15.0, 50), (25, 50), (35, 0)], my_direction=(1, 0),
+                                                    ball_pos=(20, 70), robot_num=0)
         self.choose_planner("left")
         self.planner.fetch_world_state()
 
     def test_move_facing_right(self):
-        self.world_state = self.put_robots_and_ball((5, 5), [(15.0, 50), (25, 50), (35, 0)], my_direction=(-1, 0), ball_pos=(20, 70), robot_num=0)
+        self.world_state = self.put_robots_and_ball((5, 5), [(15.0, 50), (25, 50), (35, 0)], my_direction=(-1, 0),
+                                                    ball_pos=(20, 70), robot_num=0)
         self.choose_planner("left")
         self.planner.fetch_world_state()
 
@@ -338,7 +342,8 @@ class BlockTest(BaseTest):
         self.planner.fetch_world_state()
 
     def test_intercept_ball_1(self):
-        self.world_state = self.put_robots_and_ball((6, 50), [(15.0, 50), (25, 50), (35, 0)], my_direction=(1, 0), ball_pos=(20, 70), robot_num=0)
+        self.world_state = self.put_robots_and_ball((6, 50), [(15.0, 50), (25, 50), (35, 0)], my_direction=(1, 0),
+                                                    ball_pos=(20, 70), robot_num=0)
         self.choose_planner("left")
         self.set_up_to_move_to_centre()
         self.planner.plan()
@@ -351,11 +356,13 @@ class BlockTest(BaseTest):
         self.planner.block_goal.zone_centre_width = 0.1
         self.planner.zone_centre_width = 0.1
         self.assertFalse(self.planner.is_robot_in_centre())
-        time.sleep(self.planner.plan())
+        self.planner.plan()
+        time.sleep(1)
         self.assertEquals(self.last_action(), "MOVE ROBOT TO CENTRE")
 
     def test_intercept_ball_2(self):
-        self.world_state = self.put_robots_and_ball((6, 50), [(15.0, 50), (25, 50), (35, 0)], my_direction=(0, 1), ball_pos=(20, 30), robot_num=0)
+        self.world_state = self.put_robots_and_ball((6, 50), [(15.0, 50), (25, 50), (35, 0)], my_direction=(0, 1),
+                                                    ball_pos=(20, 30), robot_num=0)
         self.choose_planner("left")
         self.set_up_to_move_to_centre()
         self.planner.plan()
@@ -364,7 +371,8 @@ class BlockTest(BaseTest):
         self.assertEquals(self.planner.robot.position.y, 45)
 
     def test_intercept_ball_3(self):
-        self.world_state = self.put_robots_and_ball((36, 50), [(5.0, 50), (15, 50), (25, 0)], my_direction=(-1, 0), ball_pos=(30, 60), robot_num=3)
+        self.world_state = self.put_robots_and_ball((36, 50), [(5.0, 50), (15, 50), (25, 0)], my_direction=(-1, 0),
+                                                    ball_pos=(30, 60), robot_num=3)
         self.choose_planner("right")
         self.set_up_to_move_to_centre()
         self.planner.plan()
@@ -373,7 +381,8 @@ class BlockTest(BaseTest):
         self.assertEquals(self.planner.robot.position.y, 55)
 
     def test_intercept_ball_4(self):
-        self.world_state = self.put_robots_and_ball((36, 50), [(5.0, 50), (15, 50), (25, 0)], my_direction=(0, -1), ball_pos=(30, 40), robot_num=3)
+        self.world_state = self.put_robots_and_ball((36, 50), [(5.0, 50), (15, 50), (25, 0)], my_direction=(0, -1),
+                                                    ball_pos=(30, 40), robot_num=3)
         self.choose_planner("right")
         self.set_up_to_move_to_centre()
         self.planner.plan()
@@ -391,7 +400,6 @@ class BlockTest(BaseTest):
 
 
 class PassToZoneTest(BaseTest):
-
     # ensure that a blocked pass is found to be blocked
     def test_next_location_top(self):
         self.world_state = self.put_robots_and_ball((5, 50), [(15.0, 50), (25, 50), (35, 0)], my_direction=(0, 1),
@@ -412,13 +420,15 @@ class PassToZoneTest(BaseTest):
 
     # ensure that a friend robot is found correctly
     def test_get_friend_left(self):
-        self.world_state = self.put_robots_and_ball((5, 50), [(15.0, 50), (25, 50), (35, 0)], my_direction=(0, 1), ball_pos=(20, 60), robot_num=0)
+        self.world_state = self.put_robots_and_ball((5, 50), [(15.0, 50), (25, 50), (35, 0)], my_direction=(0, 1),
+                                                    ball_pos=(20, 60), robot_num=0)
         self.choose_planner("left")
         friend = self.planner.pass_ball.get_friend()
         self.assertEqual(self.planner.world.get_zone(friend.position), Zone.R_ATT)
 
     def test_get_friend_right(self):
-        self.world_state = self.put_robots_and_ball((34, 50), [(5.0, 50), (15, 50), (25, 0)], my_direction=(0, 1), ball_pos=(20, 60), robot_num=3)
+        self.world_state = self.put_robots_and_ball((34, 50), [(5.0, 50), (15, 50), (25, 0)], my_direction=(0, 1),
+                                                    ball_pos=(20, 60), robot_num=3)
         self.choose_planner("right")
         friend = self.planner.pass_ball.get_friend()
         self.assertEqual(self.planner.world.get_zone(friend.position), Zone.L_ATT)
@@ -455,10 +465,10 @@ class PassToZoneTest(BaseTest):
         self.assertTrue(is_blocked)
 
         timer = self.planner.plan()
-        time.sleep(timer)
+        time.sleep(1)
 
         timer = self.planner.plan()
-        time.sleep(timer)
+        time.sleep(1)
 
     # ensure that an unblocked results in a pass
     def test_unblocked_pass_action(self):
@@ -486,7 +496,6 @@ class PassToZoneTest(BaseTest):
         self.assertEquals("--------------------------------------------------", printed[13])
 
     """
-
 
 if __name__ == '__main__':
     unittest.main()
