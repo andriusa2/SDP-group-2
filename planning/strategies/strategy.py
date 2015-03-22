@@ -220,7 +220,7 @@ class Strategy(object):
         """
 
         # angle = -np.arccos(Vector2D(1, 0).dot(Vector2D(direction.x, direction.y)))
-        angle = Vector2D.axis_perp_dot_product(direction)
+        angle = Vector2D.axis_perp_dot_product(direction.square_unit_vector())
 
         print "rotating vector by: {0} rads".format(angle)
 
