@@ -136,7 +136,7 @@ class Strategy(object):
     def get_enemy(self):
         self.fetch_world_state()
         my_zone = self.world.get_zone(self.robot.position)
-        if my_zone == 0 or 1:
+        if my_zone == 0 or my_zone == 1:
             enemy = self.world.get_robot(Zone.L_ATT)
         else:
             enemy = self.world.get_robot(Zone.R_ATT)
@@ -148,10 +148,10 @@ class Strategy(object):
     def get_enemy_defender(self):
         self.fetch_world_state()
         my_zone = self.world.get_zone(self.robot.position)
-        if my_zone == 0 or 1:
-            enemy = self.world.get_robot(Zone.L_DEF)
-        else:
+        if my_zone == 0 or my_zone == 1:
             enemy = self.world.get_robot(Zone.R_DEF)
+        else:
+            enemy = self.world.get_robot(Zone.L_DEF)
         if enemy:
             return enemy
         else:

@@ -74,7 +74,7 @@ class Controller(object):
         # do the next plan
         # self.planner.plan_defence()
         if not self.planner:
-            self.planner = Planner(self.world, Zone.L_DEF, self.actual_robot, False)
+            self.planner = Planner(self.world, Zone.R_DEF, self.actual_robot, False)
 
         self.planner.plan()
 
