@@ -41,7 +41,7 @@ class Controller(object):
         """
         assert zone_num in [1, 2, 3, 4]
 
-    def update_world_state(self, model_positions, debug):
+    def update_world_state(self, model_positions):
         """
         Change the state of the world based on the current frame
         :param model_positions: the values to change to world to
@@ -71,10 +71,7 @@ class Controller(object):
         if not self.planner:
             self.planner = Planner(self.world, Zone.L_DEF, self.actual_robot, False)
 
-        if not debug:
-            self.planner.plan()
-        else:
-
+        self.planner.plan()
 
         return self.planner
 

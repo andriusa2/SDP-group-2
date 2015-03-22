@@ -87,7 +87,6 @@ class VisionController:
                     if c == 10:
                         planner = planning_function(model_positions)
 
-
                 print_list = (planner.m.state_trace[len(planner.m.state_trace)-2],
                               planner.m.state_trace[len(planner.m.state_trace)-1])
                 # print print_list
