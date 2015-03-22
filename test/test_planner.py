@@ -398,6 +398,19 @@ class BlockTest(BaseTest):
         ball_pos = self.planner.ball.position
         return self.planner.y_intercept_of_ball_goal(goal, ball_pos)
 
+    def test_square_unit_vector(self):
+        self.assertEquals(Vector2D(0, 1).square_unit_vector(), Vector2D(0, 1))
+        self.assertEquals(Vector2D(10, 500).square_unit_vector(), Vector2D(0, 1))
+        self.assertEquals(Vector2D(300, 9).square_unit_vector(), Vector2D(1, 0))
+        self.assertEquals(Vector2D(10, -500).square_unit_vector(), Vector2D(0, -1))
+        self.assertEquals(Vector2D(-300, 9).square_unit_vector(), Vector2D(-1, 0))
+        self.assertEquals(Vector2D(-10, -500).square_unit_vector(), Vector2D(0, -1))
+        self.assertEquals(Vector2D(0.010, 0.5).square_unit_vector(), Vector2D(0, 1))
+        self.assertEquals(Vector2D(0.3, 0.09).square_unit_vector(), Vector2D(1, 0))
+        self.assertEquals(Vector2D(0.01, -0.5).square_unit_vector(), Vector2D(0, -1))
+        self.assertEquals(Vector2D(-0.3, 0.09).square_unit_vector(), Vector2D(-1, 0))
+        self.assertEquals(Vector2D(-0.01, -0.5).square_unit_vector(), Vector2D(0, -1))
+
 
 class PassToZoneTest(BaseTest):
     # ensure that a blocked pass is found to be blocked
