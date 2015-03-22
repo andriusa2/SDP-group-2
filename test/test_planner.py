@@ -220,13 +220,13 @@ class BlockTest(BaseTest):
                                                     ball_pos=(30, 60), robot_num=0)
         self.choose_planner("left")
         self.planner.fetch_world_state()
-        self.assertAlmostEqual(self.planner.get_zone_centre(), 5)
+        self.assertAlmostEqual(self.planner.get_zone_centre(), 7.5)
 
         self.world_state = self.put_robots_and_ball((38, 50), [(5.0, 50), (15, 50), (25, 0)], my_direction=(0, 1),
                                                     ball_pos=(30, 60), robot_num=3)
         self.choose_planner("right")
         self.planner.fetch_world_state()
-        self.assertAlmostEqual(self.planner.get_zone_centre(), 35)
+        self.assertAlmostEqual(self.planner.get_zone_centre(), 32.5)
 
     # ensure that a robot turns to up
     def test_turn_to_face_up(self):
@@ -353,6 +353,7 @@ class BlockTest(BaseTest):
 
     def set_up_to_move_to_centre(self):
         self.planner.fetch_world_state()
+        self.planner.block_goal.zone_centre_offset = 0
         self.planner.block_goal.zone_centre_width = 0.1
         self.planner.zone_centre_width = 0.1
         self.assertFalse(self.planner.is_robot_in_centre())

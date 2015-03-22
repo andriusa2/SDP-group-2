@@ -23,6 +23,7 @@ class Strategy(object):
         self.ROBOT_WIDTH = 4
         self.zone_centre_width = 8
         self.square_angle_threshold = 0.005
+        self.zone_centre_offset = 0.5  # a percentage of the zone width
 
         # initialise state attributes
         self.robot = None
@@ -104,8 +105,15 @@ class Strategy(object):
         zone_edges = [0] + self.world.zone_boundaries
         edge_L = zone_edges[my_zone]
         edge_R = zone_edges[my_zone+1]
-        zone_centre = edge_L + (edge_R - edge_L)/2.0
-        # print "Left: {0}, right {1}, centre: {2}".format(edge_L, edge_R, zone_centre)
+        zone_width = edge_R - edge_L
+        zone_centre = edge_L + zone_width/2.0
+
+        # move the centre closer to the pitch centre
+        if my_zone >= 2:
+            zone_centre -= (self.zone_centre_offset * (zone_width/2))
+        else:
+            zone_centre += (self.zone_centre_offset * (zone_width/2))
+        print "Left: {0}, right {1}, centre: {2}".format(edge_L, edge_R, zone_centre)
         return zone_centre
 
     def is_ball_in_friend_zone(self):
