@@ -220,9 +220,7 @@ class Strategy(object):
         """
 
         # angle = -np.arccos(Vector2D(1, 0).dot(Vector2D(direction.x, direction.y)))
-        global_axis = Vector2D(1, 0)
-        angle = np.arctan2(direction.x * global_axis.y - direction.y * global_axis.x,
-                           direction.x * global_axis.x + direction.y * global_axis.y)
+        angle = Vector2D.axis_perp_dot_product(direction)
 
         print "rotating vector by: {0} rads".format(angle)
 
@@ -236,9 +234,7 @@ class Strategy(object):
         """
 
         # angle = -np.arccos(Vector2D(1, 0).dot(Vector2D(direction.x, direction.y)))
-        global_axis = Vector2D(1, 0)
-        angle = -np.arctan2(direction.x * global_axis.y - direction.y * global_axis.x,
-                            direction.x * global_axis.x + direction.y * global_axis.y)
+        angle = -Vector2D.axis_perp_dot_product(direction)
 
         rotated_v = to_move.rotate(angle)
         return rotated_v

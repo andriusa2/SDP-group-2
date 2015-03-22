@@ -90,5 +90,19 @@ class Vector2D(object):
         xform = self.make_rotation_transformation(angle, anchor)
         return xform(self)
 
+    @staticmethod
+    def axis_perp_dot_product(direction):
+        """
+        Used the find the angle between 2 vectors
+        Find the vector perpendicular to one of the vectors,
+        and then find the dot product with the other vector.
+        :return:
+        """
+        u_direction = direction.unit_vector()
+        global_axis = Vector2D(1, 0)
+        angle = np.arctan2(u_direction.x * global_axis.y - u_direction.y * global_axis.x,
+                           u_direction.x * global_axis.x + u_direction.y * global_axis.y)
+        return angle
+
     def __repr__(self):
         return "<{0};{1}>".format(self.x, self.y)
