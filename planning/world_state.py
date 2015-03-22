@@ -1,5 +1,5 @@
 from lib.math.vector import Vector2D
-from math import sin, cos, sqrt
+from math import sin, cos, sqrt, pi
 """
 TODO: convert to numpy arrays instead of tuples
       roll out proper vector/point classes?
@@ -29,7 +29,7 @@ class Robot(_WorldObject):
 
     def __init__(self, direction=(0, 0), position=(0, 0), velocity=(0, 0), enemy=False):
         self.enemy = enemy if enemy else False
-        self.direction = Vector2D.to_vector2d(direction)
+        self.direction = Vector2D.to_vector2d(direction).unit_vector()
         self.is_moving = False
         super(Robot, self).__init__(position, velocity)
 
@@ -49,14 +49,22 @@ class Robot(_WorldObject):
             "is_enemy={enemy!r})"
         ).format(**self.__dict__)
 
-    def can_see(self, point, threshold=0.05):
+    def can_see(self, point, threshold=None, beam_width=7):
         """
-        Return true if robot can "see" a given point.
+        Return true if robot can "see" a given point withing a beam.
         """
-        # if angle between that and robot direction is more than threshold
-        # then robot needs to correct its angle to "see" that point
-        angle = self.angle_to_point(point)
-        return -threshold <= angle <= threshold
+        # vector from robot to point
+        assert not threshold
+        return self.is_point_within_beam(point, self.direction, beam_width)
+
+    def is_point_within_beam(self, point, direction, beam_width=7):
+        dpoint = point - self.position
+        # sanity check
+        if abs(dpoint.get_angle(direction)) >= pi / 2:
+            return False
+        projection = direction.scale(dpoint.dot(direction))
+        dist_vector = dpoint - projection
+        return dist_vector.dot(dist_vector) <= beam_width * beam_width
 
     def angle_to_point(self, point):
         """
@@ -67,8 +75,7 @@ class Robot(_WorldObject):
         d = point - self.position
         if d.is_null():
             return False
-        angle = d.get_angle(self.direction)
-        print "angle to point: " + str(angle) + " radians"
+        angle = d.get_angle(self.direction.unit_vector())
         return angle
 
 
@@ -112,7 +119,7 @@ class WorldState(object):
     Should be filled by vision component of our system.
     """
 
-    def __init__(self, robots=None, ball=None, zone_boundaries=None, goal=(0, 0)):
+    def __init__(self, robots=None, ball=None, zone_boundaries=None, left_goal=(0, 50), right_goal=(212, 50)):
         """
         :param robots: A list of robots (if zone_boundaries is supplied) or
           a dictionary mapping zone to robot.
@@ -122,7 +129,10 @@ class WorldState(object):
         self.zone_boundaries = zone_boundaries
         self.robots = dict() if not robots else robots
         self.fix_robots()
-        self.goal = Vector2D.to_vector2d(goal)
+        self.left_goal = Vector2D.to_vector2d(left_goal)
+        self.right_goal = Vector2D.to_vector2d(right_goal)
+        self.is_grabber_down = False
+        self.do_refresh_kick = True
 
     def fix_robots(self):
         """
@@ -167,19 +177,20 @@ class WorldState(object):
         It assumes that robot ordering is from left to right.
         """
         self.robots = dict()
-        for key, val in zip(Zone.zone_order, robot_list):
-            self.robots[key] = val
+        robot_list.sort(key=lambda a: a.position.x)
+        for robot in robot_list:
+            self.robots[self.get_zone(robot.position)] = robot
 
         """
         Removed since there won't be 4 robots on pitch during milestone.
         """
-        """
-        Try to initialize self.robots from a list of robots.
-        If there are no zone boundaries set, it assumes that robot ordering is from left
-        to right. If there aren't 4 robots given, it should error out.
-
-        If zone boundaries are set, then it tries to allocate robots properly to their zones.
-        """
+        # """
+        # Try to initialize self.robots from a list of robots.
+        # If there are no zone boundaries set, it assumes that robot ordering is from left
+        # to right. If there aren't 4 robots given, it should error out.
+        #
+        # If zone boundaries are set, then it tries to allocate robots properly to their zones.
+        # """
         # if not self.zone_boundaries:
         #     if len(robot_list) != 4:
         #         raise TypeError("Provided robot list of length < 4, but no zone boundary map is found")
@@ -201,7 +212,7 @@ class WorldState(object):
         self.robots = robot_dict
 
     def get_robot(self, zone):
-        return self.robots[zone]
+        return self.robots.get(zone, None)
 
     def get_robots_list(self):
         return [self.robots[zone] for zone in Zone.zone_order if zone in self.robots]

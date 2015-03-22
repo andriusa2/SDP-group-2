@@ -98,6 +98,17 @@ class CalibrationGUI(object):
 
         min_color = self.calibration[self.color]['min']
         max_color = self.calibration[self.color]['max']
-        frame_mask = cv2.inRange(frame_hsv, min_color, max_color)
-
+        h_min, _, _ = min_color
+        h_max, _, _ = max_color
+        if h_max < h_min:
+            max_color[0] = 180
+            frame_mask = cv2.inRange(frame_hsv, min_color, max_color)
+            min_color[0] = 0
+            max_color[0] = h_max
+            frame_mask1 = cv2.inRange(frame_hsv, min_color, max_color)
+            frame_mask = cv2.bitwise_or(frame_mask1, frame_mask)
+        else:
+            frame_mask = cv2.inRange(frame_hsv, min_color, max_color)
+        min_color[0] = h_min
+        max_color[0] = h_max
         return frame_mask

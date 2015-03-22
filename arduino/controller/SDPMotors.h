@@ -1,10 +1,11 @@
+#include <stdint.h>
 // well... Might be more, but easiest to implement now
 #define MAX_ENGINES_BOARD 6
 
 //#define DEBUG
 
 // get these manually
-const uint16_t ENGINE_ACTIVATION[] = {125, 0, 0, 50, 105, 0};
+const uint16_t ENGINE_ACTIVATION[] = {80, 60, 0, 160, 90, 80};
 
 class MotorBoard {
 public:
@@ -15,6 +16,9 @@ public:
   void diagnostics(uint8_t motor_bitmask);
   void scan_motors();
   bool is_running(uint8_t id) { return (id >= 0 && id < MAX_ENGINES_BOARD) ? stop_timers[id] > 0 : false; }
+  bool all_stopped() { for(uint8_t i = 0; i < MAX_ENGINES_BOARD; i++) if (is_running(i)) return false; return true; }
+  static uint16_t get_max_lag(uint8_t mask[], uint8_t count);
+  static uint16_t get_adj_lag(uint8_t id, int16_t d);
 private:
   uint16_t stop_timers[MAX_ENGINES_BOARD];
   int16_t start_timers[MAX_ENGINES_BOARD];

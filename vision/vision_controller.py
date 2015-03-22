@@ -1,16 +1,12 @@
-from vision.vision import Vision, Camera, GUI
-from postprocessing.postprocessing import Postprocessing
-from preprocessing.preprocessing import Preprocessing
-import vision.tools as tools
-from cv2 import waitKey
-import cv2
 import warnings
 import time
 
-from communication.controller import Controller
-from communication.dummy_robot import DummyRobot
-from lib.strategy.planner import Planner
-from lib.world.world_state import WorldState, Zone, Robot, Ball
+from vision import Vision, Camera, GUI
+from postprocessing.postprocessing import Postprocessing
+from preprocessing.preprocessing import Preprocessing
+import tools as tools
+from cv2 import waitKey
+import cv2
 
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -21,7 +17,7 @@ class VisionController:
     Primary source of robot control. Ties vision and planning together.
     """
 
-    def __init__(self, pitch, color, our_side, video_port=0):
+    def __init__(self, pitch, color, our_side, video_port=0, debug=False):
         """
         Entry point for the SDP system.
 
@@ -30,6 +26,7 @@ class VisionController:
             [int] pitch                     0 - main pitch, 1 - secondary pitch
             [string] our_side               the side we're on - 'left' or 'right'
         """
+        self.debug = debug
         assert pitch in [0, 1]
         assert color in ['yellow', 'blue']
         assert our_side in ['left', 'right']
@@ -59,22 +56,7 @@ class VisionController:
 
         self.preprocessing = Preprocessing()
 
-        #---------------------- PLANNER ---------------------------
-        boundries = [47, 106, 165, 212]
-        self.world = WorldState()
-        actual_robot = Controller("")
-
-        # set the initial state
-        # self.update_world_state()
-        # set the boundries
-        self.world.set_zone_boundaries(boundries)
-
-        # this is our chosen strategy
-        self.planner = Planner(self.world, Zone.L_ATT, actual_robot, True)
-
-        #----------------------------------------------------------
-
-    def wow(self):
+    def send_model_to_planner(self, planning_function):
         """
         Ready your sword, here be dragons.
         """
@@ -98,8 +80,16 @@ class VisionController:
                 model_positions = self.postprocessing.analyze(model_positions)
 
                 #---------------------- PLANNER ---------------------------
-                self.update_world_state(model_positions)
-                self.planner.plan_attack()
+
+                if not self.debug:
+                    planner = planning_function(model_positions)
+                else:
+                    if c == 10:
+                        planner = planning_function(model_positions)
+
+                print_list = (planner.m.state_trace[len(planner.m.state_trace)-2],
+                              planner.m.state_trace[len(planner.m.state_trace)-1])
+                # print print_list
                 #----------------------------------------------------------
 
                 # Use 'y', 'b', 'r' to change color.
@@ -108,7 +98,7 @@ class VisionController:
                 fps = float(counter) / (time.clock() - timer)
                 # Draw vision content and actions
                 self.GUI.draw(
-                    frame, model_positions, actions, regular_positions, fps, 
+                    frame, model_positions, actions, regular_positions, fps, (print_list[0],print_list[1]),
                     our_color=self.color, our_side=self.side, key=c, preprocess=pre_options)
                 counter += 1
 
@@ -119,45 +109,3 @@ class VisionController:
             # Write the new calibrations to a file.
             tools.save_colors(self.pitch, self.calibration)
 
-    def update_world_state(self, model_positions):
-        """
-        Change the state of the world based on the current frame
-        :param model_positions: the values to change to world to
-        :return: none
-        """
-        scale_factor = 0.4
-
-        robot_models = [model_positions['our_defender'], model_positions['our_attacker'],
-                        model_positions['their_defender'], model_positions['their_attacker']]
-
-        robot1 = Robot().convert_from_model(robot_models[0], scale_factor)
-        robot2 = Robot().convert_from_model(robot_models[1], scale_factor)
-        robot3 = Robot().convert_from_model(robot_models[2], scale_factor)
-        robot4 = Robot().convert_from_model(robot_models[3], scale_factor)
-
-        robots = [robot1, robot2, robot3, robot4]
-
-        model_ball = model_positions['ball']
-        ball = Ball().convert_from_model(model_ball, scale_factor)
-
-        # change the states of the robots in the world
-        self.world.set_robots_list(robots)
-        # change the position of the ball
-        self.world.set_ball(ball)
-
-if __name__ == '__main__':
-    import argparse
-    parser = argparse.ArgumentParser()
-    parser.add_argument("pitch", help="[0] Main pitch, [1] Secondary pitch")
-    parser.add_argument("side", help="The side of our defender ['left', 'right'] allowed.")
-    parser.add_argument("color", help="The color of our team - ['yellow', 'blue'] allowed.")
-    parser.add_argument(
-        "-n", "--nocomms", help="Disables sending commands to the robot.", action="store_true")
-
-    args = parser.parse_args()
-    if args.nocomms:
-        c = VisionController(
-            pitch=int(args.pitch), color=args.color, our_side=args.side, comms=0).wow()
-    else:
-        c = VisionController(
-            pitch=int(args.pitch), color=args.color, our_side=args.side).wow()

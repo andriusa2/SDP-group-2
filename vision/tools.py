@@ -15,8 +15,8 @@ WHITE_HIGHER = np.array([36, 255, 255])
 BLUE_LOWER = np.array([95., 50., 50.])
 BLUE_HIGHER = np.array([110., 255., 255.])
 
-RED_LOWER = np.array([0, 240, 140])
-RED_HIGHER = np.array([9, 255, 255])
+RED_LOWER = np.array([0, 190, 140])
+RED_HIGHER = np.array([21, 255, 255])
 
 YELLOW_LOWER = np.array([9, 50, 50])
 YELLOW_HIGHER = np.array([11, 255, 255])

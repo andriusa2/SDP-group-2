@@ -1,12 +1,13 @@
+from multiprocessing import Process, Queue
+from collections import namedtuple
+
+import numpy as np
+
 import cv2
 import tools
 from tracker import BallTracker, RobotTracker
-from multiprocessing import Process, Queue
 from colors import BGR_COMMON
-from collections import namedtuple
-import numpy as np
 from findHSV import CalibrationGUI
-from lib.world.world_state import Robot, Ball
 
 
 TEAM_COLORS = set(['yellow', 'blue'])
@@ -44,7 +45,10 @@ class Vision:
 
         opponent_color = self._get_opponent_color(color)
 
-        if our_side == 'left':
+        # self.our_side = our_side; # if you do not wish to ignore the input
+        self.our_side = 'left'
+
+        if self.our_side == 'left':
             self.us = [
                 RobotTracker(
                     color=color, crop=zones[0], offset=zones[0][0], pitch=pitch,
@@ -132,7 +136,7 @@ class Vision:
         """
         plane_height = 250.0
         # Needs to be amended
-        robot_height = 0.0
+        robot_height = 20.0
         coefficient = robot_height/plane_height
 
         x = point[0]
@@ -278,7 +282,7 @@ class Camera(object):
 
 class GUI(object):
 
-    VISION = 'SUCH VISION'
+    VISION = 'VISION'
     BG_SUB = 'BG Subtract'
     NORMALIZE = 'Normalize  '
     COMMS = 'Communications on/off '
@@ -324,7 +328,7 @@ class GUI(object):
     def cast_binary(self, x):
         return x == 1
 
-    def draw(self, frame, model_positions, actions, regular_positions, fps,
+    def draw(self, frame, model_positions, actions, regular_positions, fps, dState,
              our_color, our_side, key=None, preprocess=None):
         """
         Draw information onto the GUI given positions from the vision and post processing.
@@ -366,7 +370,7 @@ class GUI(object):
         # Extend image downwards and draw states.
         blank = np.zeros_like(frame)[:200, :, :]
         frame_with_blank = np.vstack((frame, blank))
-        self.draw_states(frame_with_blank, (frame_width, frame_height))
+        self.draw_states(frame_with_blank, dState, (frame_width, frame_height))
 
         if model_positions and regular_positions:
             for key in ['ball', 'our_defender', 'our_attacker', 'their_defender', 'their_attacker']:
@@ -494,8 +498,16 @@ class GUI(object):
             end_point = (x + r * np.cos(angle), y - r * np.sin(angle))
             self.draw_line(frame, (start_point, end_point))
 
-    def draw_states(self, frame, frame_offset):
-        pass
+    def draw_states(self, frame, dState, frame_offset):
+        # pass
+        frame_width, frame_height = frame_offset
+        x_main = lambda zz: (frame_width/4)*zz
+        x_offset = 20
+        y_offset = frame_height+140
+
+        self.draw_text(frame, "Defender State:", x_main(2) + x_offset, y_offset, size=0.6)
+        self.draw_text(frame,"State:  " + dState[0], x_main(2) + x_offset, y_offset + 15, size=0.6)
+        self.draw_text(frame,"Action: " + dState[1], x_main(2)+x_offset, y_offset + 30, size=0.6)
 
     def draw_actions(self, frame, action, x, y):
         self.draw_text(

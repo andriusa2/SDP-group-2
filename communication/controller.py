@@ -1,150 +1,328 @@
-import datetime
 import serial
-
+from multiprocessing import Value, Process, Pipe
+import struct
+import itertools
+import time
+import atexit
 from lib.math.util import convert_angle, get_duration
+import numpy as np
+
+# polynomial approximating low angle durations
+angle_poly = np.poly1d([-0.1735, 0.279, 0])
+
+
+def send_msg(s, msg, timeout, retries, ack):
+    buff = ''
+    for i in range(retries):
+        s.write(msg)
+        s.flush()
+        start_time = time.time()
+        end_time = time.time()
+        while end_time - start_time < timeout:
+            r = s.readline()
+            buff += r
+            if r:
+                print 'Got msg "{0}" from upstream'.format(r)
+                if 'FAIL' in r:
+                    print 'Found failure condition in response, resending'
+                    break
+
+                if ack in buff:
+                    print 'Found ACK condition in response, accepting'
+                    break
+            end_time = time.time()
+        if ack in buff:
+            return True
+    else:
+        return False
+
+
+def ready_waiter(s, avail, timeout, retries=None):
+    if avail.value == 1:
+        return True
+    if not retries:
+        retries = 100  # big number till we give up on it
+    if send_msg(s, '\t\t', timeout, retries, 'READY'):
+        print 'Arduino seems to be ready'
+        avail.value = 1
+        return True
+    print 'Arduino not ready :/'
+    avail.value = 0
+    return False
+
+
+class MockSerial(object):
+    def __init__(self, *args, **kwargs):
+        self.buff = None
+
+    def flush(self):
+        pass
+
+    def write(self, msg):
+        self.buff = msg
+
+    def readline(self):
+        if not self.buff:
+            return ''
+        if self.buff.startswith('\t\t'):
+            return 'READY\n'
+        return 'ACK\n'
+
+
+def msg_sender(pipe, avail, port, rate, timeout, retries):
+    # establish serial connection
+    s = serial.Serial(port, rate, timeout=timeout)
+    # s = MockSerial(port, rate, timeout=timeout)
+    print 'Established connection, commencing initial wait for handshakes(5s)'
+    time.sleep(5)
+    print 'Connection should be up now, testing with ready'
+    if not ready_waiter(s, avail, timeout):
+        print 'Arduino not ready, what is going on??'
+        print 'waiting more'
+        time.sleep(10)
+        if not ready_waiter(s, avail, timeout):
+            raise Exception("Arduino down for good")
+    # we should be fine now
+    while True:
+        t, msg = pipe.recv()
+        if 'HEARTBEAT' in msg:
+            # special case, try to update avail value
+            ready_waiter(s, avail, timeout, retries=10)
+            continue
+        if 'TERMINATE' in msg:
+            print 'exitting...'
+            return
+        if time.time() - t > timeout * 4:
+            print 'Got msg {0} which is {1:.2f}s old, rejecting'.format(msg, time.time() - t)
+            continue
+        print 'Trying to send msg "{0}"'.format(msg)
+
+        if 'STOP' not in msg:
+            ready_waiter(s, avail, timeout, retries=2)
+            if avail.value == 0:
+                print "Can't send msg to arduino as it is not available, try again"
+                continue
+        avail.value = 0
+        if send_msg(s, msg, timeout, retries, 'ACK'):
+            print 'msg properly sent to arduino'
+            continue
 
 
 class Arduino(object):
     """ Basic class for Arduino communications. """
-    
-    def __init__(self, port='/dev/ttyUSB0', rate=115200, timeOut=1, comms=1, debug=False):
-        self.serial = None
-        self.comms = comms
+
+    def __init__(self, port='/dev/ttyUSB0', rate=115200, timeOut=0.4, comms=1, debug=False, is_dummy=False,
+                 ack_tries=4):
         self.port = port
         self.rate = rate
         self.timeout = timeOut
-        self.debug = debug
+        self.is_dummy = is_dummy
+        self.ack_tries = ack_tries
+        self.available = Value('i', 0)
+        self.serial_thread = None
+        self.pipe = None
         self.establish_connection()
 
     def establish_connection(self):
-        self.comms = 1
-        assert self.serial is None, "Serial connection is already established."
-        try:
-            self.serial = serial.Serial(self.port, self.rate, timeout=self.timeout)
-        except Exception:
-            print("No Arduino detected, dying!")
-            self.comms = 0
-            if not self.debug:
-                raise
+        pipe_in, pipe_out = Pipe()
+        self.serial_thread = Process(target=msg_sender, args=(
+        pipe_out, self.available, self.port, self.rate, self.timeout, self.ack_tries))
+        self.serial_thread.start()
+        atexit.register(self.destr)
+        self.pipe = pipe_in
 
-    def _write(self, string):
+    def _write(self, string, important=False):
+        # NB - the sender thread will try to check whether it can run it actually, so it should probably work
         print("Trying to run command: '{0}'".format(string))
-        if self.comms == 1:
-            self.serial.write(string)
-            self.serial.flush()
-            return
-            a = self.serial.readline()
-            while a:
-                print(a)
-                a = self.serial.readline()
-        elif not self.debug:
-            raise Exception("No comm link established, but trying to send command.")
-            
-            
+        string += '\n'
+        self.pipe.send((time.time(), string))
+
+    def is_available(self):
+        # if not available - query just in case
+        if self.available.value == 0:
+            self._write('HEARTBEAT')
+        return self.available.value != 0
+
+    def destr(self):
+        self.pipe.send('TERMINATE')
+        self.serial_thread.terminate()
+        self.serial_thread.join()
+
+
+def scale_list(scale, l):
+    return map(lambda a: scale * a, l)
+
+
 class Controller(Arduino):
     """ Implements an interface for Arduino device. """
-    
-    # TODO: get signs on turning right. Depends on wiring. :/
-    ENDL = '\n'  # at least the lib believes so
-    
+
     COMMANDS = {
-        'kick': 'KICK {power:.5}{term}',
-        'move': 'MOVE {left_power:.5} {right_power:.5} {left_duration} {right_duration}{term}',
-        'run_engine': 'RUN_ENGINE {engine_id} {power:.5} {duration}{term}',
-        'grab': 'GRAB {power:.5}{term}',
-        'stop': 'STOP{term}',
+        'kick': '{ts}K{0}{1}{parity}{te}',
+        'move_straight': '{ts}F{0}{1}{parity}{te}',
+        'move_left': '{ts}L{0}{1}{parity}{te}',
+        'move': '{ts}V{0}{1}{2}{3}{4}{5}{6}{7}{8}{te}',
+        'turn': '{ts}T{0}{1}{parity}{te}',
+        'run_engine': '{ts}R{0}{1}{2}{3}{te}',
+        'grab_open': '{ts}O{0}{1}{parity}{te}',
+        'grab_close': '{ts}C{0}{1}{parity}{te}',
+        'stop': '{ts}S{0}{1}{parity}{te}',
     }
 
     # NB not a real radius, just one that worked
-    RADIUS = 7.2
+    RADIUS = 5
     """ Radius of the robot, used to determine what distance should it cover when turning. """
-    
+    FWD = [1, 1, 1, 1]
+    LEFT = [-1, 1, 1, -1]
+    TURN = [1, 1, -1, -1]
     MAX_POWER = 1.
     """ Max speed of any engine. """
 
+    @staticmethod
+    def get_command(cmd, *params):
+        """
+        Fills cmd with *params converted to byte-length fields.
+        :param params: a list of parameters of form (value, struct.pack format).
+        """
+        bytes = []
+        for param in params:
+            try:
+                v, fmt = param
+            except TypeError:
+                print 'get_command got parameter {0}, assuming that this needs to be a short'.format(param)
+                v, fmt = param, 'h'
+            v = int(v)
+            # arduino is little endian!
+            bytes += list(struct.pack('<' + fmt, v))
+
+        def xor_bytes(a, b):
+            b = struct.unpack('B', b)[0]
+            return a ^ b
+
+        parity = reduce(xor_bytes, bytes, 0)
+        parity = chr(parity)
+        return cmd.format(*bytes, parity=parity, ts='\t', te='\t')
+
     def kick(self, power=None):
         if power is None:
-            power = self.MAX_POWER
-        self._write(self.COMMANDS['kick'].format(power=float(power), term=self.ENDL))
-        return 0.5
+            power = 1.0
+        power = int(abs(power) * 255.)
+        cmd = self.COMMANDS['kick']
+        cmd = self.get_command(cmd, (abs(power), 'B'), (0, 'B'))  # uchar
+        self._write(cmd)
+        return 0.4
 
-    def move(self, distance, power=None):
+    def move(self, x=None, y=None, direction=None, power=None):
+        """
+        Moves robot for a given distance on a given axis.
+        NB. currently doesn't support movements on both axes (i.e. one of x and y must be 0 or None)
+        :param x: distance to move in x axis (+x is towards robot's shooting direction)
+        :param y: distance to move in y axis (+y is 90' ccw from robot's shooting direction)
+        :param power: deprecated
+        :return: duration it will be blocked
+        """
+        print "attempting move ({0}, {1})".format(x, y)
+        x = None if -0.01 < x < 0.01 else x
+        y = None if -0.01 < y < 0.01 else y
+        print "clamp move ({0}, {1})".format(x, y)
+
         if power is not None:
             print "I don't support different powers, defaulting to 1"
+        try:
+            assert x or y, "You need to supply some distance"
+            assert not (x and y), "You can only supply distance in one axis"
+        except Exception as e:
+            print e
+            return 0
+
+        distance = x or y
         if distance < 0:
-            duration = get_duration(-distance, -1)
+            duration = -get_duration(-distance, 1)
         else:
             duration = get_duration(distance, 1)
-        assert 0 < duration < 6000, 'Something looks wrong in the distance calc'
-        return self.go(duration, 1)
+        try:
+            assert -6000 < duration < 6000, 'Something looks wrong in the distance calc'
+        except Exception as e:
+            print e
+            print "Calculated duration {duration}ms for distance {distance:.2f}".format(duration=duration,
+                                                                                        distance=distance)
+            return 0
+        if x:
+            cmd = self.COMMANDS['move_straight']
+        else:
+            cmd = self.COMMANDS['move_left']
+        cmd = self.get_command(cmd, (duration, 'h'))  # short
+        self._write(cmd)
+        return duration * 0.001 + 0.07
+
+    def go(self, duration):
+        cmd = self.get_command(self.COMMANDS['move_straight'], (duration, 'h'))
+        self._write(cmd)
+        return duration * 0.001 + 0.07
 
     def stop(self):
-        self._write(self.COMMANDS['stop'].format(term=self.ENDL))
+        cmd = self.get_command(self.COMMANDS['stop'], (ord('T'), 'B'), (ord('O'), 'B'))
+        self._write(cmd, important=True)
         return 0.01
 
     def turn(self, angle):
         """ Turns robot over 'angle' radians in place. """
+
         angle = convert_angle(angle)  # so it's in [-pi;pi] range
         # if angle is positive move clockwise, otw just inverse it
         power = self.MAX_POWER if angle >= 0 else -self.MAX_POWER
-        
+
         angle = abs(angle)
-        distance = angle * self.RADIUS
-        duration = get_duration(distance, abs(power))  # magic...
-        print('Trying to turn for {0}'.format(duration))
-        return self.complex_movement(
-            left_power=power,
-            right_power=-power,
-            left_duration=duration
-        )
+        if angle < 0.67:
+            duration = int(angle_poly(angle) * 1000)
+        else:
+            # pi/2 -> 200, pi/4 -> 110
+            # ax+b=y, api/2+b = 200, api/4+b=150, b=20, a=360/pi
+            duration = int(360.0 / 3.14 * angle + 20.0)
+        duration = -duration if power < 0 else duration
+        cmd = self.COMMANDS['turn']
+        cmd = self.get_command(cmd, (duration, 'h'))  # short
+        self._write(cmd)
+        return duration * 0.001 + 0.07
 
-    def go(self, duration, power=None):
-        """ Makes robot go in a straight line for a given duration. """
-        if power is None:
-            power = self.MAX_POWER
-        return self.complex_movement(
-            left_power=min(power, self.MAX_POWER),
-            right_power=power,  # might need this if the second motor is "inversed"
-            left_duration=duration
-        )
-    
-    def complex_movement(self, left_power, left_duration, right_power=None, right_duration=None):
-        """ Moves robot with given parameters, if "right" aren't given, will copy over "left". """
-        def fix_pair(power, duration):
-            """ Helper for making sure everything is nice and in correct units. """
-            # positive durations
-            if duration < 0:
-                power *= -1.0
-                duration *= -1.0
-            power = min(max(power, -self.MAX_POWER), self.MAX_POWER)
-            return float(power), int(duration)
-            
-        assert (left_power is not None) and (left_duration is not None)
-        
-        if right_power is None:
-            right_power = left_power
-        if right_duration is None:
-            right_duration = left_duration
+    def special_move(self, lf, lb, rf, rb):
+        cmd = self.COMMANDS['move']
+        cmd = self.get_command(cmd, *zip((lf, lb, rf, rb), itertools.repeat('h')))
+        self._write(cmd)
+        return max(map(abs, [lf, lb, rf, rb])) * 0.001 + 0.1  # typically motors lag for that much
 
-        left_power, left_duration = fix_pair(left_power, left_duration)
-        right_power, right_duration = fix_pair(right_power, right_duration)
-        assert 0 <= left_duration <= 6000, "Wrong left duration"
-        assert 0 <= right_duration <= 6000, "Wrong right duration"
-        command = self.COMMANDS['move'].format(term=self.ENDL, **locals())
-        self._write(command)
-        wait_time = float(max(left_duration, right_duration)) / 1000.0 + 1
-        print(wait_time)
-        return wait_time
-        
     def run_engine(self, id, power, duration):
-        assert (-1.0 <= power <= 1.0) and (0 <= id <= 5)
-        command = self.COMMANDS['run_engine'].format(engine_id=int(id), power=float(power), duration=int(duration), term=self.ENDL)
-        self._write(command)
+        assert (-1.0 <= power <= 1.0) and (0 <= id <= 5) and abs(duration) <= 30000
+        power = int(power * 127)
+        cmd = self.COMMANDS['run_engine']
+        cmd = self.get_command(cmd, (id, 'B'), (power, 'b'), (duration, 'h'))
+        self._write(cmd)
         return float(duration) / 1000.0
 
     def grab(self, power=None):
         """ power is negative atm """
         if power is None:
-            power = -self.MAX_POWER
-        self._write(self.COMMANDS['grab'].format(power=float(power), term=self.ENDL))
-        return 0.2
+            power = 1.0
+        power = int(abs(power) * 255.0)
+        cmd = self.COMMANDS['grab_close']
+        cmd = self.get_command(cmd, (power, 'B'), (0, 'B'))
+        self._write(cmd)
+        return 0.3
+
+    def open_grabber(self, power=None):
+        """ power is negative atm """
+        if power is None:
+            power = 1.0
+        power = int(abs(power) * 255.0)
+        cmd = self.COMMANDS['grab_open']
+        cmd = self.get_command(cmd, (power, 'B'), (0, 'B'))
+        self._write(cmd)
+        return 0.3
+
+    def close_grabber(self, power=None):
+        if power is None:
+            power = self.MAX_POWER
+        power = int(abs(power) * 255.0)
+        cmd = self.COMMANDS['grab_close']
+        cmd = self.get_command(cmd, (power, 'B'), (0, 'B'))
+        self._write(cmd)
+        return 0.3
