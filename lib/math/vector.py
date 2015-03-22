@@ -14,7 +14,7 @@ class Vector2D(object):
         return self.x, self.y
 
     def __eq__(self, other):
-        return (self.x == other.x) & (self.y == other.y)
+        return np.allclose(self.x, other.x) & np.allclose(self.y, other.y)
 
     @staticmethod
     def to_vector2d(args):
@@ -74,6 +74,21 @@ class Vector2D(object):
 
     def to_array(self):
         return [self.x, self.y]
+
+    @staticmethod
+    def make_rotation_transformation(angle, origin=(0, 0)):
+        cos_theta, sin_theta = cos(angle), sin(angle)
+        x0, y0 = origin
+
+        def xform(point):
+            x, y = point.x - x0, point.y - y0
+            return Vector2D(x * cos_theta - y * sin_theta + x0,
+                            x * sin_theta + y * cos_theta + y0)
+        return xform
+
+    def rotate(self, angle, anchor=(0, 0)):
+        xform = self.make_rotation_transformation(angle, anchor)
+        return xform(self)
 
     def __repr__(self):
         return "<{0};{1}>".format(self.x, self.y)

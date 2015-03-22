@@ -213,21 +213,34 @@ class Strategy(object):
 
     @staticmethod
     def get_local_move(to_move, direction):
-        # For a vector, all that you have to do is rotate it by the angle difference between
-        # your local and global coordinate systems. You can calculate this by taking the
-        # inverse cosine of the dot product of your two x-axes
-        angle = np.arccos(Vector2D(direction.x, direction.y).dot(Vector2D(1, 0)))
+        """
+        For a vector, all that you have to do is rotate it by the angle difference between
+        your local and global coordinate systems. You can calculate this by taking the
+        inverse cosine of the dot product of your two x-axes
+        """
+
+        # angle = -np.arccos(Vector2D(1, 0).dot(Vector2D(direction.x, direction.y)))
+        global_axis = Vector2D(1, 0)
+        angle = np.arctan2(direction.x * global_axis.y - direction.y * global_axis.x,
+                           direction.x * global_axis.x + direction.y * global_axis.y)
 
         print "rotating vector by: {0} rads".format(angle)
 
-        rotated_v = Vector2D(to_move.x * np.cos(angle) - to_move.y * np.sin(angle), to_move.x * np.sin(angle) + to_move.y * np.cos(angle))
+        rotated_v = to_move.rotate(angle)
         return rotated_v
 
     @staticmethod
     def get_global_move(to_move, direction):
-        angle = -np.arccos(Vector2D(1, 0).dot(Vector2D(direction.x, direction.y)))
+        """
+        Does the oposite of get_local_move
+        """
 
-        rotated_v = Vector2D(to_move.x * np.cos(angle) - to_move.y * np.sin(angle), to_move.x * np.sin(angle) + to_move.y * np.cos(angle))
+        # angle = -np.arccos(Vector2D(1, 0).dot(Vector2D(direction.x, direction.y)))
+        global_axis = Vector2D(1, 0)
+        angle = -np.arctan2(direction.x * global_axis.y - direction.y * global_axis.x,
+                            direction.x * global_axis.x + direction.y * global_axis.y)
+
+        rotated_v = to_move.rotate(angle)
         return rotated_v
 
     def ball_going_quickly(self):
