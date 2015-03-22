@@ -1,112 +1,128 @@
-import warnings
-import time
-
-from vision import Vision, Camera, GUI
-from postprocessing.postprocessing import Postprocessing
-from preprocessing.preprocessing import Preprocessing
-import tools as tools
-from cv2 import waitKey
+import itertools
 import cv2
+import time
+from vision_trackers import plateTracker, ballTracker, TrackingException
+from vision_filters import CropArena, CropZone
+from vision_state import VisionState
 
-
-warnings.filterwarnings("ignore", category=DeprecationWarning)
-
-
-class VisionController:
-    """
-    Primary source of robot control. Ties vision and planning together.
-    """
-
-    def __init__(self, pitch, color, our_side, video_port=0, debug=False):
-        """
-        Entry point for the SDP system.
-
-        Params:
-            [int] video_port                port number for the camera
-            [int] pitch                     0 - main pitch, 1 - secondary pitch
-            [string] our_side               the side we're on - 'left' or 'right'
-        """
+class VisionController(object):
+    def __init__(self, video_port=None, draw_debug=None, debug=False):
         self.debug = debug
-        assert pitch in [0, 1]
-        assert color in ['yellow', 'blue']
-        assert our_side in ['left', 'right']
-
-        self.pitch = pitch
-
-        # Set up camera for frames
-        self.camera = Camera(port=video_port, pitch=self.pitch)
-        frame = self.camera.get_frame()
-        center_point = self.camera.get_adjusted_center(frame)
-
-        # Set up vision
-        self.calibration = tools.get_colors(pitch)
-        self.vision = Vision(
-            pitch=pitch, color=color, our_side=our_side,
-            frame_shape=frame.shape, frame_center=center_point,
-            calibration=self.calibration)
-
-        # Set up postprocessing for vision
-        self.postprocessing = Postprocessing()
-
-        # Set up GUI
-        self.GUI = GUI(calibration=self.calibration, arduino=None, pitch=self.pitch)
-
-        self.color = color
-        self.side = our_side
-
-        self.preprocessing = Preprocessing()
-
-    def send_model_to_planner(self, planning_function):
-        """
-        Ready your sword, here be dragons.
-        """
-        counter = 1L
-        timer = time.clock()
+        self.robots = {
+            0: plateTracker(0),
+            1: plateTracker(1),
+            2: plateTracker(2),
+            3: plateTracker(3),
+        }
+        # an iterable with any of 'pos', 'dir', 'vel'
+        self.draw_debug = tuple() if not draw_debug else draw_debug
+        self.try_these = [0, 1, 2, 3]
+        self.zone_in_hits = {}
+        self.ball = ballTracker
+        
+        self.crop_filters = [CropArena()]
+        self.zone_filter = CropZone(crop_filter=self.crop_filters[0])
+        self.capture = cv2.VideoCapture(video_port) if video_port is not None else None
+        self.demo = itertools.cycle([
+            cv2.imread("SideArena\sample5\{0:08}.png".format(i), 1) for i in range(1, 11)
+        ]) if video_port is None else []
+        _ = self.get_frame()
+        frame = self.get_frame()
+        for f in self.crop_filters:
+            f.setup(frame)
+            f.dump_to_file()
+            frame = f.filter(frame)
+        self.zone_filter.setup(frame)
+        self.zone_filter.dump_to_file()
+        
+        
+    def get_frame(self):
+        if self.capture:
+            return self.capture.read()[1]
+        else:
+            # implement nicer file loading
+            time.sleep(1.0/10.0)
+            return next(self.demo)
+    
+    def analyse_frame(self, previous_state=None):
+        frame = self.get_frame()
+        frame_time = time.time()
+        for c in self.crop_filters:
+            frame = c.filter(frame)
+        arenas = self.zone_filter.filter(frame)
+        
+        if not previous_state:
+            previous_state = VisionState(self.zone_filter)
+        # helps with ball recognition
+        frame = cv2.GaussianBlur(frame,(3,3),0)
+        frame_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        arenas_hsv = [(cv2.cvtColor(ar, cv2.COLOR_BGR2HSV), p) for ar, p in arenas]
+        for i, (a_hsv, pos) in enumerate(arenas_hsv):
+            #print "Tracking robot in {0} zone".format(i)
+            if i not in self.try_these:
+                #print "This zone is ignored"
+                continue
+            if self.zone_in_hits.get(i, 0):
+                self.zone_in_hits[i] -= 1
+                continue
+            try:
+                center, dot, tag = self.robots[i].find(
+                    a_hsv,
+                    origin=pos,
+                    previous_center=previous_state.get_robot(i).get_position()
+                )
+            except TrackingException as e:
+                print "{0} : Error in tracking:".format(i), e
+                self.zone_in_hits[i] = 24
+                continue
+            previous_state.add_robot_position(i, frame_time, center)
+            dx, dy = tag
+            dx -= dot[0]
+            dy -= dot[1]
+            previous_state.add_robot_direction(i, frame_time, (dx, dy))
         try:
-            c = True
-            while c != 27:  # the ESC key
-
-                frame = self.camera.get_frame()
-                pre_options = self.preprocessing.options
-                # Apply preprocessing methods toggled in the UI
-                preprocessed = self.preprocessing.run(frame, pre_options)
-                frame = preprocessed['frame']
-                if 'background_sub' in preprocessed:
-                    cv2.imshow('bg sub', preprocessed['background_sub'])
-                # Find object positions
-                # model_positions have their y coordinate inverted
-
-                model_positions, regular_positions = self.vision.locate(frame)
-                model_positions = self.postprocessing.analyze(model_positions)
-
-                #---------------------- PLANNER ---------------------------
-                # planner = planning_function(model_positions)
-
-                if not self.debug:
-                    planner = planning_function(model_positions)
-                else:
-                    if c == 10:
-                        planner = planning_function(model_positions)
-
-                # print_list = (planner.m.state_trace[len(planner.m.state_trace)-2],
-                              # planner.m.state_trace[len(planner.m.state_trace)-1])
-                # print print_list
-                #----------------------------------------------------------
-
-                # Use 'y', 'b', 'r' to change color.
-                c = waitKey(2) & 0xFF
-                actions = []
-                fps = float(counter) / (time.clock() - timer)
-                # Draw vision content and actions
-                self.GUI.draw(
-                    frame, model_positions, actions, regular_positions, fps, ('print_list[0],print_list[1]'),
-                    our_color=self.color, our_side=self.side, key=c, preprocess=pre_options)
-                counter += 1
-
-        except:
-            raise
-
-        finally:
-            # Write the new calibrations to a file.
-            tools.save_colors(self.pitch, self.calibration)
-
+            (x, y), r = self.ball.find(frame_hsv, previous_center=previous_state.get_ball().get_position())
+        except TrackingException as e:
+            print "Error in tracking:", e
+        else:
+            previous_state.add_ball_position(frame_time, (x, y))
+        
+        self.draw_frame_details(frame, previous_state)
+        return previous_state
+        
+    def draw_frame_details(self, frame, state):
+        toint = lambda a: tuple(map(int, a))
+        for i in self.robots.keys():
+            pos = state.get_robot(i).get_position()
+            dir = state.get_robot(i).get_direction()
+            vel = state.get_robot(i).get_velocity()
+            if pos and 'pos' in self.draw_debug:
+                # position
+                cv2.circle(frame, toint(pos), 2, (0,255,0),-1)
+            if dir and 'dir' in self.draw_debug:
+                vx, vy = dir
+                vx *= 3
+                vy *= 3
+                vx += pos[0]
+                vy += pos[1]
+                cv2.line(frame, toint(pos), toint((vx, vy)), (0,255,0),2)
+            if vel and 'vel' in self.draw_debug:
+                vx, vy = vel
+                vx += pos[0]
+                vy += pos[1]
+                cv2.line(frame, toint(pos), toint((vx, vy)), (255,255,0),1)
+        pos = state.get_ball().get_position(smoothing=False)
+        vel = state.get_ball().get_velocity()
+        if pos:
+            # position
+            cv2.circle(frame, toint(pos), 2, (0,255,0),-1)
+        
+        if vel:
+            vx, vy = vel
+            vx += pos[0]
+            vy += pos[1]
+            cv2.line(frame, toint(pos), toint((vx, vy)), (255,255,0),1)
+        cv2.imshow("view", frame)
+        k = cv2.waitKey(1) & 0xFF
+        if k == ord('q'):
+            exit(0)

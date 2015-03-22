@@ -22,8 +22,10 @@ class Strategy(object):
 
         self.ROBOT_WIDTH = 4
         self.zone_centre_width = 8
+
         self.square_angle_threshold = 0.005
         self.zone_centre_offset = 0.5  # a percentage of the zone width
+
 
         # initialise state attributes
         self.robot = None
