@@ -9,7 +9,12 @@ class Controller(object):
 
     def __init__(self, pitch, color, our_side, debug):
 
-        self.debug = debug
+        if debug == 'True':
+            debug = True
+        else:
+            debug = False
+
+        print debug
         boundaries = [47, 106, 165, 212]
         self.world = WorldState()
         self.actual_robot = CommController("/dev/ttyACM0", ack_tries=10)
@@ -21,7 +26,7 @@ class Controller(object):
 
         # this is our chosen strategy
         """R_ATT, L_ATT, R_DEF, L_DEF"""
-        self.vision = VisionController(pitch, color, our_side, debug)
+        self.vision = VisionController(pitch, color, our_side, 0, debug)
 
         self.planner = None
 
@@ -84,5 +89,5 @@ if __name__ == '__main__':
     parser.add_argument("debug", help="Should we run commands manually")
 
     args = parser.parse_args()
-    c = Controller(pitch=int(args.pitch), color=args.color, our_side=args.side, debug=bool(args.debug))
+    c = Controller(pitch=int(args.pitch), color=args.color, our_side=args.side, debug=args.debug)
     c.main()

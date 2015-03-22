@@ -36,7 +36,7 @@ class Actions(object):
         if angle_to_turn > np.pi / 4:
             angle_to_turn -= np.pi / 2
 
-        to_turn = -angle_to_turn
+        to_turn = angle_to_turn
         info = "turning {0} degrees)".format(rad_to_deg(to_turn))
         return self.turn_robot(to_turn,), info
 
