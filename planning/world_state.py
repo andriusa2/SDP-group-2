@@ -119,7 +119,7 @@ class WorldState(object):
     Should be filled by vision component of our system.
     """
 
-    def __init__(self, robots=None, ball=None, zone_boundaries=None, left_goal=(0, 55), right_goal=(212, 55)):
+    def __init__(self, robots=None, ball=None, zone_boundaries=None, left_goal=(0, 60), right_goal=(212, 60)):
         """
         :param robots: A list of robots (if zone_boundaries is supplied) or
           a dictionary mapping zone to robot.
