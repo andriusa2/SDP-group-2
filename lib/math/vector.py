@@ -14,7 +14,7 @@ class Vector2D(object):
         return self.x, self.y
 
     def __eq__(self, other):
-        return (self.x == other.x) & (self.y == other.y)
+        return np.allclose(self.x, other.x) & np.allclose(self.y, other.y)
 
     @staticmethod
     def to_vector2d(args):
@@ -74,6 +74,35 @@ class Vector2D(object):
 
     def to_array(self):
         return [self.x, self.y]
+
+    @staticmethod
+    def make_rotation_transformation(angle, origin=(0, 0)):
+        cos_theta, sin_theta = cos(angle), sin(angle)
+        x0, y0 = origin
+
+        def xform(point):
+            x, y = point.x - x0, point.y - y0
+            return Vector2D(x * cos_theta - y * sin_theta + x0,
+                            x * sin_theta + y * cos_theta + y0)
+        return xform
+
+    def rotate(self, angle, anchor=(0, 0)):
+        xform = self.make_rotation_transformation(angle, anchor)
+        return xform(self)
+
+    @staticmethod
+    def axis_perp_dot_product(direction):
+        """
+        Used the find the angle between 2 vectors
+        Find the vector perpendicular to one of the vectors,
+        and then find the dot product with the other vector.
+        :return:
+        """
+        u_direction = direction.unit_vector()
+        global_axis = Vector2D(1, 0)
+        angle = np.arctan2(u_direction.x * global_axis.y - u_direction.y * global_axis.x,
+                           u_direction.x * global_axis.x + u_direction.y * global_axis.y)
+        return angle
 
     def __repr__(self):
         return "<{0};{1}>".format(self.x, self.y)

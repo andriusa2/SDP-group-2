@@ -286,10 +286,35 @@ class BlockTest(BaseTest):
         self.choose_planner("left")
         self.planner.fetch_world_state()
 
-    def test_global_move(self):
+    def test_global_local_facing_north(self):
         direction = Vector2D(0, 1)
-        to_move = Vector2D(5, 4)
+        to_move = Vector2D(4, 2)
         local_move = self.planner.get_local_move(to_move, direction)
+        self.assertEquals(local_move, Vector2D(2, -4))
+        global_move = self.planner.get_global_move(local_move, direction)
+        self.assertEquals(global_move, to_move)
+
+    def test_global_local_facing_east(self):
+        direction = Vector2D(1, 0)
+        to_move = Vector2D(4, 2)
+        local_move = self.planner.get_local_move(to_move, direction)
+        self.assertEquals(local_move, Vector2D(4, 2))
+        global_move = self.planner.get_global_move(local_move, direction)
+        self.assertEquals(global_move, to_move)
+
+    def test_global_local_facing_south(self):
+        direction = Vector2D(0, -1)
+        to_move = Vector2D(4, 2)
+        local_move = self.planner.get_local_move(to_move, direction)
+        self.assertEquals(local_move, Vector2D(-2, 4))
+        global_move = self.planner.get_global_move(local_move, direction)
+        self.assertEquals(global_move, to_move)
+
+    def test_global_local_facing_west(self):
+        direction = Vector2D(-1, 0)
+        to_move = Vector2D(4, 2)
+        local_move = self.planner.get_local_move(to_move, direction)
+        self.assertEquals(local_move, Vector2D(-4, -2))
         global_move = self.planner.get_global_move(local_move, direction)
         self.assertEquals(global_move, to_move)
 
