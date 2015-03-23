@@ -199,7 +199,7 @@ class Strategy(object):
 
     def get_centre_point(self):
         # returns point (int, int)  an (x,y)
-        return (self.get_zone_centre(), self.get_zone_centre_y())
+        return (self.get_my_zone_centre(), self.get_zone_centre_y())
 
 
     def is_ball_in_friend_zone(self):
