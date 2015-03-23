@@ -506,11 +506,44 @@ class PassToZoneTest(BaseTest):
 class BouncePassTest(BaseTest):
 
     def test_move_and_turn(self):
-        self.world_state = self.put_robots_and_ball((5, 50), [(15.0, 50), (25, 50), (35, 0)], my_direction=(0, 1),
-                                                    ball_pos=(7, 50), robot_num=0)
+        #print "Move and Turn Start"
+        self.world_state = self.put_robots_and_ball((1, 10), [(15.0, 50), (25, 50), (35, 0)], my_direction=(0, 1),
+                                                    ball_pos=(1, 10), robot_num=0)
         self.choose_planner("left")
+        self.planner.fetch_world_state()
         bounce_point = self.planner.pass_ball.select_bounce_point()
         self.assertFalse(self.planner.is_robot_facing_point(bounce_point))
+        self.assertFalse(self.planner.is_robot_in_centre())
+        self.assertTrue(self.planner.is_at_square_angles())
+        self.assertFalse(self.planner.world.is_grabber_down)
+        self.planner.dist_kicker_robot = 0
+        self.planner.plan()
+        self.assertEquals(self.last_action(), "MOVE TO CENTER")
+        self.assertTrue(self.planner.is_robot_in_centre())
+
+    def test_turn_to_point(self):
+        self.world_state = self.put_robots_and_ball((7.5, 55), [(15.0, 50), (25, 50), (35, 0)], my_direction=(0, 1),
+                                                    ball_pos=(7.5, 55), robot_num=0)
+        self.choose_planner("left")
+        self.planner.fetch_world_state()
+        self.planner.dist_kicker_robot = 0
+        bounce_spot = self.planner.pass_ball.select_bounce_point()
+        self.assertFalse(self.planner.is_robot_facing_point(bounce_spot))
+        self.planner.plan()
+        self.assertTrue(self.planner.is_robot_facing_point(bounce_spot))
+        print self.last_action()
+
+    def test_pass_ball(self):
+        self.world_state = self.put_robots_and_ball((7.5, 55), [(15.0, 50), (25, 50), (35, 0)], my_direction=(10, 55),
+                                                    ball_pos=(7.5, 55), robot_num=0)
+        self.choose_planner("left")
+        self.planner.fetch_world_state()
+        self.planner.dist_kicker_robot = 0
+        bounce_point = self.planner.pass_ball.select_bounce_point()
+        self.assertTrue(self.planner.is_robot_facing_point(bounce_point))
+        self.planner.plan()
+        #self.planner.plan()
+        self.assertEquals(self.last_action(), "PASS BALL")
 
 
 """class PrettyPrintTest(BaseTest):
