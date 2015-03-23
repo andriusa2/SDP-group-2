@@ -26,6 +26,7 @@ class Strategy(object):
 
         self.square_angle_threshold = 0.005
         self.zone_centre_offset = 0.5  # a percentage of the zone width
+        self.action_dampening = 0.9
 
         # initialise state attributes
         self.robot = None

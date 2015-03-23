@@ -52,7 +52,7 @@ class Actions(object):
         return self.turn_robot(to_turn,), info
 
     def turn_robot(self, to_turn):
-        return self.strategy.actual_robot.turn(to_turn)
+        return self.strategy.actual_robot.turn(to_turn * self.strategy.action_dampening)
 
     def intercept_ball(self):
         s = self.strategy
@@ -71,7 +71,7 @@ class Actions(object):
         Move the robot forward in a straight line to the ball
         :return: duration that the motors are on
         """
-        dist_to_ball = self.strategy.distance_from_kicker_to_ball() * 0.8  # only move 90%
+        dist_to_ball = self.strategy.distance_from_kicker_to_ball()
         info = "moving {0} cm".format(dist_to_ball)
         return self.move_robot(dist_to_ball, None, info)
 
@@ -98,6 +98,8 @@ class Actions(object):
         return self.move_robot(to_move.x, to_move.y, info, self.strategy.robot.direction)
 
     def move_robot(self, x, y, info, direction=None):
+        x *= self.strategy.action_dampening if x is not None else x
+        y *= self.strategy.action_dampening if y is not None else y
         return self.strategy.actual_robot.move(x, y, direction), info
 
     def shoot(self):
