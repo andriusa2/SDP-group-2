@@ -66,6 +66,11 @@ class Actions(object):
                                                                  vect_to_point.y)
         return s.actual_robot.move(to_move.x, to_move.y, s.robot.direction), info
 
+    def move_robot_to_point(self, point):
+        (x,y) = point
+        dist_to_point = self.strategy.distance_from_robot_to_point(x,y) * 0.8
+        return self.strategy.actual_robot.move(dist_to_point)
+
     def move_robot_to_ball(self):
         """
         Move the robot forward in a straight line to the ball
