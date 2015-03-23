@@ -88,7 +88,7 @@ class Strategy(object):
         return self.robot.can_see(point=point, beam_width=beam_width)
 
     def is_robot_in_centre(self):
-        zone_centre = self.get_zone_centre()
+        zone_centre = self.get_my_zone_centre()
         centre_bound_l = zone_centre - (self.zone_centre_width/2)
         centre_bound_r = zone_centre + (self.zone_centre_width/2)
         return centre_bound_l < self.robot.position.x < centre_bound_r
@@ -102,16 +102,19 @@ class Strategy(object):
     -------------------------------------------------------
     """
 
-    def get_zone_centre(self):
+    def get_my_zone_centre(self):
         my_zone = self.world.get_zone(self.robot.position)
+        return self.get_zone_centre(my_zone)
+
+    def get_zone_centre(self, zone):
         zone_edges = [0] + self.world.zone_boundaries
-        edge_L = zone_edges[my_zone]
-        edge_R = zone_edges[my_zone+1]
+        edge_L = zone_edges[zone]
+        edge_R = zone_edges[zone+1]
         zone_width = edge_R - edge_L
         zone_centre = edge_L + zone_width/2.0
 
         # move the centre closer to the pitch centre
-        if my_zone >= 2:
+        if zone >= 2:
             zone_centre -= (self.zone_centre_offset * (zone_width/2))
         else:
             zone_centre += (self.zone_centre_offset * (zone_width/2))

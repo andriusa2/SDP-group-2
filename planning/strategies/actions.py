@@ -76,7 +76,7 @@ class Actions(object):
 
     def move_to_centre(self):
         robot_y = self.strategy.robot.position.y
-        centre_x = self.strategy.get_zone_centre()
+        centre_x = self.strategy.get_my_zone_centre()
         vect_to_point = self.strategy.vector_from_robot_to_point(centre_x, robot_y)
 
         # multiply with the robots direction
