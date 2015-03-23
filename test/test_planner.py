@@ -533,8 +533,8 @@ class BouncePassTest(BaseTest):
         self.assertTrue(self.planner.is_robot_facing_point(bounce_spot))
         print self.last_action()
 
-    def test_pass_ball(self):
-        self.world_state = self.put_robots_and_ball((7.5, 55), [(15.0, 50), (25, 50), (35, 0)], my_direction=(10, 55),
+    def test_pass_ball_down(self):
+        self.world_state = self.put_robots_and_ball((7.5, 55), [(15.0, 60), (25, 50), (35, 0)], my_direction=(10, -55),
                                                     ball_pos=(7.5, 55), robot_num=0)
         self.choose_planner("left")
         self.planner.fetch_world_state()
@@ -545,6 +545,17 @@ class BouncePassTest(BaseTest):
         #self.planner.plan()
         self.assertEquals(self.last_action(), "PASS BALL")
 
+    def test_pass_ball_up(self):
+        self.world_state = self.put_robots_and_ball((7.5, 55), [(15.0, 50), (25, 50), (35, 0)], my_direction=(10, 55),
+                                                    ball_pos=(7.5, 55), robot_num=0)
+        self.choose_planner("left")
+        self.planner.fetch_world_state()
+        self.planner.dist_kicker_robot = 0
+        bounce_point = self.planner.pass_ball.select_bounce_point()
+        self.assertTrue(self.planner.is_robot_facing_point(bounce_point))
+        self.planner.plan()
+        #self.planner.plan()
+        self.assertEquals(self.last_action(), "PASS BALL")
 
 """class PrettyPrintTest(BaseTest):
     state_trace = ["a", "b", "c", "d", "e"]
