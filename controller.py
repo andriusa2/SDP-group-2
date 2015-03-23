@@ -2,12 +2,21 @@ from planning.planner import Planner
 from planning.world_state import WorldState, Zone, Robot, Ball
 from vision.vision_controller import VisionController
 from communication import Controller as CommController
+import cv2
 __author__ = "Sam Davies"
 
 
 class Controller(object):
 
-    def __init__(self):
+    def __init__(self, debug):
+
+        if debug == 'True':
+            debug = True
+        else:
+            debug = False
+
+        self.debug = debug
+        print debug
 
         # boundaries = [47, 106, 165, 212]
         self.world = WorldState()
@@ -20,7 +29,7 @@ class Controller(object):
 
         # this is our chosen strategy
         """R_ATT, L_ATT, R_DEF, L_DEF"""
-        self.vision = VisionController(video_port=0, draw_debug=('pos', 'vel', 'dir'))
+        self.vision = VisionController(video_port=0, draw_debug=('pos', 'vel', 'dir'), debug=debug)
 
         # set the boundaries
         points = [x for (x, y) in self.vision.zone_filter.points]
@@ -43,7 +52,8 @@ class Controller(object):
         while True:
             state = self.vision.analyse_frame(previous_state=state)
 
-            self.update_world_state(state)
+            key = cv2.waitKey(1) & 0xFF
+            self.update_world_state(state, self.debug, key)
 
     def fetch_our_zone(self, zone_num):
         """
@@ -52,7 +62,7 @@ class Controller(object):
         """
         assert zone_num in [1, 2, 3, 4]
 
-    def update_world_state(self, state):
+    def update_world_state(self, state, debug, key):
         """
         Change the state of the world based on the current frame
         :param model_positions: the values to change to world to
@@ -89,10 +99,19 @@ class Controller(object):
         # self.planner.plan_defence()
 
         if not self.planner:
-            self.planner = Planner(self.world, Zone.L_DEF, self.actual_robot, False)
-        self.planner.plan()
+            self.planner = Planner(self.world, Zone.R_DEF, self.actual_robot, False)
+
+        if not debug:
+                    self.planner.plan()
+        else:
+            if key == ord('q'):
+                self.planner.plan()
 
         return self.planner
 
 if __name__ == '__main__':
-    Controller().main()
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("debug", help="Should we run commands manually")
+    args = parser.parse_args()
+    Controller(debug=args.debug).main()

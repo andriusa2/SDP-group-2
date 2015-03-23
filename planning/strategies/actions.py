@@ -74,15 +74,25 @@ class Actions(object):
         dist_to_ball = self.strategy.distance_from_kicker_to_ball() * 0.8  # only move 90%
         return self.strategy.actual_robot.move(dist_to_ball), "moving {0} cm".format(dist_to_ball)
 
+
     def move_to_centre(self):
         robot_y = self.strategy.robot.position.y
-        centre_x = self.strategy.get_zone_centre()
+        centre_x = self.strategy.get_my_zone_centre()
         vect_to_point = self.strategy.vector_from_robot_to_point(centre_x, robot_y)
 
         # multiply with the robots direction
         to_move = self.strategy.get_local_move(vect_to_point, self.strategy.robot.direction)
 
         info = "moving robot ({0}, {1}) cm to ({2}, {3})".format(to_move.x, to_move.y, centre_x, robot_y)
+        return self.strategy.actual_robot.move(to_move.x, to_move.y, self.strategy.robot.direction), info
+
+    def move_to_zone_centre(self):
+        centre_x = self.strategy.get_my_zone_centre()
+        vect_to_point = self.strategy.vector_from_robot_to_point(centre_x, 55)
+
+        to_move = self.strategy.get_local_move(vect_to_point, self.strategy.robot.direction)
+
+        info = "moving robot {0} cm to ({1} ,55)".format(to_move.x, to_move.y, centre_x)
         return self.strategy.actual_robot.move(to_move.x, to_move.y, self.strategy.robot.direction), info
 
     def shoot(self):
@@ -108,4 +118,13 @@ class Actions(object):
         """
         self.strategy.world.is_grabber_down = True
         return self.strategy.actual_robot.grab(), "Closing grabber"
+
+    def turn_to_bounce_point(self):
+        bounce_point = self.strategy.select_bounce_point()
+        to_turn = self.strategy.robot.angle_to_point(bounce_point)
+        info = "Turning {0} degrees to ({1}, {2})".format(to_turn, bounce_point.x, bounce_point.y)
+        return self.turn_robot(to_turn,), info
+
+
+
 

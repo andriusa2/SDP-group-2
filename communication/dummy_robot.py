@@ -1,3 +1,4 @@
+import time
 from lib.math.vector import Vector2D
 from planning.strategies.strategy import Strategy
 
@@ -15,6 +16,7 @@ class DummyRobot(Controller):
 
         self.world = world
         self.robot_tag = robot_tag
+        self.act_timer = time.time()
 
         master, slave = pty.openpty()
         s_name = os.ttyname(slave)
@@ -23,8 +25,8 @@ class DummyRobot(Controller):
         super(DummyRobot, self).__init__(ser.getPort(), is_dummy=True)
 
     def kick(self, power=None):
-        pass
-        return super(DummyRobot, self).kick(power)
+        super(DummyRobot, self).kick(power)
+        self.add_act_time()
 
     def turn(self, angle):
         """ Turns robot over 'angle' radians in place. """
@@ -32,7 +34,8 @@ class DummyRobot(Controller):
         robot = self.world.get_robot(self.robot_tag)
         robot.direction = rotate_vector(robot.direction, angle)
         self.world.add_robot(self.robot_tag, robot)
-        return super(DummyRobot, self).turn(angle)
+        super(DummyRobot, self).turn(angle)
+        self.add_act_time()
 
     def move(self, x_distance, y_distance=0, direction=Vector2D(1, 0)):
         # artificially set the world state
@@ -42,7 +45,17 @@ class DummyRobot(Controller):
         robot.position += Strategy.get_global_move(Vector2D(x_distance, y_distance), direction)
         print "new position {0}".format(robot.position)
         self.world.add_robot(self.robot_tag, robot)
-        return super(DummyRobot, self).move(x_distance, y_distance)
+        super(DummyRobot, self).move(x_distance, y_distance)
+        self.add_act_time()
 
     def grab(self):
-        return super(DummyRobot, self).grab()
+        super(DummyRobot, self).grab()
+        self.add_act_time()
+
+    def is_available(self):
+        print "{0} secs to wait".format(self.act_timer - time.time())
+        return self.act_timer <= time.time()
+
+    def add_act_time(self):
+        self.act_timer = time.time() + 1
+        print self.act_timer
