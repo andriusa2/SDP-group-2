@@ -26,7 +26,6 @@ class Strategy(object):
         self.square_angle_threshold = 0.005
         self.zone_centre_offset = 0.5  # a percentage of the zone width
 
-
         # initialise state attributes
         self.robot = None
         self.ball = None
@@ -95,6 +94,27 @@ class Strategy(object):
 
     def is_robot_safe(self):
         return True
+
+    def select_bounce_point(self):
+        """
+        Determine the bounce point, either up or down, which is furthest from the enemy robot
+        :return: a Vector2D
+        """
+        self.fetch_world_state()
+        enemy_zone = self.world.get_zone(self.get_enemy().position)
+        enemy_zone_centre = self.get_zone_centre(enemy_zone)
+        preset_pass_locations = [Vector2D(enemy_zone_centre, 110), Vector2D(enemy_zone_centre, 0)]
+
+        enemy_position_x = self.get_enemy().position.x
+        enemy_position_y = self.get_enemy().position.y
+        v1 = preset_pass_locations[0]
+        v2 = preset_pass_locations[1]
+        dist_to_1 = self.dist_to_pass_point(enemy_position_x, enemy_position_y, v1.x, v1.y)
+        dist_to_2 = self.dist_to_pass_point(enemy_position_x, enemy_position_y, v2.x, v2.y)
+
+        max_distance = max(dist_to_1, dist_to_2)
+        v = v1 if max_distance == dist_to_1 else v2
+        return v
 
     """
     -------------------------------------------------------

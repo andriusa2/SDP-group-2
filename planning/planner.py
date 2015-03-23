@@ -1,3 +1,5 @@
+from planning.strategies.strategy_bounce_pass import BouncePass
+
 __author__ = 'Sam Davies'
 import time
 
@@ -34,7 +36,7 @@ class Planner(Strategy):
         self.shoot_goal = ShootForGoal(world, robot_tag, actual_robot)
 
         self.block_goal = BlockGoal(world, robot_tag, actual_robot)
-        self.pass_ball = PassToZone(world, robot_tag, actual_robot)
+        self.pass_ball = BouncePass(world, robot_tag, actual_robot)
         self.receive_pass = ReceivePass(world, robot_tag, actual_robot)
         self.save_robot = SaveRobot(world, robot_tag, actual_robot)
 
