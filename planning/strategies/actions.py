@@ -76,7 +76,7 @@ class Actions(object):
         return self.move_robot(dist_to_ball, None, info)
 
 
-    def move_to_centre(self):
+    def move_to_centre_x(self):
         robot_y = self.strategy.robot.position.y
         centre_x = self.strategy.get_my_zone_centre()
         vect_to_point = self.strategy.vector_from_robot_to_point(centre_x, robot_y)
@@ -87,13 +87,14 @@ class Actions(object):
         info = "moving robot ({0}, {1}) cm to ({2}, {3})".format(to_move.x, to_move.y, centre_x, robot_y)
         return self.move_robot(to_move.x, to_move.y, info, self.strategy.robot.direction)
 
-    def move_to_zone_centre(self):
-        centre_x = self.strategy.get_my_zone_centre()
-        vect_to_point = self.strategy.vector_from_robot_to_point(centre_x, 55)
+    def move_to_centre_y(self):
+        x = self.strategy.robot.position.x
+        y = self.strategy.pitch_height/2
+        vect_to_point = self.strategy.vector_from_robot_to_point(x, y)
 
         to_move = self.strategy.get_local_move(vect_to_point, self.strategy.robot.direction)
 
-        info = "moving robot {0} cm to ({1} ,55)".format(to_move.x, to_move.y, centre_x)
+        info = "moving robot ({0}, {1}) cm to ({2}, {3})".format(to_move.x, to_move.y, x, y)
         return self.move_robot(to_move.x, to_move.y, info, self.strategy.robot.direction)
 
     def move_robot(self, x, y, info, direction=None):
