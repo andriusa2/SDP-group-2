@@ -28,10 +28,12 @@ class BouncePass(Strategy):
         self.m.add_final_state_and_action("Rotating To Be Square", self.actions.turn_to_closest_square_angle)
         self.m.add_final_state_and_action("Move To Center", self.actions.move_to_center)
         self.m.add_final_state_and_action("Robot Not Facing Point", self.actions.turn_robot_to_point(self.select_bounce_point()))
+        self.m.add_final_state_and_action("Robot Facing Pass Point", self.actions.shoot())
 
         # set start state
         self.m.set_start("Start")
-        self.preset_pass_locations = [Vector2D(zone_centre, 90), Vector2D(zone_centre, 20)]
+        enemy_zone_center = self.get_zone_center(self.get_enemy().position)
+        self.preset_pass_locations = [Vector2D(enemy_zone_center, 110), Vector2D(enemy_zone_centre, 0)]
 
     def act(self):
         self.fetch_world_state()

@@ -224,6 +224,15 @@ class Strategy(object):
         robot_point_dist_y = -self.robot.position.y+y
         return Vector2D(robot_point_dist_x, robot_point_dist_y)
 
+    def dist_to_pass_point(self, x1, y1, x2, y2):
+        return self.vector_to_pass_point(x1, y1, x2, y2).length()
+
+    def vector_to_pass_point(self, x1, y1, x2, y2):
+        dist_x = -x1 + x2
+        dist_y = -y1 + y2
+        return Vector2D(dist_x, dist_y)
+
+
     @staticmethod
     def get_local_move(to_move, direction):
         """
