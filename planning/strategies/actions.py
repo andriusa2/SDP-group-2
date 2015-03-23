@@ -109,3 +109,12 @@ class Actions(object):
         self.strategy.world.is_grabber_down = True
         return self.strategy.actual_robot.grab(), "Closing grabber"
 
+    def turn_to_bounce_point(self):
+        bounce_point = self.strategy.select_bounce_point()
+        to_turn = self.strategy.robot.angle_to_point(bounce_point)
+        info = "Turning {0} degrees to ({1], {2})".format(to_turn, bounce_point.x, bounce_point.y)
+        return self.turn_robot(to_turn,), info
+
+
+
+
