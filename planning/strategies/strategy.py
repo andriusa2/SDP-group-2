@@ -31,6 +31,14 @@ class Strategy(object):
         self.m = StateMachine()
         self.actions = Actions()
 
+        self.ACTUAL_WIDTH = 114
+        self.ACTUAL_LENGTH = 45
+        self.DEADSPACE_SLOPE = 27.0/14.0
+        self.DEADSPACE_BOUNDARY = 14
+        self.DEADSPACE_SAFE_X = 25
+        self.SAFE_X = 55
+        self.SAFE_Y = 40
+
     def fetch_world_state(self):
         """
         grab the latest state of the world and set this objects attribute
@@ -90,8 +98,47 @@ class Strategy(object):
         centre_bound_r = zone_centre + (self.zone_centre_width/2)
         return centre_bound_l < self.robot.position.x < centre_bound_r
 
+
     def is_robot_safe(self):
-        if self.is_robot.position.x >
+        if self.is_robot_x_safe() and self.is_robot_y_safe():
+            return True
+        else:
+            return False
+
+
+    def is_robot_y_safe(self):
+        if np.abs(self.robot.position.y - self.get_zone_centre_y()) > self.SAFE_Y:
+            return False
+        else:
+            return True
+
+
+    def is_robot_x_safe(self):
+        # do we need to consider deadspace?
+        if self.robot.position.y < self.DEADSPACE_BOUNDARY:
+            # we need to think about deadspace
+            safe_width =  + (self.DEADSPACE_SLOPE) * self.robot.position.y
+            '''
+                    Explanation
+
+                |  .       x
+             14 |      .--------
+                |          .     additional x = f(y) = (27/14) * y
+                ---------------
+                        27
+
+            '''
+            
+            # how close are we to the walls, taking into account deadspace?
+            if np.abs(self.robot.position.x - self.zone_centre())\
+                    > self.DEADSPACE_SAFE_X + safe_width:
+                return False
+            else:
+                return True
+
+        # There's no deadspace; how close are we to the walls?
+        elif(np.abs(self.robot.position.x - self.get_zone_centre_y()) > self.SAFE_X):
+            return False
 
     """
     -------------------------------------------------------
@@ -113,39 +160,13 @@ class Strategy(object):
         # returns the inferred zone center_y
         #pitch is roughly 114cm x 45; normalize the value and find others
         zone_center = self.get_zone_centre()
-        zone_center_y = zone_center * (45/114.0)
+        zone_center_y = zone_center * (self.ACTUAL_LENGTH/self.ACTUAL_WIDTH)
         return  zone_center_y
 
 
     def get_centre_point(self):
         # returns point (int, int)  an (x,y)
         return (self.get_zone_centre(), self.get_zone_centre_y())
-
-
-    def is_robot_safe(self):
-        # how far are we up the pitch?
-        if self.robot.position.y < 34:
-            safe_width = 26.5 + (27.0/14.0) * self.robot.position.y
-            '''
-                    Explanation
-
-                |  .       x
-             14 |      .--------
-                |          .     additional x = f(y) = (27/14) * y
-                ---------------
-                        27
-
-            '''
-            # how close are we to the walls, taking into account deadspace?
-            if np.abs(self.robot.position.x - self.zone_centre())\
-                    > 59 + safe_width:
-                return False
-            else:
-                return True
-
-        # There's no deadspace; how close are we to the walls?
-        elif(np.abs(self.robot.position.x - self.get_zone_centre_y()) > 50):
-            return False
 
 
     def is_ball_in_friend_zone(self):
