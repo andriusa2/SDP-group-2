@@ -1,3 +1,5 @@
+from planning.strategies.strategy_bounce_pass import BouncePass
+
 __author__ = 'Sam Davies'
 import time
 
@@ -34,7 +36,7 @@ class Planner(Strategy):
         self.shoot_goal = ShootForGoal(world, robot_tag, actual_robot)
 
         self.block_goal = BlockGoal(world, robot_tag, actual_robot)
-        self.pass_ball = PassToZone(world, robot_tag, actual_robot)
+        self.pass_ball = BouncePass(world, robot_tag, actual_robot)
         self.receive_pass = ReceivePass(world, robot_tag, actual_robot)
         self.save_robot = SaveRobot(world, robot_tag, actual_robot)
 
@@ -140,10 +142,11 @@ class Planner(Strategy):
 
     def can_act(self):
         # has the robot finished moving
-        if self.can_act_after <= time.time():
-            return True
-        else:
-            return False
+        # if self.can_act_after <= time.time():
+        #     return True
+        # else:
+        #     return False
+        return self.actual_robot.is_available()
 
     def do_fetch_ball(self):
         to_return = self.do_strategy(self.fetch_ball)
@@ -173,10 +176,10 @@ class Planner(Strategy):
         :param strategy: the strategies on which to act
         :return: the time that we have to wait
         """
-        cool_down_time_period, info = strategy.act()
+        _, info = strategy.act()
         self.m.state_trace += strategy.m.state_trace
-        self.can_act_after = time.time() + cool_down_time_period
-        return cool_down_time_period, info
+        # self.can_act_after = time.time() + cool_down_time_period
+        return 0, info
 
     def check_for_re_plan(self):
         # if ball moves while collecting the ball, re-plan

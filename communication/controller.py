@@ -267,7 +267,7 @@ class Controller(Arduino):
     def turn(self, angle):
         """ Turns robot over 'angle' radians in place. """
 
-        angle = convert_angle(angle)  # so it's in [-pi;pi] range
+        angle = convert_angle(-angle)  # so it's in [-pi;pi] range
         # if angle is positive move clockwise, otw just inverse it
         power = self.MAX_POWER if angle >= 0 else -self.MAX_POWER
 

@@ -20,6 +20,8 @@ class Vector2D(object):
     def to_vector2d(args):
         if isinstance(args, Vector2D):
             return args
+        if args is None:
+            return Vector2D(0, 0)
         x, y = args
         return Vector2D(x, y)
 
@@ -103,6 +105,20 @@ class Vector2D(object):
         angle = np.arctan2(u_direction.x * global_axis.y - u_direction.y * global_axis.x,
                            u_direction.x * global_axis.x + u_direction.y * global_axis.y)
         return angle
+
+    def square_unit_vector(self):
+        uv = self.unit_vector()
+        print uv
+        if abs(uv.x) > abs(uv.y):
+            if uv.x > 0.0:
+                return Vector2D(1, 0)
+            else:
+                return Vector2D(-1, 0)
+        else:
+            if uv.y > 0.0:
+                return Vector2D(0, 1)
+            else:
+                return Vector2D(0, -1)
 
     def __repr__(self):
         return "<{0};{1}>".format(self.x, self.y)

@@ -20,9 +20,15 @@ class BouncePass(Strategy):
         super(BouncePass, self).__init__(world, robot_tag, actual_robot)
         self.m.add_state("Start", self.start_trans)
         self.m.add_state("Grabber is Closed", self.grabber_open_trans)
+        self.m.add_state("Robot Is Square", self.robot_is_square_trans)
+        self.m.add_state("Robot In Center", self.is_centered_trans)
 
         # End States / Actions
         self.m.add_final_state_and_action("Close Grabber", self.actions.lower_cage)
+        self.m.add_final_state_and_action("Rotating To Be Square", self.actions.turn_to_closest_square_angle)
+        self.m.add_final_state_and_action("Move To Center", self.actions.move_to_centre)
+        self.m.add_final_state_and_action("Robot Not Facing Point", self.actions.move_to_centre)
+        self.m.add_final_state_and_action("Robot Facing Pass Point", self.actions.shoot)
 
         # set start state
         self.m.set_start("Start")
@@ -43,18 +49,26 @@ class BouncePass(Strategy):
         return new_state
 
     def grabber_open_trans(self):
-        if True:
-            new_state = ""
+        if self.is_at_square_angles():
+            new_state = "Robot Is Square"
         else:
-            new_state = ""
+            new_state = "Rotating To Be Square"
         return new_state
 
-    def select_bounce_point(self):
-        """
-        Determine the bounce point, either up or down, which is furthest from the enemy robot
-        :return: a Vector2D
-        """
-        pass
+    def robot_is_square_trans(self):
+        if self.is_robot_in_centre():
+            new_state = "Robot In Center"
+        else:
+            new_state = "Move To Center"
+        return new_state
+
+    def is_centered_trans(self):
+        bounce_point = self.select_bounce_point()
+        if self.is_robot_facing_point(bounce_point):
+            new_state = "Robot Facing Pass Point"
+        else:
+            new_state = "Robot Not Facing Point"
+        return new_state
 
     def move_to_centre_y(self):
         info = ""

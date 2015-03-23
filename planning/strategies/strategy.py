@@ -22,7 +22,9 @@ class Strategy(object):
 
         self.ROBOT_WIDTH = 4
         self.zone_centre_width = 8
-        self.square_angle_threshold = 0.001
+
+        self.square_angle_threshold = 0.005
+        self.zone_centre_offset = 0.5  # a percentage of the zone width
 
         # initialise state attributes
         self.robot = None
@@ -93,7 +95,7 @@ class Strategy(object):
         return self.robot.can_see(point=point, beam_width=beam_width)
 
     def is_robot_in_centre(self):
-        zone_centre = self.get_zone_centre()
+        zone_centre = self.get_my_zone_centre()
         centre_bound_l = zone_centre - (self.zone_centre_width/2)
         centre_bound_r = zone_centre + (self.zone_centre_width/2)
         return centre_bound_l < self.robot.position.x < centre_bound_r
@@ -140,19 +142,50 @@ class Strategy(object):
         elif(np.abs(self.robot.position.x - self.get_zone_centre_y()) > self.SAFE_X):
             return False
 
+    def select_bounce_point(self):
+        """
+        Determine the bounce point, either up or down, which is furthest from the enemy robot
+        :return: a Vector2D
+        """
+        self.fetch_world_state()
+        enemy_zone = self.world.get_zone(self.get_enemy().position)
+        enemy_zone_centre = self.get_zone_centre(enemy_zone)
+        preset_pass_locations = [Vector2D(enemy_zone_centre, 110), Vector2D(enemy_zone_centre, 0)]
+
+        enemy_position_x = self.get_enemy().position.x
+        enemy_position_y = self.get_enemy().position.y
+        v1 = preset_pass_locations[0]
+        v2 = preset_pass_locations[1]
+        dist_to_1 = self.dist_to_pass_point(enemy_position_x, enemy_position_y, v1.x, v1.y)
+        dist_to_2 = self.dist_to_pass_point(enemy_position_x, enemy_position_y, v2.x, v2.y)
+
+        max_distance = max(dist_to_1, dist_to_2)
+        v = v1 if max_distance == dist_to_1 else v2
+        return v
+
     """
     -------------------------------------------------------
         Fetching of Objects in World State
     -------------------------------------------------------
     """
 
-    def get_zone_centre(self):
+    def get_my_zone_centre(self):
         my_zone = self.world.get_zone(self.robot.position)
+        return self.get_zone_centre(my_zone)
+
+    def get_zone_centre(self, zone):
         zone_edges = [0] + self.world.zone_boundaries
-        edge_L = zone_edges[my_zone]
-        edge_R = zone_edges[my_zone+1]
-        zone_centre = edge_L + (edge_R - edge_L)/2.0
-        # print "Left: {0}, right {1}, centre: {2}".format(edge_L, edge_R, zone_centre)
+        edge_L = zone_edges[zone]
+        edge_R = zone_edges[zone+1]
+        zone_width = edge_R - edge_L
+        zone_centre = edge_L + zone_width/2.0
+
+        # move the centre closer to the pitch centre
+        if zone >= 2:
+            zone_centre -= (self.zone_centre_offset * (zone_width/2))
+        else:
+            zone_centre += (self.zone_centre_offset * (zone_width/2))
+        print "Left: {0}, right {1}, centre: {2}".format(edge_L, edge_R, zone_centre)
         return zone_centre
 
 
@@ -197,7 +230,7 @@ class Strategy(object):
     def get_enemy(self):
         self.fetch_world_state()
         my_zone = self.world.get_zone(self.robot.position)
-        if my_zone == 0 or 1:
+        if my_zone == 0 or my_zone == 1:
             enemy = self.world.get_robot(Zone.L_ATT)
         else:
             enemy = self.world.get_robot(Zone.R_ATT)
@@ -209,10 +242,10 @@ class Strategy(object):
     def get_enemy_defender(self):
         self.fetch_world_state()
         my_zone = self.world.get_zone(self.robot.position)
-        if my_zone == 0 or 1:
-            enemy = self.world.get_robot(Zone.L_DEF)
-        else:
+        if my_zone == 0 or my_zone == 1:
             enemy = self.world.get_robot(Zone.R_DEF)
+        else:
+            enemy = self.world.get_robot(Zone.L_DEF)
         if enemy:
             return enemy
         else:
@@ -272,6 +305,15 @@ class Strategy(object):
         robot_point_dist_y = -self.robot.position.y+y
         return Vector2D(robot_point_dist_x, robot_point_dist_y)
 
+    def dist_to_pass_point(self, x1, y1, x2, y2):
+        return self.vector_to_pass_point(x1, y1, x2, y2).length()
+
+    def vector_to_pass_point(self, x1, y1, x2, y2):
+        dist_x = -x1 + x2
+        dist_y = -y1 + y2
+        return Vector2D(dist_x, dist_y)
+
+
     @staticmethod
     def get_local_move(to_move, direction):
         """
@@ -281,7 +323,7 @@ class Strategy(object):
         """
 
         # angle = -np.arccos(Vector2D(1, 0).dot(Vector2D(direction.x, direction.y)))
-        angle = Vector2D.axis_perp_dot_product(direction)
+        angle = Vector2D.axis_perp_dot_product(direction.square_unit_vector())
 
         print "rotating vector by: {0} rads".format(angle)
 
