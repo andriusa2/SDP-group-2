@@ -485,7 +485,7 @@ class PassToZoneTest(BaseTest):
         self.assertFalse(is_blocked)"""
 
     # ensure that a blocked pass results in a position change
-    def test_blocked_pass_action(self):
+    """def test_blocked_pass_action(self):
         self.world_state = self.put_robots_and_ball((5, 50), [(15.0, 50), (25, 50), (35, 0)], my_direction=(1, 0),
                                                     ball_pos=(6, 50), robot_num=0)
         self.choose_planner("left")
@@ -496,7 +496,7 @@ class PassToZoneTest(BaseTest):
         time.sleep(1)
 
         timer = self.planner.plan()
-        time.sleep(1)
+        time.sleep(1)"""
 
     # ensure that an unblocked results in a pass
     def test_unblocked_pass_action(self):

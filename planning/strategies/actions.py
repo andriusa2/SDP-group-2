@@ -64,7 +64,7 @@ class Actions(object):
 
         info = "moving robot ({0}, {1}) cm to ({2}, {3})".format(to_move.x, to_move.y, vect_to_point.x,
                                                                  vect_to_point.y)
-        return s.actual_robot.move(to_move.x, to_move.y, s.robot.direction), info
+        return self.move_robot(to_move.x, to_move.y, info, s.robot.direction)
 
     def move_robot_to_ball(self):
         """
@@ -72,7 +72,8 @@ class Actions(object):
         :return: duration that the motors are on
         """
         dist_to_ball = self.strategy.distance_from_kicker_to_ball() * 0.8  # only move 90%
-        return self.strategy.actual_robot.move(dist_to_ball), "moving {0} cm".format(dist_to_ball)
+        info = "moving {0} cm".format(dist_to_ball)
+        return self.move_robot(dist_to_ball, None, info)
 
 
     def move_to_centre(self):
@@ -84,7 +85,7 @@ class Actions(object):
         to_move = self.strategy.get_local_move(vect_to_point, self.strategy.robot.direction)
 
         info = "moving robot ({0}, {1}) cm to ({2}, {3})".format(to_move.x, to_move.y, centre_x, robot_y)
-        return self.strategy.actual_robot.move(to_move.x, to_move.y, self.strategy.robot.direction), info
+        return self.move_robot(to_move.x, to_move.y, info, self.strategy.robot.direction)
 
     def move_to_zone_centre(self):
         centre_x = self.strategy.get_my_zone_centre()
@@ -93,7 +94,10 @@ class Actions(object):
         to_move = self.strategy.get_local_move(vect_to_point, self.strategy.robot.direction)
 
         info = "moving robot {0} cm to ({1} ,55)".format(to_move.x, to_move.y, centre_x)
-        return self.strategy.actual_robot.move(to_move.x, to_move.y, self.strategy.robot.direction), info
+        return self.move_robot(to_move.x, to_move.y, info, self.strategy.robot.direction)
+
+    def move_robot(self, x, y, info, direction=None):
+        return self.strategy.actual_robot.move(x, y, direction), info
 
     def shoot(self):
         """
