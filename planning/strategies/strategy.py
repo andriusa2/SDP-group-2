@@ -128,7 +128,7 @@ class Strategy(object):
                         27
 
             '''
-            
+
             # how close are we to the walls, taking into account deadspace?
             if np.abs(self.robot.position.x - self.zone_centre())\
                     > self.DEADSPACE_SAFE_X + safe_width:

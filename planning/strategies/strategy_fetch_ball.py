@@ -17,6 +17,8 @@ class FetchBall(Strategy):
         # set start state
         self.m.set_start("Start")
 
+
+
     def act(self):
         self.fetch_world_state()
 
