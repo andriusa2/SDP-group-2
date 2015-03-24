@@ -75,7 +75,6 @@ class Actions(object):
         info = "moving {0} cm".format(dist_to_ball)
         return self.move_robot(dist_to_ball, None, info)
 
-
     def move_to_centre_x(self):
         robot_y = self.strategy.robot.position.y
         centre_x = self.strategy.get_my_zone_centre()
@@ -98,8 +97,10 @@ class Actions(object):
         return self.move_robot(to_move.x, to_move.y, info, self.strategy.robot.direction)
 
     def move_robot(self, x, y, info, direction=None):
-        x *= self.strategy.action_dampening if x is not None else x
-        y *= self.strategy.action_dampening if y is not None else y
+        if x:
+            x *= self.strategy.action_dampening
+        if y:
+            y *= self.strategy.action_dampening
         return self.strategy.actual_robot.move(x, y, direction), info
 
     def shoot(self):

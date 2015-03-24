@@ -1,3 +1,4 @@
+from planning.config import TestingConfig
 from planning.strategies.strategy_pass_ball import PassToZone
 
 _author__ = 'Sam Davies'
@@ -31,7 +32,8 @@ class BaseTest(unittest.TestCase):
         actual_robot = DummyRobot(self.world_state, Zone.L_ATT)
         # actual_robot = Controller("/dev/tty.usbmodem000001")
         # give the strategies the world the dummy and the zone of the dummy
-        self.planner = Planner(self.world_state, Zone.L_ATT, actual_robot, True)
+        config = TestingConfig()
+        self.planner = Planner(self.world_state, Zone.L_ATT, actual_robot, True, config)
 
     def last_action(self):
         return self.planner.action_trace[len(self.planner.action_trace) - 1]
@@ -77,12 +79,13 @@ class BaseTest(unittest.TestCase):
         self.attacker1.fetch_world_state()
 
     def choose_planner(self, side):
+        config = TestingConfig()
         if side == "left":
             actual_robot = DummyRobot(self.world_state, Zone.L_DEF)
-            self.planner = Planner(self.world_state, Zone.L_DEF, actual_robot, False)
+            self.planner = Planner(self.world_state, Zone.L_DEF, actual_robot, False, config)
         else:
             actual_robot = DummyRobot(self.world_state, Zone.R_DEF)
-            self.planner = Planner(self.world_state, Zone.R_DEF, actual_robot, False)
+            self.planner = Planner(self.world_state, Zone.R_DEF, actual_robot, False, config)
 
 
 class FetchBallTest(BaseTest):
@@ -418,14 +421,15 @@ class BlockTest(BaseTest):
 class PassToZoneTest(BaseTest):
 
     def choose_planner(self, side):
+        config = TestingConfig()
         if side == "left":
             actual_robot = DummyRobot(self.world_state, Zone.L_DEF)
-            self.planner = Planner(self.world_state, Zone.L_DEF, actual_robot, False)
-            self.planner.pass_ball = PassToZone(self.world_state, Zone.L_ATT, actual_robot)
+            self.planner = Planner(self.world_state, Zone.L_DEF, actual_robot, False, config)
+            self.planner.pass_ball = PassToZone(self.world_state, Zone.L_ATT, actual_robot, config)
         else:
             actual_robot = DummyRobot(self.world_state, Zone.R_DEF)
-            self.planner = Planner(self.world_state, Zone.R_DEF, actual_robot, False)
-            self.planner.pass_ball = PassToZone(self.world_state, Zone.R_ATT, actual_robot)
+            self.planner = Planner(self.world_state, Zone.R_DEF, actual_robot, False, config)
+            self.planner.pass_ball = PassToZone(self.world_state, Zone.R_ATT, actual_robot, config)
 
 
     # ensure that a blocked pass is found to be blocked
@@ -516,7 +520,6 @@ class BouncePassTest(BaseTest):
         self.assertFalse(self.planner.is_robot_in_centre_x())
         self.assertTrue(self.planner.is_at_square_angles())
         self.assertFalse(self.planner.world.is_grabber_down)
-        self.planner.dist_kicker_robot = 0
 
         self.planner.plan()
         time.sleep(1)
@@ -546,7 +549,6 @@ class BouncePassTest(BaseTest):
                                                     ball_pos=(7.5, 55), robot_num=0)
         self.choose_planner("left")
         self.planner.fetch_world_state()
-        self.planner.dist_kicker_robot = 0
         bounce_point = self.planner.pass_ball.select_bounce_point()
         self.assertEquals(bounce_point, Vector2D(15, 0))
 

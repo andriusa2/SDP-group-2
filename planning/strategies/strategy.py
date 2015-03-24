@@ -1,6 +1,7 @@
 import numpy as np
 
 from lib.math.vector import Vector2D
+from planning.config import Config
 from planning.strategies.actions import Actions
 from planning.strategies.state_machine import StateMachine
 from planning.world_state import Zone, Robot
@@ -11,22 +12,26 @@ __author__ = 'Sam'
 
 class Strategy(object):
 
-    def __init__(self, world, robot_tag, actual_robot):
+    def __init__(self, world, robot_tag, actual_robot, config=None):
         self.actual_robot = actual_robot
         self.robot_tag = robot_tag
         self.world = world
 
-        self.grab_threshold_x = 8  # we need to define these (based on kicker)
-        self.grab_threshold_y = 8
-        self.dist_kicker_robot = 12
+        # this sets the default config
+        if config is None:
+            config = Config()
 
-        self.ROBOT_WIDTH = 4
-        self.zone_centre_width = 8
-        self.pitch_height = 110
+        self.grab_threshold_x = config.GRAB_THRESHOLD
+        self.grab_threshold_y = config.GRAB_THRESHOLD
+        self.dist_kicker_robot = config.DIST_KICKER_ROBOT
 
-        self.square_angle_threshold = 0.005
-        self.zone_centre_offset = 0.5  # a percentage of the zone width
-        self.action_dampening = 0.9
+        self.ROBOT_WIDTH = config.ROBOT_WIDTH
+        self.zone_centre_width = config.ZONE_CENTRE_WIDTH
+        self.pitch_height = config.PITCH_HEIGHT
+
+        self.action_dampening = config.ACTION_DAMPENING
+        self.square_angle_threshold = config.SQUARE_ANGLE_THRESHOLD
+        self.zone_centre_offset = config.ZONE_CENTRE_OFFSET
 
         # initialise state attributes
         self.robot = None

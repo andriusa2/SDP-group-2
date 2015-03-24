@@ -8,8 +8,8 @@ from planning.strategies.strategy import Strategy
 
 
 class BlockGoal(Strategy):
-    def __init__(self, world, robot_tag, actual_robot):
-        super(BlockGoal, self).__init__(world, robot_tag, actual_robot)
+    def __init__(self, world, robot_tag, actual_robot, config=None):
+        super(BlockGoal, self).__init__(world, robot_tag, actual_robot, config)
         self.m.add_state("Start", self.start_trans)
         self.m.add_state("Robot is Square", self.is_square_trans)
 

@@ -4,8 +4,8 @@ from planning.strategies.strategy import Strategy
 
 class FetchBall(Strategy):
 
-    def __init__(self, world, robot_tag, actual_robot):
-        super(FetchBall, self).__init__(world, robot_tag, actual_robot)
+    def __init__(self, world, robot_tag, actual_robot, config=None):
+        super(FetchBall, self).__init__(world, robot_tag, actual_robot, config)
         self.m.add_state("Start", self.start_trans)
         self.m.add_state("Grabber is Open", self.grabber_is_open_trans)
 

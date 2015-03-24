@@ -16,8 +16,8 @@ class BouncePass(Strategy):
     Pass the Ball
     """
 
-    def __init__(self, world, robot_tag, actual_robot):
-        super(BouncePass, self).__init__(world, robot_tag, actual_robot)
+    def __init__(self, world, robot_tag, actual_robot, config=None):
+        super(BouncePass, self).__init__(world, robot_tag, actual_robot, config)
         self.m.add_state("Start", self.start_trans)
         self.m.add_state("Grabber is Closed", self.grabber_closed_trans)
         self.m.add_state("Robot Is Square", self.robot_is_square_trans)

@@ -9,8 +9,8 @@ __author__ = 'Sam Davies'
 
 class PassToZone(Strategy):
 
-    def __init__(self, world, robot_tag, actual_robot):
-        super(PassToZone, self).__init__(world, robot_tag, actual_robot)
+    def __init__(self, world, robot_tag, actual_robot, config=None):
+        super(PassToZone, self).__init__(world, robot_tag, actual_robot, config)
         self.m.add_state("Start", self.start_trans)
         self.m.add_state("Pass Blocked", self.pass_blocked_trans)
         self.m.add_state("Pass Not Blocked", self.pass_not_blocked_trans)
