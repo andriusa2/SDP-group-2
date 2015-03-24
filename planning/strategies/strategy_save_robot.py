@@ -27,6 +27,7 @@ __author__ = 'Sam Davies'
 '''
 
 class SaveRobot(Strategy):
+<<<<<<< HEAD
 
 
     def __init__(self, world, robot_tag, actual_robot):
@@ -34,6 +35,10 @@ class SaveRobot(Strategy):
         # this is the point we try to recover to
         self.home = (self.get_centre_point())
 
+=======
+    def __init__(self, world, robot_tag, actual_robot, config=None):
+        super(SaveRobot, self).__init__(world, robot_tag, actual_robot, config)
+>>>>>>> 90f32efeff048183486121ab42b62764d4f592c0
         self.m.add_state("Start", self.start_trans)
 
         # End States / Actions

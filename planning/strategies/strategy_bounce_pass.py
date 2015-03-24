@@ -16,19 +16,22 @@ class BouncePass(Strategy):
     Pass the Ball
     """
 
-    def __init__(self, world, robot_tag, actual_robot):
-        super(BouncePass, self).__init__(world, robot_tag, actual_robot)
+    def __init__(self, world, robot_tag, actual_robot, config=None):
+        super(BouncePass, self).__init__(world, robot_tag, actual_robot, config)
         self.m.add_state("Start", self.start_trans)
-        self.m.add_state("Grabber is Closed", self.grabber_open_trans)
+        self.m.add_state("Grabber is Closed", self.grabber_closed_trans)
         self.m.add_state("Robot Is Square", self.robot_is_square_trans)
+        self.m.add_state("Robot In Center X", self.robot_in_centre_x_trans)
         self.m.add_state("Robot In Center", self.is_centered_trans)
 
         # End States / Actions
         self.m.add_final_state_and_action("Close Grabber", self.actions.lower_cage)
         self.m.add_final_state_and_action("Rotating To Be Square", self.actions.turn_to_closest_square_angle)
-        self.m.add_final_state_and_action("Move To Center", self.actions.move_to_centre)
-        self.m.add_final_state_and_action("Robot Not Facing Point", self.actions.move_to_centre)
-        self.m.add_final_state_and_action("Robot Facing Pass Point", self.actions.shoot)
+        self.m.add_final_state_and_action("Move To Center X", self.actions.move_to_centre_x)
+        self.m.add_final_state_and_action("Move To Center Y", self.actions.move_to_centre_y)
+        self.m.add_final_state_and_action("Turning to Face Bounce Point", self.actions.turn_to_bounce_point)
+        self.m.add_final_state_and_action("Pass Ball", self.actions.shoot)
+
 
         # set start state
         self.m.set_start("Start")
@@ -48,36 +51,31 @@ class BouncePass(Strategy):
             new_state = "Close Grabber"
         return new_state
 
-    def grabber_open_trans(self):
-        if self.is_at_square_angles():
+    def grabber_closed_trans(self):
+        if self.is_at_square_angles() or (self.is_robot_in_centre_x() and self.is_robot_in_centre_y()):
             new_state = "Robot Is Square"
         else:
             new_state = "Rotating To Be Square"
         return new_state
 
     def robot_is_square_trans(self):
-        if self.is_robot_in_centre():
+        if self.is_robot_in_centre_x():
+            new_state = "Robot In Center X"
+        else:
+            new_state = "Move To Center X"
+        return new_state
+
+    def robot_in_centre_x_trans(self):
+        if self.is_robot_in_centre_y():
             new_state = "Robot In Center"
         else:
-            new_state = "Move To Center"
+            new_state = "Move To Center Y"
         return new_state
 
     def is_centered_trans(self):
         bounce_point = self.select_bounce_point()
         if self.is_robot_facing_point(bounce_point):
-            new_state = "Robot Facing Pass Point"
+            new_state = "Pass Ball"
         else:
-            new_state = "Robot Not Facing Point"
+            new_state = "Turning to Face Bounce Point"
         return new_state
-
-    def move_to_centre_y(self):
-        info = ""
-        return 0, info  # duration and information about the movement
-
-    def turn_to_bounce_point(self):
-        info = ""
-        return 0, info
-
-    def bounce_pass(self):
-        info = ""
-        return 0, info

@@ -8,15 +8,15 @@ from planning.strategies.strategy import Strategy
 
 
 class BlockGoal(Strategy):
-    def __init__(self, world, robot_tag, actual_robot):
-        super(BlockGoal, self).__init__(world, robot_tag, actual_robot)
+    def __init__(self, world, robot_tag, actual_robot, config=None):
+        super(BlockGoal, self).__init__(world, robot_tag, actual_robot, config)
         self.m.add_state("Start", self.start_trans)
         self.m.add_state("Robot is Square", self.is_square_trans)
 
         # End States / Actions
         self.m.add_final_state_and_action("Intercept Ball", self.actions.intercept_ball)
         self.m.add_final_state_and_action("Rotating To Be Square", self.actions.turn_to_closest_square_angle)
-        self.m.add_final_state_and_action("Move Robot To Centre", self.actions.move_to_centre)
+        self.m.add_final_state_and_action("Move Robot To Centre", self.actions.move_to_centre_x)
 
         # set start state
         self.m.set_start("Start")
@@ -37,7 +37,7 @@ class BlockGoal(Strategy):
         return new_state
 
     def is_square_trans(self):
-        if self.is_robot_in_centre():
+        if self.is_robot_in_centre_x():
             new_state = "Intercept Ball"
         else:
             new_state = "Move Robot To Centre"

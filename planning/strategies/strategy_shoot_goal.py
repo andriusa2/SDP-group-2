@@ -5,8 +5,8 @@ from planning.strategies.state_machine import StateMachine
 
 class ShootForGoal(Strategy):
 
-    def __init__(self, world, robot_tag, actual_robot):
-        super(ShootForGoal, self).__init__(world, robot_tag, actual_robot)
+    def __init__(self, world, robot_tag, actual_robot, config=None):
+        super(ShootForGoal, self).__init__(world, robot_tag, actual_robot, config)
         self.m = StateMachine()
         self.m.add_state("Start", self.start_trans)
         self.m.add_state("Grabber is Closed", self.grabber_open_trans)
