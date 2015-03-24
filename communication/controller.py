@@ -9,31 +9,47 @@ import numpy as np
 
 # polynomial approximating low angle durations
 angle_poly = np.poly1d([-0.1735, 0.279, 0])
+LOG_FILE = None
+
+
+def log_write(msg, flush=False):
+    msg_format = "[{time:.3f}] {msg}\n"
+    msg = msg.replace('\r', '\\r').replace('\n', '\\n')
+    LOG_FILE.write(msg_format.format(time=time.time(), msg=msg))
+    LOG_FILE.flush()
 
 
 def send_msg(s, msg, timeout, retries, ack):
+    global LOG_FILE
+    if not LOG_FILE:
+        LOG_FILE = open("msg_log_{0}.log".format(int(time.time())), 'w+')
     buff = ''
     for i in range(retries):
         s.write(msg)
+        log_write("Sending out '{0}' to arduino, retry {1}".format(msg, i))
         s.flush()
         start_time = time.time()
         end_time = time.time()
         while end_time - start_time < timeout:
             r = s.readline()
+            log_write("Got back '{0}' from arduino, time left till timeout: {1:f}s".format(r, timeout - time.time() + start_time))
             buff += r
             if r:
                 print 'Got msg "{0}" from upstream'.format(r)
                 if 'FAIL' in r:
                     print 'Found failure condition in response, resending'
+                    log_write("Matched failure condition, resending")
                     break
 
                 if ack in buff:
                     print 'Found ACK condition in response, accepting'
+                    log_write("Found ACK condition, accepting")
                     break
             end_time = time.time()
         if ack in buff:
             return True
     else:
+        log_write("no msg was ack'd, giving up")
         return False
 
 
@@ -71,8 +87,8 @@ class MockSerial(object):
 
 def msg_sender(pipe, avail, port, rate, timeout, retries):
     # establish serial connection
-    s = serial.Serial(port, rate, timeout=timeout)
-    # s = MockSerial(port, rate, timeout=timeout)
+    # s = serial.Serial(port, rate, timeout=timeout)
+    s = MockSerial(port, rate, timeout=timeout)
     print 'Established connection, commencing initial wait for handshakes(5s)'
     time.sleep(5)
     print 'Connection should be up now, testing with ready'
@@ -94,6 +110,7 @@ def msg_sender(pipe, avail, port, rate, timeout, retries):
             return
         if time.time() - t > timeout * 4:
             print 'Got msg {0} which is {1:.2f}s old, rejecting'.format(msg, time.time() - t)
+            log_write("Rejected msg '{0}' as it was {1:.2f}s old".format(msg, time.time() - t))
             continue
         print 'Trying to send msg "{0}"'.format(msg)
 
