@@ -60,7 +60,7 @@ class Planner(Strategy):
         self.m.add_final_state_and_action("blocking goal", action=self.do_block_goal)
         self.m.add_final_state_and_action("passing ball", action=self.do_pass_ball)
         self.m.add_final_state_and_action("receiving pass", action=self.do_receive_pass)
-        self.m.add_final_state_and_action("Saving Robot", action=self.save_robot)
+        self.m.add_final_state_and_action("Saving Robot", action=self.do_save_robot)
 
         # set start state
         self.m.set_start("Start")
@@ -168,6 +168,10 @@ class Planner(Strategy):
     def do_receive_pass(self):
         self.world.do_refresh_kick = True
         return self.do_strategy(self.receive_pass)
+
+    def do_save_robot(self):
+        self.world.do_refresh_kick = True
+        return self.do_strategy(self.save_robot)
 
     def do_strategy(self, strategy):
         """

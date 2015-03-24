@@ -121,7 +121,6 @@ class Strategy(object):
         else:
             return False
 
-
     def is_robot_y_safe(self):
         if np.abs(self.robot.position.y - self.get_zone_centre_y()) > self.SAFE_Y:
             return False
