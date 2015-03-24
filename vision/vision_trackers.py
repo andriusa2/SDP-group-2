@@ -227,7 +227,7 @@ class CircleTracker(Tracker):
             if not cnt:
                 self.my_print("No hits after refine")
                 raise TrackingException("No circle hits after refining")
-            self.my_print("Too many hits")
+            # self.my_print("Too many hits")
             self.my_print(cnt)
             # pick the biggest fill if one exists
             return cnt[0]
@@ -320,7 +320,7 @@ class RectTracker(Tracker):
                 if dbg:
                     self.my_print("No rects")
                 raise TrackingException("No rect hits after refining")
-            self.my_print("too many rects")
+            # self.my_print("too many rects")
 
             def get_box_fitness(box):
                 _, (w, h), _ = box
@@ -462,15 +462,15 @@ class PlateTracker(Tracker):
             # boxpoints does not really return a valid contour, just a pointset, convert to contour
 
             cnt = [(cv2.minAreaRect(np.append(a, b, axis=0)), np.append(a, b, axis=0)) for (_, a), (_, b) in itertools.combinations(cnt, 2)]
-            self.my_print("Partial rect sz: {0}".format(len(cnt_full)))
+            # self.my_print("Partial rect sz: {0}".format(len(cnt_full)))
             # okay, now there might
             try:
                 cnt = self.__filter_correct(cnt)
-                self.my_print("Partial rect hits: {0}".format(len(cnt_full)))
+                # self.my_print("Partial rect hits: {0}".format(len(cnt_full)))
             except TrackingException:
                 raise
         else:
-            self.my_print("Full rect hits: {0}".format(len(cnt_full)))
+            # self.my_print("Full rect hits: {0}".format(len(cnt_full)))
             cnt = cnt_full
         if len(cnt) != 1:
             if not cnt:

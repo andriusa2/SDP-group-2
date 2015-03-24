@@ -78,26 +78,26 @@ class Controller(object):
         :return: none
         """
         robot1 = Robot(state.get_robot(0).get_direction(),
-                       state.get_robot(0).get_position(),
-                       state.get_robot(0).get_velocity(),
+                       state.get_robot(0).get_position_units(),
+                       state.get_robot(0).get_velocity_units(),
                        enemy=False)
         robot2 = Robot(state.get_robot(1).get_direction(),
-                       state.get_robot(1).get_position(),
-                       state.get_robot(1).get_velocity(),
+                       state.get_robot(1).get_position_units(),
+                       state.get_robot(1).get_velocity_units(),
                        enemy=False)
         robot3 = Robot(state.get_robot(2).get_direction(),
-                       state.get_robot(2).get_position(),
-                       state.get_robot(2).get_velocity(),
+                       state.get_robot(2).get_position_units(),
+                       state.get_robot(2).get_velocity_units(),
                        enemy=False)
         robot4 = Robot(state.get_robot(3).get_direction(),
-                       state.get_robot(3).get_position(),
-                       state.get_robot(3).get_velocity(),
+                       state.get_robot(3).get_position_units(),
+                       state.get_robot(3).get_velocity_units(),
                        enemy=False)
 
         robots = [robot1, robot2, robot3, robot4]
 
-        ball = Ball(state.get_ball().get_position(),
-                    state.get_ball().get_velocity())
+        ball = Ball(state.get_ball().get_position_units(),
+                    state.get_ball().get_velocity_units())
 
         # change the states of the robots in the world
         self.world.set_robots_list(robots)
@@ -108,7 +108,7 @@ class Controller(object):
         # self.planner.plan_defence()
 
         if not self.planner:
-            self.planner = Planner(self.world, Zone.R_DEF, self.actual_robot, False, self.debug)
+            self.planner = Planner(self.world, Zone.L_DEF, self.actual_robot, False, debug=self.debug)
 
         if not step:
                     self.planner.plan()
