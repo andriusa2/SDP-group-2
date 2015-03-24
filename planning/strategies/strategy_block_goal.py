@@ -14,9 +14,9 @@ class BlockGoal(Strategy):
         self.m.add_state("Robot is Square", self.is_square_trans)
 
         # End States / Actions
-        self.m.add_final_state_and_action("Intercept Ball", self.actions.intercept_ball)
-        self.m.add_final_state_and_action("Rotating To Be Square", self.actions.turn_to_closest_square_angle)
-        self.m.add_final_state_and_action("Move Robot To Centre", self.actions.move_to_centre_x)
+        self.m.add_final_state_and_action("Intercept Ball", self.move.intercept_ball)
+        self.m.add_final_state_and_action("Rotating To Be Square", self.turn.turn_to_closest_square_angle)
+        self.m.add_final_state_and_action("Move Robot To Centre", self.move.move_to_centre_x)
 
         # set start state
         self.m.set_start("Start")

@@ -25,12 +25,12 @@ class BouncePass(Strategy):
         self.m.add_state("Robot In Center", self.is_centered_trans)
 
         # End States / Actions
-        self.m.add_final_state_and_action("Close Grabber", self.actions.lower_cage)
-        self.m.add_final_state_and_action("Rotating To Be Square", self.actions.turn_to_closest_square_angle)
-        self.m.add_final_state_and_action("Move To Center X", self.actions.move_to_centre_x)
-        self.m.add_final_state_and_action("Move To Center Y", self.actions.move_to_centre_y)
-        self.m.add_final_state_and_action("Turning to Face Bounce Point", self.actions.turn_to_bounce_point)
-        self.m.add_final_state_and_action("Pass Ball", self.actions.shoot)
+        self.m.add_final_state_and_action("Close Grabber", self.other.lower_cage)
+        self.m.add_final_state_and_action("Rotating To Be Square", self.turn.turn_to_closest_square_angle)
+        self.m.add_final_state_and_action("Move To Center X", self.move.move_to_centre_x)
+        self.m.add_final_state_and_action("Move To Center Y", self.move.move_to_centre_y)
+        self.m.add_final_state_and_action("Turning to Face Bounce Point", self.turn.turn_to_bounce_point)
+        self.m.add_final_state_and_action("Pass Ball", self.other.shoot)
 
 
         # set start state
