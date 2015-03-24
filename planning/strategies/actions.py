@@ -1,4 +1,4 @@
-from lib.math.util import rad_to_deg
+from lib.math.util import rad_to_deg, clamp
 from lib.math.vector import Vector2D
 import numpy as np
 
@@ -52,7 +52,9 @@ class Actions(object):
         return self.turn_robot(to_turn,), info
 
     def turn_robot(self, to_turn):
-        return self.strategy.actual_robot.turn(to_turn * self.strategy.action_dampening)
+        to_turn *= self.strategy.turn_dampening
+        to_turn = clamp(to_turn, self.strategy.max_turn, -self.strategy.max_turn)
+        return self.strategy.actual_robot.turn(to_turn)
 
     def intercept_ball(self):
         s = self.strategy
@@ -109,9 +111,12 @@ class Actions(object):
 
     def move_robot(self, x, y, info, direction=None):
         if x:
-            x *= self.strategy.action_dampening
+            x *= self.strategy.move_dampening
+            x = clamp(x, self.strategy.max_move, -self.strategy.max_move)
         if y:
-            y *= self.strategy.action_dampening
+            y *= self.strategy.move_dampening
+            y = clamp(y, self.strategy.max_move, -self.strategy.max_move)
+
         return self.strategy.actual_robot.move(x, y, direction), info
 
     def shoot(self):
@@ -143,7 +148,3 @@ class Actions(object):
         to_turn = self.strategy.robot.angle_to_point(bounce_point)
         info = "Turning {0} degrees to ({1}, {2})".format(to_turn, bounce_point.x, bounce_point.y)
         return self.turn_robot(to_turn,), info
-
-
-
-
