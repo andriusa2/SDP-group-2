@@ -38,6 +38,10 @@ class Strategy(object):
         self.square_angle_threshold = config.SQUARE_ANGLE_THRESHOLD
         self.zone_centre_offset = config.ZONE_CENTRE_OFFSET
 
+        # dead zone
+        self.dead_zone_width = config.DEAD_ZONE_WIDTH
+        self.dea_corner_width_height = config.DEAD_CORNER_WIDTH_HEIGHT
+
         # initialise state attributes
         self.robot = None
         self.ball = None
@@ -45,14 +49,11 @@ class Strategy(object):
         self.m = StateMachine()
         self.actions = Actions()
 
-        self.ACTUAL_WIDTH = 114
-        self.ACTUAL_LENGTH = 45
         self.DEADSPACE_SLOPE = 27.0/14.0
         self.DEADSPACE_BOUNDARY = 14
         self.DEADSPACE_SAFE_X = 25
         self.SAFE_X = 55
         self.SAFE_Y = 40
-        self.home = None
 
     def fetch_world_state(self):
         """
@@ -62,7 +63,6 @@ class Strategy(object):
         self.robot = self.world.get_robot(self.robot_tag)
         self.ball = self.world.get_ball()
         self.goal = self.get_goal()
-        self.home = self.get_centre_point()
 
         # update rotation and movement
         self.actions.__int__(self)
@@ -132,12 +132,11 @@ class Strategy(object):
         else:
             return True
 
-
     def is_robot_x_safe(self):
         # do we need to consider deadspace?
         if self.robot.position.y < self.DEADSPACE_BOUNDARY:
             # we need to think about deadspace
-            safe_width =  + (self.DEADSPACE_SLOPE) * self.robot.position.y
+            safe_width = + self.DEADSPACE_SLOPE * self.robot.position.y
             '''
                     Explanation
 
@@ -208,17 +207,12 @@ class Strategy(object):
         return zone_centre
 
     def get_zone_centre_y(self):
-        # returns the inferred zone center_y
-        #pitch is roughly 114cm x 45; normalize the value and find others
-        zone_center = self.get_my_zone_centre()
-        zone_center_y = zone_center * (self.ACTUAL_LENGTH/self.ACTUAL_WIDTH)
-        return  zone_center_y
-
+        zone_center_y = self.pitch_height/2
+        return zone_center_y
 
     def get_centre_point(self):
         # returns point (int, int)  an (x,y)
         return Vector2D(self.get_my_zone_centre(), self.get_zone_centre_y())
-
 
     def is_ball_in_friend_zone(self):
         friend_zone = self.world.get_zone(self.get_friend().position)

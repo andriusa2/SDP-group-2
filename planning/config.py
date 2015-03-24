@@ -23,6 +23,8 @@ class Config(object):
     ZONE_CENTRE_WIDTH = 8
     PITCH_HEIGHT = 110
     ZONE_CENTRE_OFFSET = 0.5  # a percentage of the zone width
+    DEAD_ZONE_WIDTH = 4
+    DEAD_CORNER_WIDTH_HEIGHT = [27.0, 14.0]
 
 
 class TestingConfig(Config):
@@ -36,3 +38,6 @@ class TestingConfig(Config):
     TURN_DAMPENING = 1
     MAX_MOVE = 1000
     MAX_TURN = 2 * np.pi
+
+    DEAD_ZONE_WIDTH = 0
+    DEAD_CORNER_WIDTH_HEIGHT = [0, 0]

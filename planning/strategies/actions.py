@@ -40,6 +40,13 @@ class Actions(object):
         info = "turning {0} degrees)".format(rad_to_deg(to_turn))
         return self.turn_robot(to_turn,), info
 
+    def turn_to_home(self):
+        """
+        turn the robot to face the centre point
+        """
+        home = self.strategy.get_centre_point()
+        return self.turn_robot_to_point(home)
+
     def turn_robot_to_point(self, point):
         """
         turn the robot to face the a Vector2D point
@@ -67,11 +74,6 @@ class Actions(object):
         info = "moving robot ({0}, {1}) cm to ({2}, {3})".format(to_move.x, to_move.y, vect_to_point.x,
                                                                  vect_to_point.y)
         return self.move_robot(to_move.x, to_move.y, info, s.robot.direction)
-
-    def move_robot_to_point(self, point):
-        (x,y) = point
-        dist_to_point = self.strategy.distance_from_robot_to_point(x,y) * 0.8
-        return self.strategy.actual_robot.move(dist_to_point)
 
     def move_robot_to_ball(self):
         """
@@ -103,11 +105,12 @@ class Actions(object):
         return self.move_robot(to_move.x, to_move.y, info, self.strategy.robot.direction)
 
     def move_to_home(self):
-        (x,y) = self.strategy.home
-        return self.move_robot(x,y,info="")
+        x, y = self.strategy.home
+        vect_to_point = self.strategy.vector_from_robot_to_point(x, y)
+        to_move = self.strategy.get_local_move(vect_to_point, self.strategy.robot.direction)
 
-    def turn_to_home(self):
-        return self.turn_robot_to_point(self.strategy.home) , "Turning to home"
+        info = "moving robot ({0}, {1}) cm to ({2}, {3})".format(to_move.x, to_move.y, x, y)
+        return self.move_robot(x, y, info)
 
     def move_robot(self, x, y, info, direction=None):
         if x:
