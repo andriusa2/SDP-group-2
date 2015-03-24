@@ -23,22 +23,23 @@ class Planner(Strategy):
     """
     ACTION_COMPENSATION = 0
 
-    def __init__(self, world, robot_tag, actual_robot, is_attacker):
-        super(Planner, self).__init__(world, robot_tag, actual_robot)
+    def __init__(self, world, robot_tag, actual_robot, is_attacker, config=None, debug=False):
+        super(Planner, self).__init__(world, robot_tag, actual_robot, config)
         # when the next action can be performed
+        self.debug = debug
         self.debugger = Debugger(self)
         self.can_act_after = time.time()
         self.is_attacker = is_attacker
         self.next_action_wait = 0
         self.action_trace = []
 
-        self.fetch_ball = FetchBall(world, robot_tag, actual_robot)
-        self.shoot_goal = ShootForGoal(world, robot_tag, actual_robot)
+        self.fetch_ball = FetchBall(world, robot_tag, actual_robot, config)
+        self.shoot_goal = ShootForGoal(world, robot_tag, actual_robot, config)
 
-        self.block_goal = BlockGoal(world, robot_tag, actual_robot)
-        self.pass_ball = BouncePass(world, robot_tag, actual_robot)
-        self.receive_pass = ReceivePass(world, robot_tag, actual_robot)
-        self.save_robot = SaveRobot(world, robot_tag, actual_robot)
+        self.block_goal = BlockGoal(world, robot_tag, actual_robot, config)
+        self.pass_ball = BouncePass(world, robot_tag, actual_robot, config)
+        self.receive_pass = ReceivePass(world, robot_tag, actual_robot, config)
+        self.save_robot = SaveRobot(world, robot_tag, actual_robot, config)
 
         self.m = StateMachine()
         self.m.add_state("Start", self.start_trans)
@@ -73,7 +74,8 @@ class Planner(Strategy):
 
         action_state = self.m.run()
         self.next_action_wait, action_info = self.m.do_action(action_state)
-        self.debugger.do_pretty_print(action_info)
+        if self.debug:
+            self.debugger.do_pretty_print(action_info)
         return self.next_action_wait
 
     def start_trans(self):

@@ -4,8 +4,8 @@ __author__ = 'Sam Davies'
 
 
 class SaveRobot(Strategy):
-    def __init__(self, world, robot_tag, actual_robot):
-        super(SaveRobot, self).__init__(world, robot_tag, actual_robot)
+    def __init__(self, world, robot_tag, actual_robot, config=None):
+        super(SaveRobot, self).__init__(world, robot_tag, actual_robot, config)
         self.m.add_state("Start", self.start_trans)
 
         # End States / Actions

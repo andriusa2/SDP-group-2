@@ -1,7 +1,10 @@
 import numpy as np
 
 from lib.math.vector import Vector2D
-from planning.strategies.actions import Actions
+from planning.actions.move import Move
+from planning.actions.other import Other
+from planning.actions.turn import Turn
+from planning.config import Config
 from planning.strategies.state_machine import StateMachine
 from planning.world_state import Zone, Robot
 
@@ -11,27 +14,40 @@ __author__ = 'Sam'
 
 class Strategy(object):
 
-    def __init__(self, world, robot_tag, actual_robot):
+    def __init__(self, world, robot_tag, actual_robot, config=None):
         self.actual_robot = actual_robot
         self.robot_tag = robot_tag
         self.world = world
 
-        self.grab_threshold_x = 8  # we need to define these (based on kicker)
-        self.grab_threshold_y = 8
-        self.dist_kicker_robot = 12
+        # this sets the default config
+        if config is None:
+            config = Config()
 
-        self.ROBOT_WIDTH = 4
-        self.zone_centre_width = 8
+        self.grab_threshold_x = config.GRAB_THRESHOLD
+        self.grab_threshold_y = config.GRAB_THRESHOLD
+        self.dist_kicker_robot = config.DIST_KICKER_ROBOT
 
-        self.square_angle_threshold = 0.005
-        self.zone_centre_offset = 0.5  # a percentage of the zone width
+        self.ROBOT_WIDTH = config.ROBOT_WIDTH
+        self.zone_centre_width = config.ZONE_CENTRE_WIDTH
+        self.pitch_height = config.PITCH_HEIGHT
+
+        self.move_dampening = config.MOVE_DAMPENING
+        self.max_move = config.MAX_MOVE
+
+        self.turn_dampening = config.TURN_DAMPENING
+        self.max_turn = config.MAX_TURN
+
+        self.square_angle_threshold = config.SQUARE_ANGLE_THRESHOLD
+        self.zone_centre_offset = config.ZONE_CENTRE_OFFSET
 
         # initialise state attributes
         self.robot = None
         self.ball = None
         self.goal = None
         self.m = StateMachine()
-        self.actions = Actions()
+        self.move = Move()
+        self.turn = Turn()
+        self.other = Other()
 
     def fetch_world_state(self):
         """
@@ -43,7 +59,9 @@ class Strategy(object):
         self.goal = self.get_goal()
 
         # update rotation and movement
-        self.actions.__int__(self)
+        self.move.__int__(self)
+        self.turn.__int__(self)
+        self.other.__int__(self)
 
     """
     -------------------------------------------------------
@@ -86,11 +104,17 @@ class Strategy(object):
             beam_width = self.ROBOT_WIDTH
         return self.robot.can_see(point=point, beam_width=beam_width)
 
-    def is_robot_in_centre(self):
-        zone_centre = self.get_my_zone_centre()
-        centre_bound_l = zone_centre - (self.zone_centre_width/2)
-        centre_bound_r = zone_centre + (self.zone_centre_width/2)
+    def is_robot_in_centre_x(self):
+        zone_centre_x = self.get_my_zone_centre()
+        centre_bound_l = zone_centre_x - (self.zone_centre_width/2)
+        centre_bound_r = zone_centre_x + (self.zone_centre_width/2)
         return centre_bound_l < self.robot.position.x < centre_bound_r
+
+    def is_robot_in_centre_y(self):
+        zone_centre_y = self.get_zone_centre_y()
+        centre_bound_l = zone_centre_y - (self.zone_centre_width/2)
+        centre_bound_r = zone_centre_y + (self.zone_centre_width/2)
+        return centre_bound_l < self.robot.position.y < centre_bound_r
 
     def is_robot_safe(self):
         return True
@@ -124,9 +148,9 @@ class Strategy(object):
 
     def get_my_zone_centre(self):
         my_zone = self.world.get_zone(self.robot.position)
-        return self.get_zone_centre(my_zone)
+        return self.get_zone_centre(my_zone, True)
 
-    def get_zone_centre(self, zone):
+    def get_zone_centre(self, zone, offset=False):
         zone_edges = [0] + self.world.zone_boundaries
         edge_L = zone_edges[zone]
         edge_R = zone_edges[zone+1]
@@ -134,12 +158,17 @@ class Strategy(object):
         zone_centre = edge_L + zone_width/2.0
 
         # move the centre closer to the pitch centre
-        if zone >= 2:
-            zone_centre -= (self.zone_centre_offset * (zone_width/2))
-        else:
-            zone_centre += (self.zone_centre_offset * (zone_width/2))
+        if offset:
+            if zone >= 2:
+                zone_centre -= (self.zone_centre_offset * (zone_width/2))
+            else:
+                zone_centre += (self.zone_centre_offset * (zone_width/2))
         print "Left: {0}, right {1}, centre: {2}".format(edge_L, edge_R, zone_centre)
         return zone_centre
+
+    def get_zone_centre_y(self):
+        zone_center_y = self.pitch_height/2
+        return zone_center_y
 
     def is_ball_in_friend_zone(self):
         friend_zone = self.world.get_zone(self.get_friend().position)
@@ -247,11 +276,11 @@ class Strategy(object):
     def dist_to_pass_point(self, x1, y1, x2, y2):
         return self.vector_to_pass_point(x1, y1, x2, y2).length()
 
-    def vector_to_pass_point(self, x1, y1, x2, y2):
+    @staticmethod
+    def vector_to_pass_point(x1, y1, x2, y2):
         dist_x = -x1 + x2
         dist_y = -y1 + y2
         return Vector2D(dist_x, dist_y)
-
 
     @staticmethod
     def get_local_move(to_move, direction):

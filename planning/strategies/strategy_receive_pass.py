@@ -8,8 +8,8 @@ from planning.strategies.strategy import Strategy
 
 
 class ReceivePass(Strategy):
-    def __init__(self, world, robot_tag, actual_robot):
-        super(ReceivePass, self).__init__(world, robot_tag, actual_robot)
+    def __init__(self, world, robot_tag, actual_robot, config=None):
+        super(ReceivePass, self).__init__(world, robot_tag, actual_robot, config)
         self.m.add_state("Start", self.start_trans)
 
         # End States / Actions

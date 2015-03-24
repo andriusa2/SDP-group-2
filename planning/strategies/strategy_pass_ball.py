@@ -9,15 +9,15 @@ __author__ = 'Sam Davies'
 
 class PassToZone(Strategy):
 
-    def __init__(self, world, robot_tag, actual_robot):
-        super(PassToZone, self).__init__(world, robot_tag, actual_robot)
+    def __init__(self, world, robot_tag, actual_robot, config=None):
+        super(PassToZone, self).__init__(world, robot_tag, actual_robot, config)
         self.m.add_state("Start", self.start_trans)
         self.m.add_state("Pass Blocked", self.pass_blocked_trans)
         self.m.add_state("Pass Not Blocked", self.pass_not_blocked_trans)
         self.m.add_state("Grabber is Closed", self.grabber_open_trans)
 
         # End States / Actions
-        self.m.add_final_state_and_action("Close Grabber", self.actions.lower_cage)
+        self.m.add_final_state_and_action("Close Grabber", self.other.lower_cage)
         self.m.add_final_state_and_action("Turn to location", self.turn_to_location)
         self.m.add_final_state_and_action("Move to location", self.move_to_location)
         self.m.add_final_state_and_action("Turn to pass", self.turn_to_friend)
@@ -106,4 +106,4 @@ class PassToZone(Strategy):
         return self.actual_robot.turn(to_turn), "turning {0} degrees to ({1}, {2})".format(int(360.0 * to_turn / (2 * np.pi)), friend_pos.x, friend_pos.y)
 
     def pass_to_friend(self):
-        return self.actions.shoot()
+        return self.other.shoot()

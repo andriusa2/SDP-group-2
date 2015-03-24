@@ -5,16 +5,16 @@ from planning.strategies.state_machine import StateMachine
 
 class ShootForGoal(Strategy):
 
-    def __init__(self, world, robot_tag, actual_robot):
-        super(ShootForGoal, self).__init__(world, robot_tag, actual_robot)
+    def __init__(self, world, robot_tag, actual_robot, config=None):
+        super(ShootForGoal, self).__init__(world, robot_tag, actual_robot, config)
         self.m = StateMachine()
         self.m.add_state("Start", self.start_trans)
         self.m.add_state("Grabber is Closed", self.grabber_open_trans)
 
         # End States / Actions
-        self.m.add_final_state_and_action("Close Grabber", self.actions.lower_cage)
-        self.m.add_final_state_and_action("Shoot", self.actions.shoot)
-        self.m.add_final_state_and_action("Turn to Goal", self.actions.turn_robot_to_goal)
+        self.m.add_final_state_and_action("Close Grabber", self.other.lower_cage)
+        self.m.add_final_state_and_action("Shoot", self.other.shoot)
+        self.m.add_final_state_and_action("Turn to Goal", self.turn.turn_robot_to_goal)
 
         # set start state
         self.m.set_start("Start")

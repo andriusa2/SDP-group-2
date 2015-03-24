@@ -9,31 +9,47 @@ import numpy as np
 
 # polynomial approximating low angle durations
 angle_poly = np.poly1d([-0.1735, 0.279, 0])
+LOG_FILE = None
+
+
+def log_write(msg, flush=False):
+    msg_format = "[{time:.3f}] {msg}\n"
+    msg = msg.replace('\r', '\\r').replace('\n', '\\n')
+    LOG_FILE.write(msg_format.format(time=time.time(), msg=msg))
+    LOG_FILE.flush()
 
 
 def send_msg(s, msg, timeout, retries, ack):
+    global LOG_FILE
+    if not LOG_FILE:
+        LOG_FILE = open("msg_log_{0}.log".format(int(time.time())), 'w+')
     buff = ''
     for i in range(retries):
         s.write(msg)
+        log_write("Sending out '{0}' to arduino, retry {1}".format(msg, i))
         s.flush()
         start_time = time.time()
         end_time = time.time()
         while end_time - start_time < timeout:
             r = s.readline()
+            log_write("Got back '{0}' from arduino, time left till timeout: {1:f}s".format(r, timeout - time.time() + start_time))
             buff += r
             if r:
                 print 'Got msg "{0}" from upstream'.format(r)
                 if 'FAIL' in r:
                     print 'Found failure condition in response, resending'
+                    log_write("Matched failure condition, resending")
                     break
 
                 if ack in buff:
                     print 'Found ACK condition in response, accepting'
+                    log_write("Found ACK condition, accepting")
                     break
             end_time = time.time()
         if ack in buff:
             return True
     else:
+        log_write("no msg was ack'd, giving up")
         return False
 
 
@@ -94,6 +110,7 @@ def msg_sender(pipe, avail, port, rate, timeout, retries):
             return
         if time.time() - t > timeout * 4:
             print 'Got msg {0} which is {1:.2f}s old, rejecting'.format(msg, time.time() - t)
+            log_write("Rejected msg '{0}' as it was {1:.2f}s old".format(msg, time.time() - t))
             continue
         print 'Trying to send msg "{0}"'.format(msg)
 
@@ -111,7 +128,7 @@ def msg_sender(pipe, avail, port, rate, timeout, retries):
 class Arduino(object):
     """ Basic class for Arduino communications. """
 
-    def __init__(self, port='/dev/ttyUSB0', rate=115200, timeOut=0.4, comms=1, debug=False, is_dummy=False,
+    def __init__(self, port='/dev/ttyUSB0', rate=115200, timeOut=0.1, comms=1, debug=False, is_dummy=False,
                  ack_tries=4):
         self.port = port
         self.rate = rate
@@ -122,6 +139,7 @@ class Arduino(object):
         self.serial_thread = None
         self.pipe = None
         self.establish_connection()
+        self.avail_check = -1
 
     def establish_connection(self):
         pipe_in, pipe_out = Pipe()
@@ -139,8 +157,9 @@ class Arduino(object):
 
     def is_available(self):
         # if not available - query just in case
-        if self.available.value == 0:
+        if self.available.value == 0 and self.avail_check < time.time():
             self._write('HEARTBEAT')
+            self.avail_check = time.time() + 0.1
         return self.available.value != 0
 
     def destr(self):
