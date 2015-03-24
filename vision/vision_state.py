@@ -32,9 +32,7 @@ class VisionState(object):
     def __repr__(self):
         return "State(Robots:{0!r}, ball:{1!r})".format(self.robots, self.ball)
     
-        
-        
-        
+
 class _VisionObject(object):
     def __init__(self, pixel_scale=None, smooth_position=None, smooth_velocity=None, smooth_direction=None):
         self.position_history = []

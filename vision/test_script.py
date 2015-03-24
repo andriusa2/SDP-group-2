@@ -1,6 +1,6 @@
 from vision_controller import VisionController
 import time
-vc = VisionController(video_port=0, draw_debug=('pos', 'vel', 'dir'))
+vc = VisionController(video_port=None, draw_debug=('pos', 'vel', 'dir'))
 state = None
 t = 0
 st = time.time()

@@ -57,7 +57,6 @@ def getContourNeighbourhood(contour, image, padding=None):
 class TrackingException(Exception):
     pass
 
-import itertools    
     
 class Tracker(object):
     def __init__(self, name, tgt, sz_range, sz_target, search_space, ch_width_range=None, manual_mode=None):
@@ -109,7 +108,7 @@ class Tracker(object):
     def _get_local_area(self, hsv, origin, previous_center):
         raise NotImplementedError
     
-    def find(self, hsv, origin=None, previous_center=None, dbg=None, mask=None):
+    def find(self, hsv, origin=None, previous_center=None, dbg=None, mask=None, local_hit=False):
         """ tries to find an object which matches whatever is the test. """
         if previous_center:
             local, top_left = self._get_local_area(hsv, origin=origin, previous_center=previous_center)
@@ -120,7 +119,7 @@ class Tracker(object):
                 mask_ = None
             ret = None
             try:
-                ret = self.find(local, previous_center=None, origin=top_left, dbg=dbg, mask=mask_)
+                ret = self.find(local, previous_center=None, origin=top_left, dbg=dbg, mask=mask_, local_hit=True)
             except TrackingException:
                 pass
             else:
@@ -146,6 +145,8 @@ class Tracker(object):
                 continue
             
         else:
+            if local_hit:
+                raise TrackingException
             # need to recalibrate now
             if not self.manual_mode:
                 self.recalibrate(hsv, mask=mask)
@@ -156,7 +157,6 @@ class Tracker(object):
                 hit = self._adjust_hit(hit, origin)
             return hit
 
-            
     def recalibrate(self, hsv, mask=None):
         values = dict()
         h, s, v = self.hsv_ranges
@@ -199,6 +199,7 @@ class CircleTracker(Tracker):
             cv2.destroyWindow("Circle mask")
         cnt, h = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         cnt = [c for c in cnt if 3 * s2 * s2 >= cv2.contourArea(c) >= 3 * s1 * s1]
+
         def test(c):
             _, r = cv2.minEnclosingCircle(c)
             c_area = np.pi * r ** 2
@@ -267,7 +268,7 @@ class RectTracker(Tracker):
     """
     def __filter_correct(self, cnt):
         s1, s2 = self.sz_range
-        return [((p, (w,h), a), c) for (p, (w,h), a), c in cnt if s2 >= w >= s1 and s2 >= h >= s1]
+        return [((p, (w, h), a), c) for (p, (w, h), a), c in cnt if s2 >= w >= s1 and s2 >= h >= s1]
     
     def _postprocess_hit(self, hit):
         (_, (w, h), _), cnt = hit
@@ -317,14 +318,22 @@ class RectTracker(Tracker):
                     self.my_print("No rects")
                 raise TrackingException("No rect hits after refining")
             self.my_print("too many rects")
+
             def get_box_fitness(box):
                 _, (w, h), _ = box
                 x, y = self.sz_target
                 return (w * h - x * y) ** 2
-            #self.my_print(map(lambda a: get_box_fitness(a[0]), cnt))
+            # self.my_print(map(lambda a: get_box_fitness(a[0]), cnt))
             # approximate thing, CARE
             cnt.sort(key=lambda a: get_box_fitness(a[0]))
-            
+            for _, c in cnt:
+                msk = np.zeros(mask.shape)
+                cv2.drawContours(msk, [c], -1, 255, 1)
+                cv2.imshow("cnt mask", msk)
+                if cv2.waitKey(0) & 0xFF == 27:
+                    exit(0)
+                cv2.destroyWindow("cnt mask")
+
             # raise TrackingException("Too many rect hits")
         return self._postprocess_hit(cnt[0])
     
@@ -342,6 +351,7 @@ class RectTracker(Tracker):
         M = cv2.moments(cnt)
         return float(M['m10']/M['m00']), float(M['m01']/M['m00'])
 
+
 class PlateTracker(Tracker):
     """
     Major differences from RectTracker:
@@ -356,7 +366,7 @@ class PlateTracker(Tracker):
             tgt=((10, 25), (160, 255), (65, 255)),  # NB - yellow
             sz_range=(4, 20),
             sz_target=(5, 15),
-            search_space=(range(10,20,2), range(70, 200, 30), (65, )), # no range, SHOULD work
+            search_space=(range(10, 20, 4), range(70, 200, 50), (65, )),  # no range, SHOULD work
             ch_width_range=(range(5, 15, 5), (255,), (255,))
         )
         self.btag_tracker = RectTracker(
@@ -364,7 +374,7 @@ class PlateTracker(Tracker):
             tgt=((70, 100), (0, 255), (65, 255)),  # NB - blue
             sz_range=(4, 20),
             sz_target=(5, 15),
-            search_space=(range(55,90,5), (0, ), (65, )), # no ranges, SHOULD work
+            search_space=(range(55, 90, 10), (0, ), (65, )),
             ch_width_range=((30, ), (255,), (255,))
         )
         self.dot_tracker = CircleTracker(
@@ -378,14 +388,15 @@ class PlateTracker(Tracker):
         self.tag_order = (self.btag_tracker, self.ytag_tracker) if preferred_tag == 'b' else (self.ytag_tracker, self.btag_tracker)
         
         self.hsv = None
+        self.circle_bound = 2.4
         super(PlateTracker, self).__init__(**kwargs)
         
-    def find(self, hsv, origin=None, previous_center=None, dbg=None, mask=None):
+    def find(self, hsv, origin=None, previous_center=None, dbg=None, mask=None, local_hit=False):
         """ Cheating here, but helps to keep interfaces a wee bit cleaner. """
         prev_hsv = self.hsv
         self.hsv = hsv
         try:
-            r = super(PlateTracker, self).find(hsv, origin=origin, previous_center=previous_center, dbg=dbg, mask=mask)
+            r = super(PlateTracker, self).find(hsv, origin=origin, previous_center=previous_center, dbg=dbg, mask=mask, local_hit=local_hit)
         finally:
             self.hsv = prev_hsv
         return r
@@ -393,21 +404,20 @@ class PlateTracker(Tracker):
     def __filter_correct(self, cnt):
         s1, s2 = self.sz_range
         # size test
-        cnt = [((p, (w,h), a), c) for (p, (w,h), a), c in cnt if s2 >= w >= s1 and s2 >= h >= s1]
+        cnt = [((p, (w, h), a), c) for (p, (w, h), a), c in cnt if s2 >= w >= s1 and s2 >= h >= s1]
         # dot test
         retval = []
         for box, c in cnt:
             tgt_hsv, _ = getContourNeighbourhood(c, self.hsv)
             mask = np.zeros(tgt_hsv.shape[:2], dtype=np.int8)
-            cv2.circle(mask, (tgt_hsv.shape[1]/2, tgt_hsv.shape[0]/2), int(min(mask.shape[:2])/2.2), 255, -1)
-            
-            
+            cv2.circle(mask, (tgt_hsv.shape[1]/2, tgt_hsv.shape[0]/2), int(min(mask.shape[:2])/self.circle_bound), 255, -1)
+
             try:
                 self.dot_tracker.find(tgt_hsv, dbg=False, mask=mask)
             except TrackingException:
                 self.my_print("failed with dot")
                 continue
-            #self.my_print("found dot")
+            # self.my_print("found dot")
             retval.append((box, c)) 
         
         return retval
@@ -416,7 +426,7 @@ class PlateTracker(Tracker):
         (_, (w, h), _), cnt = hit
         plate_hsv, top = getContourNeighbourhood(cnt, self.hsv)
         mask = np.zeros(plate_hsv.shape[:2], dtype=np.int8)
-        cv2.circle(mask, (plate_hsv.shape[1]/2, plate_hsv.shape[0]/2), int(min(mask.shape[:2])/2.2), 255, -1)
+        cv2.circle(mask, (plate_hsv.shape[1]/2, plate_hsv.shape[0]/2), int(min(mask.shape[:2])/self.circle_bound), 255, -1)
             
         (dx, dy), dr = self.dot_tracker.find(plate_hsv, origin=top, mask=mask)
         reorder = False
@@ -438,24 +448,30 @@ class PlateTracker(Tracker):
     
     def _find_element(self, mask, dbg=None):
         s1, s2 = self.sz_range
-        cnt, h = cv2.findContours(mask,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+        cnt, h = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         cnt = [(cv2.minAreaRect(c), c) for c in cnt]
         # we might want to keep some smaller hits too and group them if no proper one is present
-        cnt = [((p, (w,h), a), c) for (p, (w, h), a), c in cnt if s2 >= w > s1/3 and s2 >= h > s1/3]
+        cnt = [((p, (w, h), a), c) for (p, (w, h), a), c in cnt if s2 >= w > s1/3 and s2 >= h > s1/3]
         cnt_full = self.__filter_correct(cnt)
-        if not cnt_full:
+        if not cnt_full and len(cnt) > 1:
             # no full hits. Pick some 2-permutation of leftovers
             # boxpoints does not really return a valid contour, just a pointset, convert to contour
+
             cnt = [(cv2.minAreaRect(np.append(a, b, axis=0)), np.append(a, b, axis=0)) for (_, a), (_, b) in itertools.combinations(cnt, 2)]
+            self.my_print("Partial rect sz: {0}".format(len(cnt_full)))
+            # okay, now there might
             try:
                 cnt = self.__filter_correct(cnt)
+                self.my_print("Partial rect hits: {0}".format(len(cnt_full)))
             except TrackingException:
                 raise
         else:
+            self.my_print("Full rect hits: {0}".format(len(cnt_full)))
             cnt = cnt_full
         if len(cnt) != 1:
             if not cnt:
                 raise TrackingException("No rect hits after refining")
+
             raise TrackingException("Too many rect hits")
         return self._postprocess_hit(cnt[0])
     
@@ -472,6 +488,7 @@ class PlateTracker(Tracker):
             hsv,
             padding=(self.sz_target, self.sz_target)  # not a great assumption tbh.
         )
+
     def _adjust_hit(self, hit, origin):
         (x, y), (dx, dy), (tx, ty) = hit
         ox, oy = origin

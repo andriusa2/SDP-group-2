@@ -5,6 +5,7 @@ from vision_trackers import plateTracker, ballTracker, TrackingException
 from vision_filters import CropArena, CropZone
 from vision_state import VisionState
 
+
 class VisionController(object):
     def __init__(self, video_port=None, draw_debug=None, debug=False):
         self.debug = debug
@@ -24,7 +25,12 @@ class VisionController(object):
         self.zone_filter = CropZone(crop_filter=self.crop_filters[0])
         self.capture = cv2.VideoCapture(video_port) if video_port is not None else None
         self.demo = itertools.cycle([
-            cv2.imread("SideArena\sample5\{0:08}.png".format(i), 1) for i in range(1, 11)
+            # cv2.imread("SideArena\sample5\{0:08}.png".format(i), 1) for i in range(1, 11)
+            # cv2.imread("tmp2\{0:08}.jpg".format(i), 1) for i in range(1, 22)
+            # cv2.imread("tmp1\{0:08}.png".format(i), 1) for i in range(1, 58)
+            # cv2.imread("tmp3\{0:08}.jpg".format(i), 1) for i in range(2, 6)
+            cv2.imread("tmp3\{0:08}.jpg".format(i), 1) for i in range(2, 14)
+            # cv2.imread("tmp3\{0:08}.jpg".format(i), 1) for i in range(6, 10)
         ]) if video_port is None else []
         _ = self.get_frame()
         frame = self.get_frame()
@@ -34,8 +40,7 @@ class VisionController(object):
             frame = f.filter(frame)
         self.zone_filter.setup(frame)
         self.zone_filter.dump_to_file()
-        
-        
+
     def get_frame(self):
         if self.capture:
             return self.capture.read()[1]
