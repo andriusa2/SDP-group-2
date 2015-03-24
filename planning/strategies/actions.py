@@ -95,11 +95,17 @@ class Actions(object):
         x = self.strategy.robot.position.x
         y = self.strategy.pitch_height/2
         vect_to_point = self.strategy.vector_from_robot_to_point(x, y)
-
         to_move = self.strategy.get_local_move(vect_to_point, self.strategy.robot.direction)
 
         info = "moving robot ({0}, {1}) cm to ({2}, {3})".format(to_move.x, to_move.y, x, y)
         return self.move_robot(to_move.x, to_move.y, info, self.strategy.robot.direction)
+
+    def move_to_home(self):
+        (x,y) = self.strategy.home
+        return self.move_robot(x,y,info="")
+
+    def turn_to_home(self):
+        return self.turn_robot_to_point(self.strategy.home) , "Turning to home"
 
     def move_robot(self, x, y, info, direction=None):
         if x:

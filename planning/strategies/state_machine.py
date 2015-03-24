@@ -14,6 +14,7 @@ class StateMachine(object):
         name = name.upper()
         self.handlers[name] = handler
         if end_state:
+            print name
             assert self.actions[name] is not None
             self.endStates.append(name)
 

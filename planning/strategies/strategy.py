@@ -47,6 +47,7 @@ class Strategy(object):
         self.DEADSPACE_SAFE_X = 25
         self.SAFE_X = 55
         self.SAFE_Y = 40
+        self.home = None
 
     def fetch_world_state(self):
         """
@@ -56,6 +57,7 @@ class Strategy(object):
         self.robot = self.world.get_robot(self.robot_tag)
         self.ball = self.world.get_ball()
         self.goal = self.get_goal()
+        self.home = self.get_centre_point()
 
         # update rotation and movement
         self.actions.__int__(self)
@@ -107,14 +109,11 @@ class Strategy(object):
         centre_bound_r = zone_centre_x + (self.zone_centre_width/2)
         return centre_bound_l < self.robot.position.x < centre_bound_r
 
-<<<<<<< HEAD
-=======
     def is_robot_in_centre_y(self):
         zone_centre_y = self.pitch_height/2
         centre_bound_l = zone_centre_y - (self.zone_centre_width/2)
         centre_bound_r = zone_centre_y + (self.zone_centre_width/2)
         return centre_bound_l < self.robot.position.y < centre_bound_r
->>>>>>> 90f32efeff048183486121ab42b62764d4f592c0
 
     def is_robot_safe(self):
         if self.is_robot_x_safe() and self.is_robot_y_safe():
@@ -147,7 +146,7 @@ class Strategy(object):
             '''
 
             # how close are we to the walls, taking into account deadspace?
-            if np.abs(self.robot.position.x - self.zone_centre())\
+            if np.abs(self.robot.position.x - self.get_my_zone_centre())\
                     > self.DEADSPACE_SAFE_X + safe_width:
                 return False
             else:
@@ -208,14 +207,14 @@ class Strategy(object):
     def get_zone_centre_y(self):
         # returns the inferred zone center_y
         #pitch is roughly 114cm x 45; normalize the value and find others
-        zone_center = self.get_zone_centre()
+        zone_center = self.get_my_zone_centre()
         zone_center_y = zone_center * (self.ACTUAL_LENGTH/self.ACTUAL_WIDTH)
         return  zone_center_y
 
 
     def get_centre_point(self):
         # returns point (int, int)  an (x,y)
-        return (self.get_my_zone_centre(), self.get_zone_centre_y())
+        return Vector2D(self.get_my_zone_centre(), self.get_zone_centre_y())
 
 
     def is_ball_in_friend_zone(self):

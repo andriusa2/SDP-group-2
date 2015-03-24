@@ -586,6 +586,20 @@ class BouncePassTest(BaseTest):
 
         self.planner.plan()
         self.assertEquals(self.last_action(), "PASS BALL")
+'''
+class SafeSpaceDep(BaseTest):
+    def setUp(self):
+        self.world_state = self.put_robot_and_ball(robot_pos=(15, 15), robot_dir=(0, 1), ball_pos=(5, 5), robot_num=1)
+        # make a dummy robot which can change the world
+        actual_robot = DummyRobot(self.world_state, Zone.L_DEF)
+        # give the strategies the world the dummy and the zone of the dummy
+        self.attacker1 = ShootForGoal(self.world_state, Zone.L_ATT, actual_robot)
+
+    def test_strategy_centre_y_test(self):
+
+        print(self.get_zone_centre_y())
+'''
+
 
 """class PrettyPrintTest(BaseTest):
     state_trace = ["a", "b", "c", "d", "e"]
