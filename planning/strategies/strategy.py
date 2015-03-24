@@ -1,8 +1,10 @@
 import numpy as np
 
 from lib.math.vector import Vector2D
+from planning.actions.move import Move
+from planning.actions.other import Other
+from planning.actions.turn import Turn
 from planning.config import Config
-from planning.strategies.actions import Actions
 from planning.strategies.state_machine import StateMachine
 from planning.world_state import Zone, Robot
 
@@ -47,7 +49,9 @@ class Strategy(object):
         self.ball = None
         self.goal = None
         self.m = StateMachine()
-        self.actions = Actions()
+        self.move = Move()
+        self.turn = Turn()
+        self.other = Other()
 
         self.DEADSPACE_SLOPE = 27.0/14.0
         self.DEADSPACE_BOUNDARY = 14
@@ -65,7 +69,9 @@ class Strategy(object):
         self.goal = self.get_goal()
 
         # update rotation and movement
-        self.actions.__int__(self)
+        self.move.__int__(self)
+        self.turn.__int__(self)
+        self.other.__int__(self)
 
     """
     -------------------------------------------------------
@@ -115,7 +121,7 @@ class Strategy(object):
         return centre_bound_l < self.robot.position.x < centre_bound_r
 
     def is_robot_in_centre_y(self):
-        zone_centre_y = self.pitch_height/2
+        zone_centre_y = self.get_zone_centre_y()
         centre_bound_l = zone_centre_y - (self.zone_centre_width/2)
         centre_bound_r = zone_centre_y + (self.zone_centre_width/2)
         return centre_bound_l < self.robot.position.y < centre_bound_r

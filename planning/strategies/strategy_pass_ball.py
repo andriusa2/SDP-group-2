@@ -17,7 +17,7 @@ class PassToZone(Strategy):
         self.m.add_state("Grabber is Closed", self.grabber_open_trans)
 
         # End States / Actions
-        self.m.add_final_state_and_action("Close Grabber", self.actions.lower_cage)
+        self.m.add_final_state_and_action("Close Grabber", self.other.lower_cage)
         self.m.add_final_state_and_action("Turn to location", self.turn_to_location)
         self.m.add_final_state_and_action("Move to location", self.move_to_location)
         self.m.add_final_state_and_action("Turn to pass", self.turn_to_friend)
@@ -106,4 +106,4 @@ class PassToZone(Strategy):
         return self.actual_robot.turn(to_turn), "turning {0} degrees to ({1}, {2})".format(int(360.0 * to_turn / (2 * np.pi)), friend_pos.x, friend_pos.y)
 
     def pass_to_friend(self):
-        return self.actions.shoot()
+        return self.other.shoot()
