@@ -33,7 +33,7 @@ class BaseTest(unittest.TestCase):
         # actual_robot = Controller("/dev/tty.usbmodem000001")
         # give the strategies the world the dummy and the zone of the dummy
         config = TestingConfig()
-        self.planner = Planner(self.world_state, Zone.L_ATT, actual_robot, True, config)
+        self.planner = Planner(self.world_state, Zone.L_ATT, actual_robot, True, config, True)
 
     def last_action(self):
         return self.planner.action_trace[len(self.planner.action_trace) - 1]
@@ -82,10 +82,10 @@ class BaseTest(unittest.TestCase):
         config = TestingConfig()
         if side == "left":
             actual_robot = DummyRobot(self.world_state, Zone.L_DEF)
-            self.planner = Planner(self.world_state, Zone.L_DEF, actual_robot, False, config)
+            self.planner = Planner(self.world_state, Zone.L_DEF, actual_robot, False, config, True)
         else:
             actual_robot = DummyRobot(self.world_state, Zone.R_DEF)
-            self.planner = Planner(self.world_state, Zone.R_DEF, actual_robot, False, config)
+            self.planner = Planner(self.world_state, Zone.R_DEF, actual_robot, False, config, True)
 
 
 class FetchBallTest(BaseTest):
@@ -424,11 +424,11 @@ class PassToZoneTest(BaseTest):
         config = TestingConfig()
         if side == "left":
             actual_robot = DummyRobot(self.world_state, Zone.L_DEF)
-            self.planner = Planner(self.world_state, Zone.L_DEF, actual_robot, False, config)
+            self.planner = Planner(self.world_state, Zone.L_DEF, actual_robot, False, config, True)
             self.planner.pass_ball = PassToZone(self.world_state, Zone.L_ATT, actual_robot, config)
         else:
             actual_robot = DummyRobot(self.world_state, Zone.R_DEF)
-            self.planner = Planner(self.world_state, Zone.R_DEF, actual_robot, False, config)
+            self.planner = Planner(self.world_state, Zone.R_DEF, actual_robot, False, config, True)
             self.planner.pass_ball = PassToZone(self.world_state, Zone.R_ATT, actual_robot, config)
 
 
