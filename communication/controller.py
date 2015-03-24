@@ -87,8 +87,8 @@ class MockSerial(object):
 
 def msg_sender(pipe, avail, port, rate, timeout, retries):
     # establish serial connection
-    # s = serial.Serial(port, rate, timeout=timeout)
-    s = MockSerial(port, rate, timeout=timeout)
+    s = serial.Serial(port, rate, timeout=timeout)
+    # s = MockSerial(port, rate, timeout=timeout)
     print 'Established connection, commencing initial wait for handshakes(5s)'
     time.sleep(5)
     print 'Connection should be up now, testing with ready'
@@ -128,7 +128,7 @@ def msg_sender(pipe, avail, port, rate, timeout, retries):
 class Arduino(object):
     """ Basic class for Arduino communications. """
 
-    def __init__(self, port='/dev/ttyUSB0', rate=115200, timeOut=0.4, comms=1, debug=False, is_dummy=False,
+    def __init__(self, port='/dev/ttyUSB0', rate=115200, timeOut=0.1, comms=1, debug=False, is_dummy=False,
                  ack_tries=4):
         self.port = port
         self.rate = rate
@@ -139,6 +139,7 @@ class Arduino(object):
         self.serial_thread = None
         self.pipe = None
         self.establish_connection()
+        self.avail_check = -1
 
     def establish_connection(self):
         pipe_in, pipe_out = Pipe()
@@ -156,8 +157,9 @@ class Arduino(object):
 
     def is_available(self):
         # if not available - query just in case
-        if self.available.value == 0:
+        if self.available.value == 0 and self.avail_check < time.time():
             self._write('HEARTBEAT')
+            self.avail_check = time.time() + 0.1
         return self.available.value != 0
 
     def destr(self):
