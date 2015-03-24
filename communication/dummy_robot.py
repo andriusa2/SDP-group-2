@@ -10,7 +10,7 @@ import serial
 from communication.controller import Controller
 
 
-class DummyRobot(Controller):
+class DummyRobot(object):
 
     def __init__(self, world, robot_tag="L_ATT"):
 
@@ -18,14 +18,7 @@ class DummyRobot(Controller):
         self.robot_tag = robot_tag
         self.act_timer = time.time()
 
-        master, slave = pty.openpty()
-        s_name = os.ttyname(slave)
-        ser = serial.Serial(s_name)
-
-        super(DummyRobot, self).__init__(ser.getPort(), is_dummy=True)
-
     def kick(self, power=None):
-        super(DummyRobot, self).kick(power)
         self.add_act_time()
 
     def turn(self, angle):
@@ -34,7 +27,6 @@ class DummyRobot(Controller):
         robot = self.world.get_robot(self.robot_tag)
         robot.direction = rotate_vector(robot.direction, angle)
         self.world.add_robot(self.robot_tag, robot)
-        super(DummyRobot, self).turn(angle)
         self.add_act_time()
 
     def move(self, x_distance, y_distance=0, direction=Vector2D(1, 0)):
@@ -45,11 +37,9 @@ class DummyRobot(Controller):
         robot.position += Strategy.get_global_move(Vector2D(x_distance, y_distance), direction)
         print "new position {0}".format(robot.position)
         self.world.add_robot(self.robot_tag, robot)
-        super(DummyRobot, self).move(x_distance, y_distance)
         self.add_act_time()
 
     def grab(self):
-        super(DummyRobot, self).grab()
         self.add_act_time()
 
     def is_available(self):
