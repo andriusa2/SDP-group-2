@@ -203,7 +203,6 @@ class Strategy(object):
         print "Left: {0}, right {1}, centre: {2}".format(edge_L, edge_R, zone_centre)
         return zone_centre
 
-
     def get_zone_centre_y(self):
         # returns the inferred zone center_y
         #pitch is roughly 114cm x 45; normalize the value and find others
