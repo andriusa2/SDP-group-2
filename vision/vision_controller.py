@@ -28,8 +28,9 @@ class VisionController(object):
             # cv2.imread("SideArena\sample5\{0:08}.png".format(i), 1) for i in range(1, 11)
             # cv2.imread("tmp2\{0:08}.jpg".format(i), 1) for i in range(1, 22)
             # cv2.imread("tmp1\{0:08}.png".format(i), 1) for i in range(1, 58)
+            cv2.imread("tmp\{0:08}.png".format(i), 1) for i in range(1, 97)
             # cv2.imread("tmp3\{0:08}.jpg".format(i), 1) for i in range(2, 6)
-            cv2.imread("tmp3\{0:08}.jpg".format(i), 1) for i in range(2, 14)
+            # cv2.imread("tmp3\{0:08}.jpg".format(i), 1) for i in range(2, 14)
             # cv2.imread("tmp3\{0:08}.jpg".format(i), 1) for i in range(6, 10)
         ]) if video_port is None else []
         _ = self.get_frame()

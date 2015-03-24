@@ -69,6 +69,7 @@ class Tracker(object):
         self.manual_mode = manual_mode
         self.name = str(name)
         self.mask = None
+        self.recalibrated = False
         
     def _find_element(self, mask, dbg=None):
         raise NotImplementedError
@@ -110,6 +111,7 @@ class Tracker(object):
     
     def find(self, hsv, origin=None, previous_center=None, dbg=None, mask=None, local_hit=False):
         """ tries to find an object which matches whatever is the test. """
+        self.recalibrated = False
         if previous_center:
             local, top_left = self._get_local_area(hsv, origin=origin, previous_center=previous_center)
             
@@ -158,6 +160,7 @@ class Tracker(object):
             return hit
 
     def recalibrate(self, hsv, mask=None):
+        self.recalibrated = True
         values = dict()
         h, s, v = self.hsv_ranges
         dh, ds, dv = self.width
@@ -326,7 +329,8 @@ class RectTracker(Tracker):
             # self.my_print(map(lambda a: get_box_fitness(a[0]), cnt))
             # approximate thing, CARE
             cnt.sort(key=lambda a: get_box_fitness(a[0]))
-            for _, c in cnt:
+
+            for _, c in cnt if dbg else []:
                 msk = np.zeros(mask.shape)
                 cv2.drawContours(msk, [c], -1, 255, 1)
                 cv2.imshow("cnt mask", msk)
