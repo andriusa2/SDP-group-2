@@ -10,13 +10,22 @@ class Controller(object):
 
     def __init__(self, debug):
 
-        if debug == 'True':
-            debug = True
-        else:
+        if debug == 'pro':
             debug = False
+            step = False
+        else:
+            if debug == 'debug':
+                debug = True
+                step = False
+            else:
+                if debug == 'step':
+                    debug = True
+                    step = True
+                else:
+                    raise Exception("Please specify a valid debug mode (pro, debug or step)")
 
         self.debug = debug
-        print debug
+        self.step = step
 
         # boundaries = [47, 106, 165, 212]
         self.world = WorldState()
@@ -29,7 +38,7 @@ class Controller(object):
 
         # this is our chosen strategy
         """R_ATT, L_ATT, R_DEF, L_DEF"""
-        self.vision = VisionController(video_port=0, draw_debug=('pos', 'vel', 'dir'), debug=debug)
+        self.vision = VisionController(video_port=0, draw_debug=('pos', 'vel', 'dir'))
 
         # set the boundaries
         points = [x for (x, y) in self.vision.zone_filter.points]
@@ -53,7 +62,7 @@ class Controller(object):
             state = self.vision.analyse_frame(previous_state=state)
 
             key = cv2.waitKey(1) & 0xFF
-            self.update_world_state(state, self.debug, key)
+            self.update_world_state(state, self.step, key)
 
     def fetch_our_zone(self, zone_num):
         """
@@ -62,7 +71,7 @@ class Controller(object):
         """
         assert zone_num in [1, 2, 3, 4]
 
-    def update_world_state(self, state, debug, key):
+    def update_world_state(self, state, step, key):
         """
         Change the state of the world based on the current frame
         :param model_positions: the values to change to world to
@@ -99,12 +108,12 @@ class Controller(object):
         # self.planner.plan_defence()
 
         if not self.planner:
-            self.planner = Planner(self.world, Zone.R_DEF, self.actual_robot, False)
+            self.planner = Planner(self.world, Zone.R_DEF, self.actual_robot, False, self.debug)
 
-        if not debug:
+        if not step:
                     self.planner.plan()
         else:
-            if key == ord('q'):
+            if key == 10:
                 self.planner.plan()
 
         return self.planner

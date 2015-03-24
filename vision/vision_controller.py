@@ -7,8 +7,7 @@ from vision_state import VisionState
 
 
 class VisionController(object):
-    def __init__(self, video_port=None, draw_debug=None, debug=False):
-        self.debug = debug
+    def __init__(self, video_port=None, draw_debug=None):
         self.robots = {
             0: plateTracker(0),
             1: plateTracker(1),
