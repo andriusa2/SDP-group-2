@@ -29,7 +29,12 @@ class Strategy(object):
         self.zone_centre_width = config.ZONE_CENTRE_WIDTH
         self.pitch_height = config.PITCH_HEIGHT
 
-        self.action_dampening = config.ACTION_DAMPENING
+        self.move_dampening = config.MOVE_DAMPENING
+        self.max_move = config.MAX_MOVE
+
+        self.turn_dampening = config.TURN_DAMPENING
+        self.max_turn = config.MAX_TURN
+
         self.square_angle_threshold = config.SQUARE_ANGLE_THRESHOLD
         self.zone_centre_offset = config.ZONE_CENTRE_OFFSET
 
@@ -261,11 +266,11 @@ class Strategy(object):
     def dist_to_pass_point(self, x1, y1, x2, y2):
         return self.vector_to_pass_point(x1, y1, x2, y2).length()
 
-    def vector_to_pass_point(self, x1, y1, x2, y2):
+    @staticmethod
+    def vector_to_pass_point(x1, y1, x2, y2):
         dist_x = -x1 + x2
         dist_y = -y1 + y2
         return Vector2D(dist_x, dist_y)
-
 
     @staticmethod
     def get_local_move(to_move, direction):
