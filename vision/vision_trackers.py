@@ -191,6 +191,10 @@ class Tracker(object):
         
         
 class CircleTracker(Tracker):
+    def __init__(self, name, tgt, sz_range, sz_target, search_space, ch_width_range=None, manual_mode=None, circle_fit=0.4):
+        super(CircleTracker, self).__init__(name, tgt, sz_range, sz_target, search_space, ch_width_range, manual_mode)
+        self.circle_fit = circle_fit
+
     def _find_element(self, mask, dbg=None):
         s1, s2 = self.sz_range
         if dbg:
@@ -215,7 +219,7 @@ class CircleTracker(Tracker):
         cnt = [ (test(c), c) for c in cnt]
         # fullest circle is the first one
         cnt.sort(key=lambda a: a[0], reverse=True)
-        cnt = [c for t, c in cnt if t > 0.40]
+        cnt = [c for t, c in cnt if t > self.circle_fit]
         if not cnt:
             if dbg:
                 self.my_print("no hits after ecc test")
@@ -261,7 +265,8 @@ ballTracker = CircleTracker(
     sz_range=(4, 10),
     sz_target=7.5,
     search_space=(range(160, 175, 3), range(50, 255, 25), range(40, 255, 25)),
-    ch_width_range=(range(11, 20, 3), (255,), (255,))
+    ch_width_range=(range(11, 20, 3), (255,), (255,)),
+    circle_fit=0.3
 )
 
 
@@ -506,5 +511,3 @@ plateTracker = lambda a: PlateTracker(
     search_space=(range(40, 90, 5), range(70, 255, 25), range(20, 255, 25)),
     ch_width_range=(range(11, 55, 10), (255,), (255,))
 )
-
-
