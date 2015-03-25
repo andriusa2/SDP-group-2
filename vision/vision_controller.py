@@ -16,7 +16,7 @@ class VisionController(object):
         }
         # an iterable with any of 'pos', 'dir', 'vel'
         self.draw_debug = tuple() if not draw_debug else draw_debug
-        self.try_these = [0, 1, 2, 3]
+        self.try_these = [0, 1, 2]
         self.zone_in_hits = {}
         self.ball = ballTracker
         
@@ -76,6 +76,9 @@ class VisionController(object):
                     origin=pos,
                     previous_center=previous_state.get_robot(i).get_position()
                 )
+                cx, cy = center
+                cy = frame_hsv.shape[0] - cy
+                center = cx, cy
             except TrackingException as e:
                 print "{0} : Error in tracking:".format(i), e
                 self.zone_in_hits[i] = 24
@@ -84,49 +87,76 @@ class VisionController(object):
             dx, dy = tag
             dx -= dot[0]
             dy -= dot[1]
+            dy = -dy
             previous_state.add_robot_direction(i, frame_time, (dx, dy))
         try:
-            (x, y), r = self.ball.find(frame_hsv, previous_center=previous_state.get_ball().get_position())
+            if self.zone_in_hits.get('ball', 0):
+                self.zone_in_hits['ball'] -= 1
+                x = None
+            else:
+                (x, y), r = self.ball.find(frame_hsv, previous_center=previous_state.get_ball().get_position())
+                y = frame_hsv.shape[0] - y
         except TrackingException as e:
+            self.zone_in_hits['ball'] = 24
             print "Error in tracking:", e
         else:
-            previous_state.add_ball_position(frame_time, (x, y))
+            if x is not None:
+                previous_state.add_ball_position(frame_time, (x, y), ignore_noise=True)
         
         self.draw_frame_details(frame, previous_state)
         return previous_state
         
     def draw_frame_details(self, frame, state):
         toint = lambda a: tuple(map(int, a))
-        for i in self.robots.keys():
-            pos = state.get_robot(i).get_position()
-            dir = state.get_robot(i).get_direction()
-            vel = state.get_robot(i).get_velocity()
-            if pos and 'pos' in self.draw_debug:
+        try:
+            pos = state.get_ball().get_position(smoothing=False)
+            px, py = pos
+            py = frame.shape[0] - py
+            pos = px, py
+            vel = state.get_ball().get_velocity()
+            vx, vy = vel
+            vy = -vy
+            vel = vx, vy
+            if pos:
                 # position
                 cv2.circle(frame, toint(pos), 2, (0,255,0),-1)
-            if dir and 'dir' in self.draw_debug:
-                vx, vy = dir
-                vx *= 3
-                vy *= 3
-                vx += pos[0]
-                vy += pos[1]
-                cv2.line(frame, toint(pos), toint((vx, vy)), (0,255,0),2)
-            if vel and 'vel' in self.draw_debug:
+            
+            if vel:
                 vx, vy = vel
                 vx += pos[0]
                 vy += pos[1]
                 cv2.line(frame, toint(pos), toint((vx, vy)), (255,255,0),1)
-        pos = state.get_ball().get_position(smoothing=False)
-        vel = state.get_ball().get_velocity()
-        if pos:
-            # position
-            cv2.circle(frame, toint(pos), 2, (0,255,0),-1)
-        
-        if vel:
-            vx, vy = vel
-            vx += pos[0]
-            vy += pos[1]
-            cv2.line(frame, toint(pos), toint((vx, vy)), (255,255,0),1)
+            for i in self.robots.keys():
+                pos = state.get_robot(i).get_position()
+                px, py = pos
+                py = frame.shape[0] - py
+                pos = px, py
+                dir = state.get_robot(i).get_direction()
+                dx, dy = dir
+                dy = -dy
+                dir = dx, dy
+                vel = state.get_robot(i).get_velocity()
+                vx, vy = vel
+                vy = -vy
+                vel = vx, vy
+                if pos and 'pos' in self.draw_debug:
+                    # position
+                    cv2.circle(frame, toint(pos), 2, (0,255,0),-1)
+                if dir and 'dir' in self.draw_debug:
+                    vx, vy = dir
+                    vx *= 3
+                    vy *= 3
+                    vx += pos[0]
+                    vy += pos[1]
+                    cv2.line(frame, toint(pos), toint((vx, vy)), (0,255,0),2)
+                if vel and 'vel' in self.draw_debug:
+                    vx, vy = vel
+                    vx += pos[0]
+                    vy += pos[1]
+                    cv2.line(frame, toint(pos), toint((vx, vy)), (255,255,0),1)
+            
+        except Exception:
+            pass
         cv2.imshow("view", frame)
         k = cv2.waitKey(1) & 0xFF
         if k == ord('q'):

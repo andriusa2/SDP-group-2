@@ -88,7 +88,7 @@ class MockSerial(object):
 def msg_sender(pipe, avail, port, rate, timeout, retries):
     # establish serial connection
     s = serial.Serial(port, rate, timeout=timeout)
-    # s = MockSerial(port, rate, timeout=timeout)
+    #s = MockSerial(port, rate, timeout=timeout)
     print 'Established connection, commencing initial wait for handshakes(5s)'
     time.sleep(5)
     print 'Connection should be up now, testing with ready'
@@ -128,7 +128,7 @@ def msg_sender(pipe, avail, port, rate, timeout, retries):
 class Arduino(object):
     """ Basic class for Arduino communications. """
 
-    def __init__(self, port='/dev/ttyUSB0', rate=115200, timeOut=0.1, comms=1, debug=False, is_dummy=False,
+    def __init__(self, port='/dev/ttyUSB0', rate=115200, timeOut=0.4, comms=1, debug=False, is_dummy=False,
                  ack_tries=4):
         self.port = port
         self.rate = rate
@@ -211,8 +211,10 @@ class Controller(Arduino):
                 v, fmt = param, 'h'
             v = int(v)
             # arduino is little endian!
-            bytes += list(struct.pack('<' + fmt, v))
-
+            r = list(struct.pack('<' + fmt, v))
+            bytes += r
+            # print r
+            # print struct.unpack('<h', ''.join(r))
         def xor_bytes(a, b):
             b = struct.unpack('B', b)[0]
             return a ^ b
@@ -298,6 +300,7 @@ class Controller(Arduino):
             # ax+b=y, api/2+b = 200, api/4+b=150, b=20, a=360/pi
             duration = int(360.0 / 3.14 * angle + 20.0)
         duration = -duration if power < 0 else duration
+        print duration
         cmd = self.COMMANDS['turn']
         cmd = self.get_command(cmd, (duration, 'h'))  # short
         self._write(cmd)

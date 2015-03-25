@@ -157,6 +157,7 @@ class WorldState(object):
         for zone_id, right_bound in zip(Zone.zone_order, self.zone_boundaries):
             if point.x <= right_bound:
                 return zone_id
+        return Zone.zone_order[-1]
         raise Exception("Point {0!r} does not fit into any zone".format(point))
 
     def set_zone_boundaries(self, boundaries):
@@ -180,6 +181,8 @@ class WorldState(object):
         self.robots = dict()
         robot_list.sort(key=lambda a: a.position.x)
         for robot in robot_list:
+            if robot.position == Vector2D.to_vector2d(None):
+                continue
             self.robots[self.get_zone(robot.position)] = robot
 
         """

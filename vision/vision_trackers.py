@@ -101,6 +101,7 @@ class Tracker(object):
         raise NotImplementedError
     
     def my_print(self, *args):
+        return
         print self.name, ">> ", 
         for a in args:
             print a, 
@@ -232,7 +233,7 @@ class CircleTracker(Tracker):
                 self.my_print("No hits after refine")
                 raise TrackingException("No circle hits after refining")
             # self.my_print("Too many hits")
-            self.my_print(cnt)
+            # self.my_print(cnt)
             # pick the biggest fill if one exists
             return cnt[0]
         p, r = cnt[0]
@@ -262,11 +263,11 @@ class CircleTracker(Tracker):
 ballTracker = CircleTracker(
     name="BallTracker",
     tgt=((160, 170), (50, 255), (40, 255)),
-    sz_range=(4, 10),
+    sz_range=(3, 10),
     sz_target=7.5,
-    search_space=(range(160, 175, 3), range(50, 255, 25), range(40, 255, 25)),
-    ch_width_range=(range(11, 20, 3), (255,), (255,)),
-    circle_fit=0.3
+    search_space=(range(160, 175, 5), range(50, 200, 50), range(40, 200, 50)),
+    ch_width_range=(range(11, 20, 5), (255,), (255,)),
+    circle_fit=0.1
 )
 
 

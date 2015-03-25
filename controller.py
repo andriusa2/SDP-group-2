@@ -44,7 +44,8 @@ class Controller(object):
         points = [x for (x, y) in self.vision.zone_filter.points]
         w = self.vision.get_frame().shape[1]
         wx = w - 2 * self.vision.zone_filter.img_x_padding
-        self.world.set_zone_boundaries(points + [wx])
+        self.world.set_zone_boundaries([47, 106, 165, 212])
+        self.state = None
         # self.world.set_zone_boundaries(self.vision.zone_filter.points + [self.vision.zone_filter.w])
 
         self.planner = None
@@ -56,13 +57,13 @@ class Controller(object):
         :return: nothing
         """
         # let the vision update the world
-        state = None
+        self.state = None
 
         while True:
-            state = self.vision.analyse_frame(previous_state=state)
+            self.state = self.vision.analyse_frame(previous_state=self.state)
 
             key = cv2.waitKey(1) & 0xFF
-            self.update_world_state(state, self.step, key)
+            self.update_world_state(self.state, self.step, key)
 
     def fetch_our_zone(self, zone_num):
         """
@@ -123,4 +124,5 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("debug", help="Should we run commands manually")
     args = parser.parse_args()
-    Controller(debug=args.debug).main()
+    contr = Controller(debug=args.debug)
+    contr.main()

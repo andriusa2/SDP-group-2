@@ -17,8 +17,8 @@ class VisionState(object):
     def add_robot_position(self, zone_id, frame_time, position):
         self.robots[zone_id].add_position(frame_time, position)
     
-    def add_ball_position(self, frame_time, position):
-        self.ball.add_position(frame_time, position)
+    def add_ball_position(self, frame_time, position, ignore_noise=True):
+        self.ball.add_position(frame_time, position, ignore_noise=ignore_noise)
         
     def add_robot_direction(self, zone_id, frame_time, direction):
         self.robots[zone_id].add_direction(frame_time, direction)
@@ -135,7 +135,7 @@ class _VisionObject(object):
     def add_direction(self, frame_time, direction):
         self.direction_history.append({'time': frame_time, 'dir': direction})
     
-    def add_position(self, frame_time, position, dbg=False):
+    def add_position(self, frame_time, position, dbg=False, ignore_noise=False):
         last_time = self.position_buffer['time'] if self.position_buffer else self.position_history[-1]['time'] if self.position_history else 0
         if self.position_buffer:
             # we have a pending position to be pushed to history
@@ -157,7 +157,7 @@ class _VisionObject(object):
             else:
                 self.position_history.append(self.position_buffer)
             
-        if self.position_history:
+        if self.position_history and not ignore_noise:
             x, y = self.position_history[-1]['pos']
             nx, ny = position
             dx, dy = x - nx, y - ny

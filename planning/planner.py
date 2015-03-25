@@ -121,13 +121,10 @@ class Planner(Strategy):
         return new_state
 
     def ball_in_defender_zone_trans(self):
-        if self.ball_going_quickly():
-            new_state = "blocking goal"
+        if self.is_ball_close():
+            new_state = "passing ball"
         else:
-            if self.is_ball_close():
-                new_state = "passing ball"
-            else:
-                new_state = "fetching ball"
+            new_state = "fetching ball"
         return new_state
 
     def ball_not_in_defender_zone_trans(self):

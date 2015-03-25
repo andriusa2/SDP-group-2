@@ -20,7 +20,7 @@ class Other(object):
         :return: time it takes for the grabbers to open
         """
         self.strategy.world.is_grabber_down = False
-        return self.strategy.actual_robot.kick(), "Kicking and opening grabber"
+        return self.strategy.actual_robot.open_grabber(), "Kicking and opening grabber"
 
     def lower_cage(self):
         """
@@ -28,4 +28,4 @@ class Other(object):
         :return: time it takes for the grabbers to close
         """
         self.strategy.world.is_grabber_down = True
-        return self.strategy.actual_robot.grab(), "Closing grabber"
+        return self.strategy.actual_robot.close_grabber(), "Closing grabber"
