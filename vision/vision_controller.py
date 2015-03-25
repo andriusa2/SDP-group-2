@@ -7,7 +7,7 @@ from vision_state import VisionState
 
 
 class VisionController(object):
-    def __init__(self, video_port=None, draw_debug=None):
+    def __init__(self, video_port=None, draw_debug=None, **kwargs):
         self.robots = {
             0: plateTracker(0),
             1: plateTracker(1),
@@ -16,18 +16,20 @@ class VisionController(object):
         }
         # an iterable with any of 'pos', 'dir', 'vel'
         self.draw_debug = tuple() if not draw_debug else draw_debug
-        self.try_these = [0, 1, 2]
+        self.try_these = [0, 1, 2, 3]
         self.zone_in_hits = {}
         self.ball = ballTracker
         
         self.crop_filters = [CropArena()]
         self.zone_filter = CropZone(crop_filter=self.crop_filters[0])
         self.capture = cv2.VideoCapture(video_port) if video_port is not None else None
+        self.kwargs = kwargs
         self.demo = itertools.cycle([
-            # cv2.imread("SideArena\sample5\{0:08}.png".format(i), 1) for i in range(1, 11)
-            # cv2.imread("tmp2\{0:08}.jpg".format(i), 1) for i in range(1, 22)
+            # cv2.imread("SideArena\sample{0}\{1:08}.png".format(kwargs.get('id', 1), i), 1) for i in range(1, 11)
+            # cv2.imread("CentralArena\sample{0}\{1:08}.png".format(kwargs.get('id', 1), i), 1) for i in range(1, 11)
+            cv2.imread("tmp2\{0:08}.jpg".format(i), 1) for i in range(1, 22)
             # cv2.imread("tmp1\{0:08}.png".format(i), 1) for i in range(1, 58)
-            cv2.imread("tmp\{0:08}.png".format(i), 1) for i in range(1, 97)
+            # cv2.imread("tmp\{0:08}.png".format(i), 1) for i in range(1, 97)
             # cv2.imread("tmp3\{0:08}.jpg".format(i), 1) for i in range(2, 6)
             # cv2.imread("tmp3\{0:08}.jpg".format(i), 1) for i in range(2, 14)
             # cv2.imread("tmp3\{0:08}.jpg".format(i), 1) for i in range(6, 10)
@@ -101,7 +103,7 @@ class VisionController(object):
             print "Error in tracking:", e
         else:
             if x is not None:
-                previous_state.add_ball_position(frame_time, (x, y), ignore_noise=True)
+                previous_state.add_ball_position(frame_time, (x, y), ignore_noise=False)
         
         self.draw_frame_details(frame, previous_state)
         return previous_state

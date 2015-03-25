@@ -17,7 +17,7 @@ class VisionState(object):
     def add_robot_position(self, zone_id, frame_time, position):
         self.robots[zone_id].add_position(frame_time, position)
     
-    def add_ball_position(self, frame_time, position, ignore_noise=True):
+    def add_ball_position(self, frame_time, position, ignore_noise=False):
         self.ball.add_position(frame_time, position, ignore_noise=ignore_noise)
         
     def add_robot_direction(self, zone_id, frame_time, direction):

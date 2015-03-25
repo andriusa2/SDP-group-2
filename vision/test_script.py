@@ -1,6 +1,12 @@
 from vision_controller import VisionController
 import time
-vc = VisionController(video_port=None, draw_debug=('pos', 'vel', 'dir'))
+import sys
+try:
+    muh_id = sys.argv[-1]
+    muh_id = int(muh_id)
+except Exception:
+    muh_id = 1
+vc = VisionController(video_port=None, draw_debug=('pos', 'vel', 'dir'), id=muh_id)
 state = None
 t = 0
 st = time.time()

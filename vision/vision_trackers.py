@@ -71,18 +71,18 @@ class Tracker(object):
         self.mask = None
         self.recalibrated = False
         
-    def _find_element(self, mask, dbg=None):
+    def _find_element(self, mask, dbg=None, local_hit=None):
         raise NotImplementedError
         
     def _hit_fitness(self, hit):
         raise NotImplementedError
     
-    def _single_hit(self, hsv, dbg=None, mask=None):
+    def _single_hit(self, hsv, dbg=None, mask=None, local_hit=None):
         h, s, v = self.tgt
         mask_ = denoiseMask(getInRange(h, s, v, hsv))
         if mask is not None:
             mask_ = cv2.bitwise_and(mask_, 255, mask=mask)
-        hit = self._find_element(mask_, dbg=dbg)
+        hit = self._find_element(mask_, dbg=dbg, local_hit=local_hit)
         
         if hit:
             self.tgt = h, s, v
@@ -101,7 +101,6 @@ class Tracker(object):
         raise NotImplementedError
     
     def my_print(self, *args):
-        return
         print self.name, ">> ", 
         for a in args:
             print a, 
@@ -140,7 +139,7 @@ class Tracker(object):
         for h, s, v in itertools.chain([self.tgt], reversed(self.history)):
             self.tgt = h, s, v
             try:
-                hit = self._single_hit(hsv, dbg=dbg, mask=mask)
+                hit = self._single_hit(hsv, dbg=dbg, mask=mask, local_hit=local_hit)
                 if origin:
                     hit = self._adjust_hit(hit, origin)
                 return hit
@@ -168,12 +167,13 @@ class Tracker(object):
         hs = [(h1, h1 + d) for h1 in h for d in dh]
         ss = [(s1, min(255, s1 + d)) for s1 in s for d in ds]
         vs = [(v1, min(v1 + d, 255)) for v1 in v for d in dv]
+        self.my_print("Recalibration will use: ", len(hs) * len(ss) * len(vs), " values")
         for v1, v2 in vs:
             for s1, s2 in ss:
                 for h1, h2 in hs:
                     self.tgt = (h1, h2), (s1, s2), (v1, v2)
                     try:
-                        hit = self._single_hit(hsv, mask=mask)
+                        hit = self._single_hit(hsv, mask=mask, dbg=False)
                     except TrackingException:
                         continue
                     val = self._hit_fitness(hit)
@@ -196,7 +196,15 @@ class CircleTracker(Tracker):
         super(CircleTracker, self).__init__(name, tgt, sz_range, sz_target, search_space, ch_width_range, manual_mode)
         self.circle_fit = circle_fit
 
-    def _find_element(self, mask, dbg=None):
+    def _find_element(self, mask, dbg=None, local_hit=None):
+        try:
+            c1, c2 = self.circle_fit
+        except Exception:
+            c1 = c2 = self.circle_fit
+        if local_hit:
+            circle_fit = c2
+        else:
+            circle_fit = c1
         s1, s2 = self.sz_range
         if dbg:
             cv2.imshow("Circle mask", mask)
@@ -220,7 +228,7 @@ class CircleTracker(Tracker):
         cnt = [ (test(c), c) for c in cnt]
         # fullest circle is the first one
         cnt.sort(key=lambda a: a[0], reverse=True)
-        cnt = [c for t, c in cnt if t > self.circle_fit]
+        cnt = [c for t, c in cnt if t > circle_fit]
         if not cnt:
             if dbg:
                 self.my_print("no hits after ecc test")
@@ -262,12 +270,12 @@ class CircleTracker(Tracker):
         
 ballTracker = CircleTracker(
     name="BallTracker",
-    tgt=((160, 170), (50, 255), (40, 255)),
+    tgt=((160, 185), (50, 255), (40, 255)),
     sz_range=(3, 10),
     sz_target=7.5,
-    search_space=(range(160, 175, 5), range(50, 200, 50), range(40, 200, 50)),
-    ch_width_range=(range(11, 20, 5), (255,), (255,)),
-    circle_fit=0.1
+    search_space=(range(160, 175, 7), range(50, 200, 50), range(40, 200, 60)),
+    ch_width_range=(range(11, 20, 7), (255,), (255,)),
+    circle_fit=(0.4, 0.1)
 )
 
 
@@ -295,7 +303,7 @@ class RectTracker(Tracker):
             padding=(self.sz_target[0], self.sz_target[1])  # not a great assumption tbh.
         )
         
-    def _find_element(self, mask, dbg=None):
+    def _find_element(self, mask, dbg=None, local_hit=None):
         s1, s2 = self.sz_range
         if dbg:
             self.my_print(self.tgt)
@@ -396,7 +404,7 @@ class PlateTracker(Tracker):
             ch_width_range=((66,), (255,), range(40, 130, 10))
         )
         self.tag_order = (self.btag_tracker, self.ytag_tracker) if preferred_tag == 'b' else (self.ytag_tracker, self.btag_tracker)
-        
+        self.ordered = False
         self.hsv = None
         self.circle_bound = 2.4
         super(PlateTracker, self).__init__(**kwargs)
@@ -406,7 +414,7 @@ class PlateTracker(Tracker):
         prev_hsv = self.hsv
         self.hsv = hsv
         try:
-            r = super(PlateTracker, self).find(hsv, origin=origin, previous_center=previous_center, dbg=dbg, mask=mask, local_hit=local_hit)
+            r = super(PlateTracker, self).find(hsv, origin=origin, previous_center=previous_center, dbg=False, mask=mask, local_hit=local_hit)
         finally:
             self.hsv = prev_hsv
         return r
@@ -438,9 +446,10 @@ class PlateTracker(Tracker):
         mask = np.zeros(plate_hsv.shape[:2], dtype=np.int8)
         cv2.circle(mask, (plate_hsv.shape[1]/2, plate_hsv.shape[0]/2), int(min(mask.shape[:2])/self.circle_bound), 255, -1)
             
-        (dx, dy), dr = self.dot_tracker.find(plate_hsv, origin=top, mask=mask)
+        (dx, dy), dr = self.dot_tracker.find(plate_hsv, origin=top, mask=mask, dbg=False)
         reorder = False
-        for tag, r in zip(self.tag_order, (False, True)):
+        tags = zip(self.tag_order, (False, True))
+        for tag, r in tags:
             try:
                 ((tx, ty), _), reorder = tag.find(plate_hsv, dbg=False, origin=top, mask=mask), r
                 break
@@ -452,12 +461,17 @@ class PlateTracker(Tracker):
         if reorder:
             self.my_print("reordering tags")
             self.tag_order = self.tag_order[1], self.tag_order[0]
+        self.ordered = True
         cx = tx * 2 / 3 + dx / 3
         cy = ty * 2 / 3 + dy / 3
         return (cx, cy), (dx, dy), (tx, ty)
     
-    def _find_element(self, mask, dbg=None):
+    def _find_element(self, mask, dbg=None, local_hit=None):
         s1, s2 = self.sz_range
+        if dbg:
+            cv2.imshow("muh mask", mask)
+            cv2.waitKey()
+            cv2.destroyWindow("muh mask")
         cnt, h = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         cnt = [(cv2.minAreaRect(c), c) for c in cnt]
         # we might want to keep some smaller hits too and group them if no proper one is present
@@ -506,9 +520,9 @@ class PlateTracker(Tracker):
         
 plateTracker = lambda a: PlateTracker(
     name=a,
-    tgt=((62, 72), (80, 255), (40, 255)),
-    sz_range=(29, 40),
+    tgt=((70, 80), (200, 255), (56, 255)),
+    sz_range=(29, 45),
     sz_target=31,
-    search_space=(range(40, 90, 5), range(70, 255, 25), range(20, 255, 25)),
-    ch_width_range=(range(11, 55, 10), (255,), (255,))
+    search_space=(range(42, 75, 10), range(50, 150, 25), range(50, 150, 25)),
+    ch_width_range=(range(19, 55, 10), (255,), (255,))
 )
