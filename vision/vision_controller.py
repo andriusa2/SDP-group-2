@@ -98,8 +98,8 @@ class VisionController(object):
             else:
                 (x, y), r = self.ball.find(frame_hsv, previous_center=previous_state.get_ball().get_position())
                 y = frame_hsv.shape[0] - y
-        except TrackingException as e:
-            self.zone_in_hits['ball'] = 24
+        except Exception as e:
+            self.zone_in_hits['ball'] = 24s
             print "Error in tracking:", e
         else:
             if x is not None:

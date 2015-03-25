@@ -20,6 +20,9 @@
 uint8_t buffer[BUFF_SIZE] = "";
 uint8_t buff_head = 0;
 uint8_t READY = 1;
+uint8_t MATCHED_CMD = 0;
+uint32_t LAST_CMD_PARAMS = 0;
+long LAST_MATCH_TIME = 0;
 MotorBoard motors;
 
 enum MOTORS {
@@ -63,6 +66,7 @@ void setup_pins() {
 }
 void parse_packet();
 void read_serial() {
+  MATCHED_CMD = 0;
   while(Serial.available() > 0) {
     char a = Serial.read();
     if (a != '\t') {
@@ -89,6 +93,9 @@ void read_serial() {
     }
     buffer[buff_head] = 0;
     if (buff_head >= BUFF_SIZE) buff_head = 0;
+    if (MATCHED_CMD != 0) 
+      while(Serial.available() > 0) Serial.read();
+    MATCHED_CMD = 0;
   }
 }
 
@@ -250,16 +257,24 @@ void loop() {
 }
 
 void command(char cmd, uint8_t b1, uint8_t b2) {
-  READY = 0;
+  MATCHED_CMD = 1;
+  uint8_t cd[] = {cmd, b1, b2, 0};
+  uint32_t last_cmd = LAST_CMD_PARAMS;
+  uint32_t last_time = LAST_MATCH_TIME;
+  uint32_t LAST_CMD_PARAMS = *(uint32_t*)(&cd[0]);
+  long LAST_MATCH_TIME = millis();
+  if (last_cmd == LAST_CMD_PARAMS && LAST_MATCH_TIME - last_time < 1000) {
+    return;
+  }
   switch (cmd) {
-  case 'K': kick(b1); return;
-  case 'F': move_front(b1, b2); return;
-  case 'L': move_left(b1, b2); return;
-  case 'T': turn(b1, b2); return;
-  case 'O': grab_open(b1); return;
-  case 'C': grab_close(b1); return;
-  case 'S': stop_engines(); return;
-  default: READY = 1;
+  case 'K': kick(b1); READY = 0; return;
+  case 'F': move_front(b1, b2);  READY = 0;return;
+  case 'L': move_left(b1, b2);  READY = 0;return;
+  case 'T': turn(b1, b2);  READY = 0;return;
+  case 'O': grab_open(b1);  READY = 0;return;
+  case 'C': grab_close(b1);  READY = 0;return;
+  case 'S': stop_engines(); READY = 0; return;
+  default: READY = 1; MATCHED_CMD = 0;
   }
 }
 int16_t reint(uint8_t a, uint8_t b) {
@@ -268,14 +283,17 @@ int16_t reint(uint8_t a, uint8_t b) {
   return *(int16_t*)(&tmp);
 }
 void move_front(uint8_t a, uint8_t b) {
+  if (READY == 0) return;
   int16_t d = reint(a, b);
   return move_bot(d, d, d, d);
 }
 void move_left(uint8_t a, uint8_t b) {
+  if (READY == 0) return;
   int16_t d = reint(a, b);
   return move_bot(-d, d, d, -d);
 }
 void turn(uint8_t a, uint8_t b) {
+  if (READY == 0) return;
   int16_t d = reint(a, b);
   return move_bot(d, d, -d, -d);
 }
@@ -321,6 +339,7 @@ void grab_close(uint8_t pwr) {
 }
 
 void move_bot(int16_t lf, int16_t lb, int16_t rf, int16_t rb) {
+  if (READY == 0) return;
   uint16_t lag = motors.get_max_lag(movement_motors, 4);
   motors.run_motor(LF_MOTOR, lf > 0? 1 : -1, abs(lf), motors.get_adj_lag(LF_MOTOR, lag));
   motors.run_motor(LB_MOTOR, lb > 0? 1 : -1, abs(lb), motors.get_adj_lag(LB_MOTOR, lag));
