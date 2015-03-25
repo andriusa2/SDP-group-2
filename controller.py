@@ -8,7 +8,15 @@ __author__ = "Sam Davies"
 
 class Controller(object):
 
-    def __init__(self, debug):
+    def __init__(self, side, debug):
+
+        if side == "left":
+            self.side = Zone.L_DEF
+        else:
+            if side == "right":
+                self.side = Zone.R_DEF
+            else:
+                raise Exception("Please select a side. (left or right)")
 
         if debug == 'pro':
             debug = False
@@ -65,7 +73,8 @@ class Controller(object):
             key = cv2.waitKey(1) & 0xFF
             self.update_world_state(self.state, self.step, key)
 
-    def fetch_our_zone(self, zone_num):
+    @staticmethod
+    def fetch_our_zone(zone_num):
         """
         choose our robot's zone, with 1 being at the left and 4 being at the right
         :param zone_num
@@ -75,8 +84,6 @@ class Controller(object):
     def update_world_state(self, state, step, key):
         """
         Change the state of the world based on the current frame
-        :param model_positions: the values to change to world to
-        :return: none
         """
         robot1 = Robot(state.get_robot(0).get_direction(),
                        state.get_robot(0).get_position_units(),
@@ -105,11 +112,8 @@ class Controller(object):
         # change the position of the ball
         self.world.set_ball(ball)
 
-        # do the next plan
-        # self.planner.plan_defence()
-
         if not self.planner:
-            self.planner = Planner(self.world, Zone.L_DEF, self.actual_robot, False, debug=self.debug)
+            self.planner = Planner(self.world, self.side, self.actual_robot, False, debug=self.debug)
 
         if not step:
                     self.planner.plan()
@@ -122,7 +126,8 @@ class Controller(object):
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
+    parser.add_argument("side", help="Should we run commands manually")
     parser.add_argument("debug", help="Should we run commands manually")
     args = parser.parse_args()
-    contr = Controller(debug=args.debug)
+    contr = Controller(debug=args.debug, side=args.side)
     contr.main()
