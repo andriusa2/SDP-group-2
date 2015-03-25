@@ -270,11 +270,11 @@ class CircleTracker(Tracker):
         
 ballTracker = CircleTracker(
     name="BallTracker",
-    tgt=((160, 185), (50, 255), (40, 255)),
+    tgt=((165, 185), (50, 255), (120, 255)),
     sz_range=(3, 10),
     sz_target=7.5,
     search_space=(range(160, 175, 7), range(50, 200, 50), range(40, 200, 60)),
-    ch_width_range=(range(11, 20, 7), (255,), (255,)),
+    ch_width_range=(range(11, 20, 5), (255,), (255,)),
     circle_fit=(0.4, 0.1)
 )
 
@@ -521,7 +521,7 @@ class PlateTracker(Tracker):
 plateTracker = lambda a: PlateTracker(
     name=a,
     tgt=((70, 80), (200, 255), (56, 255)),
-    sz_range=(29, 45),
+    sz_range=(27, 45),
     sz_target=31,
     search_space=(range(42, 75, 10), range(50, 150, 25), range(50, 150, 25)),
     ch_width_range=(range(19, 55, 10), (255,), (255,))

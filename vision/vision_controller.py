@@ -76,14 +76,14 @@ class VisionController(object):
                 center, dot, tag = self.robots[i].find(
                     a_hsv,
                     origin=pos,
-                    previous_center=previous_state.get_robot(i).get_position()
+                    previous_center=previous_state.get_robot(i).get_position_local(frame_hsv)
                 )
                 cx, cy = center
                 cy = frame_hsv.shape[0] - cy
                 center = cx, cy
             except TrackingException as e:
                 print "{0} : Error in tracking:".format(i), e
-                self.zone_in_hits[i] = 24
+                self.zone_in_hits[i] = 24 * 5
                 continue
             previous_state.add_robot_position(i, frame_time, center)
             dx, dy = tag
@@ -92,11 +92,15 @@ class VisionController(object):
             dy = -dy
             previous_state.add_robot_direction(i, frame_time, (dx, dy))
         try:
-            if self.zone_in_hits.get('ball', 0):
+            if self.zone_in_hits.get('ball', -1) >= 0:
                 self.zone_in_hits['ball'] -= 1
                 x = None
             else:
-                (x, y), r = self.ball.find(frame_hsv, previous_center=previous_state.get_ball().get_position())
+                prev_pos = previous_state.get_ball().get_position_local(frame_hsv)
+                if self.zone_in_hits.get('ball', 0) < 0:
+                    prev_pos = None
+                (x, y), r = self.ball.find(frame_hsv, previous_center=prev_pos, dbg=False)
+                self.zone_in_hits['ball']  = 0
                 y = frame_hsv.shape[0] - y
         except Exception as e:
             self.zone_in_hits['ball'] = 24

@@ -59,6 +59,13 @@ class _VisionObject(object):
         except Exception:
             return None
 
+    def get_position_local(self, frame):
+        try:
+            x, y = self.get_position()
+            y = frame.shape[0] - y
+            return x, y
+        except Exception:
+            return None
         
     def get_velocity_units(self):
         assert self.pixel_scale, "No pixel scale specified"

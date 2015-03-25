@@ -6,7 +6,7 @@ try:
     muh_id = int(muh_id)
 except Exception:
     muh_id = 1
-vc = VisionController(video_port=None, draw_debug=('pos', 'vel', 'dir'), id=muh_id)
+vc = VisionController(video_port=0, draw_debug=('pos', 'vel', 'dir'), id=muh_id)
 state = None
 t = 0
 st = time.time()
