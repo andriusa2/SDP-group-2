@@ -39,7 +39,10 @@ class DummyRobot(object):
         self.world.add_robot(self.robot_tag, robot)
         self.add_act_time()
 
-    def grab(self):
+    def close_grabber(self):
+        self.add_act_time()
+
+    def open_grabber(self):
         self.add_act_time()
 
     def is_available(self):

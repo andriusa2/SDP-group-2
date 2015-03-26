@@ -149,30 +149,9 @@ class FetchBallTest(BaseTest):
 
 
 class ShootTest(BaseTest):
+
     def setUp(self):
-        self.world_state = self.put_robot_and_ball(robot_pos=(15, 15), robot_dir=(0, 1), ball_pos=(5, 5), robot_num=1)
-        # make a dummy robot which can change the world
-        actual_robot = DummyRobot(self.world_state, Zone.L_ATT)
-        # give the strategies the world the dummy and the zone of the dummy
-        self.attacker1 = ShootForGoal(self.world_state, Zone.L_ATT, actual_robot)
-
-    # ensure that a robot not facing goal is false
-
-    # ensure that a robot facing goal is true
-
-    # ensure that robot will turn towards the goal
-    def test_turn_to_goal(self):
-        self.change_ball_location(15.0, 15.0 + self.attacker1.dist_kicker_robot)
-        # check that the ball is close
-        self.assertTrue(self.attacker1.is_ball_close())
-        # lower cage
-        self.attacker1.act()
-        # turn to goal
-        self.attacker1.act()
-        # refresh the robot's world
-        self.attacker1.fetch_world_state()
-        # check that the robot has reached the ball
-        self.assertTrue(self.attacker1.is_robot_facing_goal())
+        pass
 
 
 class PlannerTest(BaseTest):
@@ -442,13 +421,13 @@ class PassToZoneTest(BaseTest):
         self.assertEqual(next_location.y, self.planner.pass_ball.preset_pass_locations[0].y)
 
     # ensure that a blocked pass is found to be blocked
-    """def test_next_location_bottom(self):
-        self.world_state = self.put_robots_and_ball((5, 100), [(15.0, 50), (25, 50), (35, 0)], my_direction=(0, 1),
+    def test_next_location_bottom(self):
+        self.world_state = self.put_robots_and_ball((5, 100), [(15.0, 60), (25, 50), (35, 0)], my_direction=(0, 1),
                                                     ball_pos=(20, 60), robot_num=0)
         self.choose_planner("left")
         next_location = self.planner.pass_ball.determine_next_location()
         self.assertEqual(next_location.x, self.planner.pass_ball.preset_pass_locations[1].x)
-        self.assertEqual(next_location.y, self.planner.pass_ball.preset_pass_locations[1].y)"""
+        self.assertEqual(next_location.y, self.planner.pass_ball.preset_pass_locations[1].y)
 
     # ensure that a friend robot is found correctly
     def test_get_friend_left(self):
