@@ -250,8 +250,9 @@ void loop() {
   default:
     break;
   }
-  if (READY == 0 && motors.all_stopped())
-    READY = 1;
+  // if (READY == 0 && motors.all_stopped())
+  //  READY = 1;
+  READY = 1;
   read_serial();
   delay(5);
 }
