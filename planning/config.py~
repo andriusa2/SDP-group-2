@@ -7,7 +7,7 @@ class Config(object):
     # Robot Constants #
     ###################
 
-    GRAB_THRESHOLD = 6  # square grab area
+    GRAB_THRESHOLD = 8  # square grab area
     DIST_KICKER_ROBOT = 12
     ROBOT_WIDTH = 4
     SQUARE_ANGLE_THRESHOLD = 0.005
