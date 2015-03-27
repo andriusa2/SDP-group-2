@@ -379,7 +379,7 @@ class BlockTest(BaseTest):
         self.choose_planner(side)
         self.planner.fetch_world_state()
 
-        goal = self.planner.goal
+        goal = self.planner.own_goal
         ball_pos = self.planner.ball.position
         return self.planner.y_intercept_of_ball_goal(goal, ball_pos)
 
@@ -486,7 +486,7 @@ class PassToZoneTest(BaseTest):
         pass
 
 
-class BouncePassTest(BaseTest):
+"""class BouncePassTest(BaseTest):
 
     def test_move_and_turn(self):
         #print "Move and Turn Start"
@@ -516,9 +516,9 @@ class BouncePassTest(BaseTest):
 
 
     def ball_follow_robot(self):
-        """
-        make the ball follow the robot
-        """
+        #
+        # make the ball follow the robot
+        # 
         self.planner.fetch_world_state()
         self.world_state.ball.position.x = self.planner.robot.position.x
         self.world_state.ball.position.y = self.planner.robot.position.y
@@ -564,7 +564,7 @@ class BouncePassTest(BaseTest):
         time.sleep(1)
 
         self.planner.plan()
-        self.assertEquals(self.last_action(), "PASS BALL")
+        self.assertEquals(self.last_action(), "PASS BALL")"""
 
 """class PrettyPrintTest(BaseTest):
     state_trace = ["a", "b", "c", "d", "e"]

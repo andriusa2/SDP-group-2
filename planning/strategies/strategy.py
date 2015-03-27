@@ -43,7 +43,8 @@ class Strategy(object):
         # initialise state attributes
         self.robot = None
         self.ball = None
-        self.goal = None
+        self.own_goal = None
+        self.enemy_goal = None
         self.m = StateMachine()
         self.move = Move()
         self.turn = Turn()
@@ -56,7 +57,8 @@ class Strategy(object):
         """
         self.robot = self.world.get_robot(self.robot_tag)
         self.ball = self.world.get_ball()
-        self.goal = self.get_goal()
+        self.own_goal = self.get_own_goal()
+        self.enemy_goal = self.get_enemy_goal()
 
         # update rotation and movement
         self.move.__int__(self)
@@ -69,14 +71,23 @@ class Strategy(object):
     -------------------------------------------------------
     """
 
-    def is_robot_facing_goal(self):
+    def is_facing_own_goal(self):
         """
         Check if the angle between the robot and
         the centre of the goal is less than a threshold
         :return: whether or not the robot is facing the ball
         """
-        goal = self.goal
+        goal = self.own_goal
         return self.robot.can_see(point=goal, beam_width=self.ROBOT_WIDTH)
+
+    def is_facing_enemy_goal(self):
+        """
+        Check if the angle between the robot and
+        the centre of the goal is less than a threshold
+        :return: whether or not the robot is facing the ball
+        """
+        goal = self.enemy_goal
+        return self.robot.can_see(point=goal, beam_width=4*self.ROBOT_WIDTH)
 
     def is_robot_facing_ball(self):
         """
@@ -175,12 +186,19 @@ class Strategy(object):
         ball_zone = self.world.get_zone(self.world.get_ball().position)
         return friend_zone == ball_zone
 
-    def get_goal(self):
+    def get_own_goal(self):
         zone = self.world.get_zone(self.robot.position)
         if zone == Zone.L_ATT or zone == Zone.L_DEF:
             return self.world.left_goal
         else:
             return self.world.right_goal
+
+    def get_enemy_goal(self):
+        zone = self.world.get_zone(self.robot.position)
+        if zone == Zone.L_ATT or zone == Zone.L_DEF:
+            return self.world.right_goal
+        else:
+            return self.world.left_goal
 
     def get_friend(self):
         self.fetch_world_state()

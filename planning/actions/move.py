@@ -10,7 +10,7 @@ class Move(object):
 
     def intercept_ball(self):
         s = self.strategy
-        x, y = s.y_intercept_of_ball_goal(s.goal, s.ball.position)
+        x, y = s.y_intercept_of_ball_goal(s.own_goal, s.ball.position)
         vect_to_point = s.vector_from_robot_to_point(x, y)
 
         # multiply with the robots direction

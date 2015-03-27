@@ -10,12 +10,12 @@ class Turn(object):
     def __int__(self, strategy):
         self.strategy = strategy
 
-    def turn_robot_to_goal(self):
+    def turn_to_enemy_goal(self):
         """
         turn the robot to face the goal
         :return: duration and info
         """
-        return self.turn_robot_to_point(self.strategy.goal)
+        return self.turn_robot_to_point(self.strategy.enemy_goal)
 
     def turn_robot_to_ball(self):
         """
