@@ -94,7 +94,8 @@ void read_serial() {
     buffer[buff_head] = 0;
     if (buff_head >= BUFF_SIZE) buff_head = 0;
     if (MATCHED_CMD != 0) 
-      while(Serial.available() > 0) Serial.read();
+      for(int i = 0; Serial.available() > 0 && i < 1024; i++)
+        Serial.read();
     MATCHED_CMD = 0;
   }
 }
@@ -261,8 +262,8 @@ void command(char cmd, uint8_t b1, uint8_t b2) {
   uint8_t cd[] = {cmd, b1, b2, 0};
   uint32_t last_cmd = LAST_CMD_PARAMS;
   uint32_t last_time = LAST_MATCH_TIME;
-  uint32_t LAST_CMD_PARAMS = *(uint32_t*)(&cd[0]);
-  long LAST_MATCH_TIME = millis();
+  LAST_CMD_PARAMS = *(uint32_t*)(&cd[0]);
+  LAST_MATCH_TIME = millis();
   if (last_cmd == LAST_CMD_PARAMS && LAST_MATCH_TIME - last_time < 1000) {
     return;
   }
