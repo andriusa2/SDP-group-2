@@ -172,6 +172,10 @@ def scale_list(scale, l):
     return map(lambda a: scale * a, l)
 
 
+MOVE_DURATION = 240
+TURN_DURATION = 110
+
+
 class Controller(Arduino):
     """ Implements an interface for Arduino device. """
 
@@ -260,6 +264,7 @@ class Controller(Arduino):
             duration = -get_duration(-distance, 1)
         else:
             duration = get_duration(distance, 1)
+        duration = MOVE_DURATION if duration > 0 else -MOVE_DURATION
         try:
             assert -6000 < duration < 6000, 'Something looks wrong in the distance calc'
         except Exception as e:
@@ -299,8 +304,10 @@ class Controller(Arduino):
             # pi/2 -> 200, pi/4 -> 110
             # ax+b=y, api/2+b = 200, api/4+b=150, b=20, a=360/pi
             duration = int(360.0 / 3.14 * angle + 20.0)
+        duration = TURN_DURATION
         duration = -duration if power < 0 else duration
         print duration
+
         cmd = self.COMMANDS['turn']
         cmd = self.get_command(cmd, (duration, 'h'))  # short
         self._write(cmd)
