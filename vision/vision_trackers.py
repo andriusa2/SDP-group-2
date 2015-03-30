@@ -235,19 +235,28 @@ class CircleTracker(Tracker):
             return float(cnt_area) / float(c_area)
         cnt = [ (test(c), c) for c in cnt]
         # fullest circle is the first one
-        cnt.sort(key=lambda a: a[0], reverse=True)
-        cnt = [c for t, c in cnt if t > circle_fit]
+        cnt = [(t, c) for t, c in cnt if t > circle_fit]
+
+        cnt.sort(key=lambda a: a[0] * cv2.contourArea(a[1]) , reverse=True)
         if not cnt:
             if dbg:
                 self.my_print("no hits after ecc test")
             raise TrackingException("No circle hits after box test")
 
         if dbg:
-            cv2.drawContours(mask, cnt, -1, 255, 2)
+            for t, c in cnt:
+                self.my_print('-' * 10)
+                self.my_print('Fitness:', t)
+                self.my_print('Adjusted fitness:', t * cv2.contourArea(c))
+                self.my_print('Cnt area:', cv2.contourArea(c))
+                self.my_print('Min enclosing circle:', cv2.minEnclosingCircle(c))
+                self.my_print('-' * 10)
+            cv2.drawContours(mask, map(lambda a: a[1], cnt), -1, 255, 2)
             cv2.imshow("Contours filtered", mask)
             if cv2.waitKey(0) & 0xFF == 27:
                 exit(0)
             cv2.destroyWindow("Contours filtered")
+        cnt = map(lambda a: a[1], cnt)
         # find candidates
         cnt = [cv2.minEnclosingCircle(c) for c in cnt]
         cnt = [(pos, r) for pos, r in cnt if s2 >= r >= s1]
