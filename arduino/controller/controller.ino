@@ -342,10 +342,11 @@ void grab_close(uint8_t pwr) {
 void move_bot(int16_t lf, int16_t lb, int16_t rf, int16_t rb) {
   if (READY == 0) return;
   uint16_t lag = motors.get_max_lag(movement_motors, 4);
-  motors.run_motor(LF_MOTOR, lf > 0? 1 : -1, abs(lf), motors.get_adj_lag(LF_MOTOR, lag));
-  motors.run_motor(LB_MOTOR, lb > 0? 1 : -1, abs(lb), motors.get_adj_lag(LB_MOTOR, lag));
-  motors.run_motor(RF_MOTOR, rf > 0? 1 : -1, abs(rf), motors.get_adj_lag(RF_MOTOR, lag));
-  motors.run_motor(RB_MOTOR, rb > 0? 1 : -1, abs(rb), motors.get_adj_lag(RB_MOTOR, lag));
+  float pwr = 0.3;
+  motors.run_motor(LF_MOTOR, lf > 0? pwr : -pwr, abs(lf), motors.get_adj_lag(LF_MOTOR, lag));
+  motors.run_motor(LB_MOTOR, lb > 0? pwr : -pwr, abs(lb), motors.get_adj_lag(LB_MOTOR, lag));
+  motors.run_motor(RF_MOTOR, rf > 0? pwr : -pwr, abs(rf), motors.get_adj_lag(RF_MOTOR, lag));
+  motors.run_motor(RB_MOTOR, rb > 0? pwr : -pwr, abs(rb), motors.get_adj_lag(RB_MOTOR, lag));
 }
 
 void run_engine(uint8_t id, int8_t pwr, uint16_t time) {

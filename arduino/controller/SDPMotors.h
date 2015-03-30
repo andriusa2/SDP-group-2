@@ -5,7 +5,7 @@
 //#define DEBUG
 
 // get these manually
-const uint16_t ENGINE_ACTIVATION[] = {80, 60, 0, 160, 90, 80};
+const uint16_t ENGINE_ACTIVATION[] = {0, 0, 0, 160, 0, 0};
 
 class MotorBoard {
 public:
