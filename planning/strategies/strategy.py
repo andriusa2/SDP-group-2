@@ -266,7 +266,6 @@ class Strategy(object):
         :return: vector from the kicker to the ball
         """
         kicker_pos = self.get_kicker_position()
-        print "kicker ", kicker_pos
         ball_kicker_dist_x = kicker_pos.x-self.ball.position.x
         ball_kicker_dist_y = kicker_pos.y-self.ball.position.y
         return Vector2D(ball_kicker_dist_x, ball_kicker_dist_y)
