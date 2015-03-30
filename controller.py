@@ -104,7 +104,7 @@ class Controller(object):
 
         robots = [robot1, robot2, robot3, robot4]
 
-        ball = Ball(state.get_ball().get_position_units(),
+        ball = Ball(state.get_ball().get_position_units(smoothing=False),
                     state.get_ball().get_velocity_units())
 
         # change the states of the robots in the world
