@@ -208,12 +208,20 @@ class CircleTracker(Tracker):
         s1, s2 = self.sz_range
         if dbg:
             cv2.imshow("Circle mask", mask)
-            self.my_print(self.tgt)
-            self.my_print(self.history)
+            self.my_print('Current HSV ranges', self.tgt)
+            self.my_print('Last few tried HSV ranges', self.history)
             if cv2.waitKey(0) & 0xFF == 27:
                 exit(0)
             cv2.destroyWindow("Circle mask")
         cnt, h = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        if dbg:
+            m1 = mask.copy()
+            cv2.drawContours(m1, cnt, -1, 255, 2)
+            cv2.imshow("Contours", m1)
+            if cv2.waitKey(0) & 0xFF == 27:
+                exit(0)
+            cv2.destroyWindow("Contours")
+        
         cnt = [c for c in cnt if 3 * s2 * s2 >= cv2.contourArea(c) >= 3 * s1 * s1]
 
         def test(c):
@@ -221,9 +229,9 @@ class CircleTracker(Tracker):
             c_area = np.pi * r ** 2
             cnt_area = cv2.contourArea(c)
             if dbg:
-                self.my_print( c_area)
-                self.my_print( cnt_area)
-                self.my_print( float(cnt_area) / float(c_area))
+                self.my_print( 'circle_area', c_area)
+                self.my_print( 'contour area', cnt_area)
+                self.my_print( 'ratio cnt/circle', float(cnt_area) / float(c_area))
             return float(cnt_area) / float(c_area)
         cnt = [ (test(c), c) for c in cnt]
         # fullest circle is the first one
@@ -233,6 +241,13 @@ class CircleTracker(Tracker):
             if dbg:
                 self.my_print("no hits after ecc test")
             raise TrackingException("No circle hits after box test")
+
+        if dbg:
+            cv2.drawContours(mask, cnt, -1, 255, 2)
+            cv2.imshow("Contours filtered", mask)
+            if cv2.waitKey(0) & 0xFF == 27:
+                exit(0)
+            cv2.destroyWindow("Contours filtered")
         # find candidates
         cnt = [cv2.minEnclosingCircle(c) for c in cnt]
         cnt = [(pos, r) for pos, r in cnt if s2 >= r >= s1]
@@ -271,11 +286,11 @@ class CircleTracker(Tracker):
 ballTracker = CircleTracker(
     name="BallTracker",
     tgt=((165, 185), (50, 255), (120, 255)),
-    sz_range=(3, 10),
+    sz_range=(2, 20),
     sz_target=7.5,
     search_space=(range(160, 175, 7), range(50, 200, 50), range(40, 200, 60)),
     ch_width_range=(range(11, 20, 5), (255,), (255,)),
-    circle_fit=(0.4, 0.1)
+    circle_fit=(0.4, 0.2)
 )
 
 

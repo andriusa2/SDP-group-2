@@ -132,7 +132,12 @@ class VisionController(object):
                 vx += pos[0]
                 vy += pos[1]
                 cv2.line(frame, toint(pos), toint((vx, vy)), (255,255,0),1)
-            for i in self.robots.keys():
+        
+        except Exception:
+            pass
+
+        for i in self.robots.keys():
+            try:
                 pos = state.get_robot(i).get_position()
                 px, py = pos
                 py = frame.shape[0] - py
@@ -160,9 +165,8 @@ class VisionController(object):
                     vx += pos[0]
                     vy += pos[1]
                     cv2.line(frame, toint(pos), toint((vx, vy)), (255,255,0),1)
-            
-        except Exception:
-            pass
+            except Exception:
+                pass
         cv2.imshow("view", frame)
         k = cv2.waitKey(1) & 0xFF
         if k == ord('q'):
