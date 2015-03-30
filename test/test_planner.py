@@ -486,33 +486,36 @@ class PassToZoneTest(BaseTest):
         pass
 
 
-"""class BouncePassTest(BaseTest):
+class BouncePassTest(BaseTest):
 
     def test_move_and_turn(self):
         #print "Move and Turn Start"
-        self.world_state = self.put_robots_and_ball((1, 10), [(15.0, 50), (25, 50), (35, 0)], my_direction=(0, 1),
+        self.world_state = self.put_robots_and_ball((5, 10), [(15.0, 50), (25, 50), (35, 0)], my_direction=(0, 1),
                                                     ball_pos=(1, 10), robot_num=0)
         self.choose_planner("left")
         self.planner.fetch_world_state()
         bounce_point = self.planner.pass_ball.select_bounce_point()
         self.assertFalse(self.planner.is_robot_facing_point(bounce_point))
-        self.assertFalse(self.planner.is_robot_in_centre_x())
         self.assertTrue(self.planner.is_at_square_angles())
-        self.assertFalse(self.planner.world.is_grabber_down)
+        self.assertTrue(self.planner.world.is_grabber_closed)
 
+        self.world_state.is_grabber_closed = False
+        self.assertFalse(self.planner.world.is_grabber_closed)
         self.planner.plan()
-        time.sleep(1)
-        self.planner.plan()
-        self.assertEquals(self.last_action(), "MOVE TO CENTER X")
-        self.assertTrue(self.planner.is_robot_in_centre_x())
-
-        self.ball_follow_robot()
+        self.assertEquals(self.last_action(), "CLOSE GRABBER")
+        self.assertTrue(self.planner.world.is_grabber_closed)
 
         time.sleep(1)
         self.planner.plan()
         self.assertEquals(self.last_action(), "MOVE TO CENTER Y")
+        self.assertTrue(self.planner.world.is_grabber_closed)
+        self.ball_follow_robot()
+
+        time.sleep(1)
+        self.planner.plan()
+        self.assertEquals(self.last_action(), "TURNING TO FACE BOUNCE POINT")
         self.assertTrue(self.planner.is_robot_in_centre_y())
-        self.assertEquals(self.planner.robot.position, Vector2D(7.5, 55))
+        self.assertEquals(self.planner.robot.position, Vector2D(5, 55))
 
 
     def ball_follow_robot(self):
@@ -530,6 +533,7 @@ class PassToZoneTest(BaseTest):
         self.planner.fetch_world_state()
         bounce_point = self.planner.pass_ball.select_bounce_point()
         self.assertEquals(bounce_point, Vector2D(15, 0))
+        self.world_state.is_grabber_closed = False
 
         self.planner.plan()
         self.assertEquals(self.last_action(), "CLOSE GRABBER")
@@ -552,6 +556,7 @@ class PassToZoneTest(BaseTest):
         self.planner.dist_kicker_robot = 0
         bounce_point = self.planner.pass_ball.select_bounce_point()
         self.assertEquals(bounce_point, Vector2D(15, 110))
+        self.world_state.is_grabber_closed = False
 
         self.planner.plan()
         self.assertEquals(self.last_action(), "CLOSE GRABBER")
@@ -564,7 +569,7 @@ class PassToZoneTest(BaseTest):
         time.sleep(1)
 
         self.planner.plan()
-        self.assertEquals(self.last_action(), "PASS BALL")"""
+        self.assertEquals(self.last_action(), "PASS BALL")
 
 """class PrettyPrintTest(BaseTest):
     state_trace = ["a", "b", "c", "d", "e"]

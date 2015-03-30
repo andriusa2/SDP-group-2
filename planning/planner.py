@@ -122,7 +122,7 @@ class Planner(Strategy):
 
     def ball_in_defender_zone_trans(self):
         if self.is_ball_close():
-            new_state = "shooting"
+            new_state = "passing ball"
         else:
             new_state = "fetching ball"
         return new_state
@@ -147,25 +147,22 @@ class Planner(Strategy):
         #     return False
         return self.actual_robot.is_available()
 
+    # def set_refresh_kick
+
     def do_fetch_ball(self):
         to_return = self.do_strategy(self.fetch_ball)
-        self.world.do_refresh_kick = False
         return to_return
 
     def do_shoot_goal(self):
-        self.world.do_refresh_kick = True
         return self.do_strategy(self.shoot_goal)
 
     def do_block_goal(self):
-        self.world.do_refresh_kick = True
         return self.do_strategy(self.block_goal)
 
     def do_pass_ball(self):
-        self.world.do_refresh_kick = True
         return self.do_strategy(self.pass_ball)
 
     def do_receive_pass(self):
-        self.world.do_refresh_kick = True
         return self.do_strategy(self.receive_pass)
 
     def do_strategy(self, strategy):

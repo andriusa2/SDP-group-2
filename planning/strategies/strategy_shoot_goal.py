@@ -12,7 +12,7 @@ class ShootForGoal(Strategy):
         self.m.add_state("Grabber is Closed", self.grabber_open_trans)
 
         # End States / Actions
-        self.m.add_final_state_and_action("Close Grabber", self.other.lower_cage)
+        self.m.add_final_state_and_action("Close Grabber", self.other.close_grabber)
         self.m.add_final_state_and_action("Shoot", self.other.shoot)
         self.m.add_final_state_and_action("Turn to Goal", self.turn.turn_to_enemy_goal)
 
@@ -26,7 +26,7 @@ class ShootForGoal(Strategy):
         return self.m.do_action(action_state)
 
     def start_trans(self):
-        if self.world.is_grabber_down:
+        if self.world.is_grabber_closed:
             new_state = "Grabber is Closed"
         else:
             new_state = "Close Grabber"

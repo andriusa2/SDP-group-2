@@ -10,7 +10,7 @@ class FetchBall(Strategy):
         self.m.add_state("Grabber is Open", self.grabber_is_open_trans)
 
         # End States / Actions
-        self.m.add_final_state_and_action("Open Grabber", self.other.raise_cage)
+        self.m.add_final_state_and_action("Open Grabber", self.other.open_grabber)
         self.m.add_final_state_and_action("Move to Ball", self.move.move_robot_to_ball)
         self.m.add_final_state_and_action("Turn to Ball", self.turn.turn_robot_to_ball)
 
@@ -26,7 +26,7 @@ class FetchBall(Strategy):
     # ------------------------------------ Transitions ------------------------------------
 
     def start_trans(self):
-        if self.world.do_refresh_kick:
+        if self.world.is_grabber_closed:
             new_state = "Open Grabber"
         else:
             new_state = "Grabber is Open"
