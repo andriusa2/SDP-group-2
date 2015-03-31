@@ -5,7 +5,7 @@
 #define GRAB_POWER -1
 // determines durations at max power
 #define KICK_DURATION 190
-#define GRAB_DURATION 200
+#define GRAB_DURATION 280
 
 #define ACK_COMMS
 #define DO_PARITY
@@ -21,8 +21,7 @@ uint8_t buffer[BUFF_SIZE] = "";
 uint8_t buff_head = 0;
 uint8_t READY = 1;
 uint8_t MATCHED_CMD = 0;
-uint32_t LAST_CMD_PARAMS = 0;
-long LAST_MATCH_TIME = 0;
+long LAST_MATCH_ID = -1;
 MotorBoard motors;
 
 enum MOTORS {
@@ -134,18 +133,26 @@ void parse_packet() {
       return;
     }
     uint8_t b1 = buffer[2], b2 = buffer[3];
+    if ((long)(byte)buffer[4] == LAST_MATCH_ID) {
+      Serial.println("ACK, repeat");
+      Serial.flush();
+      return;
+    }
+    LAST_MATCH_ID = (byte) buffer[4];
+    /*
     uint8_t p = b1 ^ b2 ^ 0;
-    if (p != (byte)buffer[4]) {
+    if (p = (byte)buffer[4]) {
       Serial.print("FAIL: Parity fail, got ");
       Serial.print(p);
       Serial.print(", but expected: ");
       Serial.println((byte)buffer[4]);
       Serial.flush();
       return;
-    }
+    }*/
     // parity passed, handle it now
     command(cmd, b1, b2);
-    Serial.println("ACK");
+    Serial.print("ACK");
+    Serial.println(LAST_MATCH_ID);
     Serial.flush();
     return;
   }
@@ -260,13 +267,6 @@ void loop() {
 void command(char cmd, uint8_t b1, uint8_t b2) {
   MATCHED_CMD = 1;
   uint8_t cd[] = {cmd, b1, b2, 0};
-  uint32_t last_cmd = LAST_CMD_PARAMS;
-  uint32_t last_time = LAST_MATCH_TIME;
-  LAST_CMD_PARAMS = *(uint32_t*)(&cd[0]);
-  LAST_MATCH_TIME = millis();
-  if (last_cmd == LAST_CMD_PARAMS && LAST_MATCH_TIME - last_time < 1000) {
-    return;
-  }
   switch (cmd) {
   case 'K': kick(b1); READY = 0; return;
   case 'F': move_front(b1, b2);  READY = 0;return;

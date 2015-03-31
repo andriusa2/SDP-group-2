@@ -171,6 +171,8 @@ class Arduino(object):
 def scale_list(scale, l):
     return map(lambda a: scale * a, l)
 
+    
+LAST_MSG = 0
 
 class Controller(Arduino):
     """ Implements an interface for Arduino device. """
@@ -221,6 +223,11 @@ class Controller(Arduino):
 
         parity = reduce(xor_bytes, bytes, 0)
         parity = chr(parity)
+        global LAST_MSG
+        if LAST_MSG > 128:
+            LAST_MSG = 0
+        parity = chr(LAST_MSG)
+        LAST_MSG += 1
         return cmd.format(*bytes, parity=parity, ts='\t', te='\t')
 
     def kick(self, power=None):
