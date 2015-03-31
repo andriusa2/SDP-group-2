@@ -23,8 +23,7 @@ class Strategy(object):
         if config is None:
             config = Config()
 
-        self.grab_threshold_x = config.GRAB_THRESHOLD
-        self.grab_threshold_y = config.GRAB_THRESHOLD
+        self.grab_threshold = config.GRAB_THRESHOLD
         self.dist_kicker_robot = config.DIST_KICKER_ROBOT
 
         self.ROBOT_WIDTH = config.ROBOT_WIDTH
@@ -39,6 +38,8 @@ class Strategy(object):
 
         self.square_angle_threshold = config.SQUARE_ANGLE_THRESHOLD
         self.zone_centre_offset = config.ZONE_CENTRE_OFFSET
+
+        self.ball_velocity_grabber_trigger = config.BALL_VELOCITY_GRABBER_TRIGGER
 
         # initialise state attributes
         self.robot = None
@@ -151,6 +152,12 @@ class Strategy(object):
         v = v1 if max_distance == dist_to_1 else v2
         return v
 
+    def ball_in_enemy_att_zone(self):
+        return self.world.get_zone(self.world.ball.position) == self.world.get_zone(self.get_enemy().position)
+
+    def ball_is_fast(self):
+        return self.world.ball.velocity.length() > self.ball_velocity_grabber_trigger
+
     """
     -------------------------------------------------------
         Fetching of Objects in World State
@@ -251,9 +258,7 @@ class Strategy(object):
 
         # check if the balls is in close enough to the robot to be grabbed
         ball_kicker_vector = self.vector_from_kicker_to_ball()
-        ball_close_x = abs(ball_kicker_vector.x) < self.grab_threshold_x
-        ball_close_y = abs(ball_kicker_vector.y) < self.grab_threshold_y
-        return ball_close_x and ball_close_y
+        return ball_kicker_vector.length() < self.grab_threshold
 
     def distance_from_kicker_to_ball(self):
         """
@@ -327,14 +332,6 @@ class Strategy(object):
 
         rotated_v = to_move.rotate(angle)
         return rotated_v
-
-    def ball_going_quickly(self):
-        """
-        Check is ball is going quicker than a threshold velocity
-        """
-        velocity_threshold = 10
-        ball_velocity = self.world.get_ball().velocity.length()
-        return ball_velocity > velocity_threshold
 
     def predict_y(self, predict_for_x):
         """
