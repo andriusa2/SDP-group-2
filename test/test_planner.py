@@ -41,7 +41,8 @@ class BaseTest(unittest.TestCase):
     def put_robot_and_ball(self, robot_pos, robot_dir, ball_pos, robot_num):
         return self.put_robots_and_ball(robot_pos, [(5.0, 8.0), (25, 25), (35, 35)], robot_dir, ball_pos, robot_num)
 
-    def put_robots_and_ball(self, my_position, other_positions, my_direction, ball_pos, robot_num):
+    def put_robots_and_ball(self, my_position, other_positions, my_direction, ball_pos, robot_num,
+                            ball_velocity=Vector2D(0, 0)):
         robot1_pos_x, robot1_pos_y = my_position
         robot2_pos_x, robot2_pos_y = other_positions[0]
         robot3_pos_x, robot3_pos_y = other_positions[1]
@@ -56,7 +57,7 @@ class BaseTest(unittest.TestCase):
         robot_2 = Robot(direction=(0, 1), position=(robot2_pos_x, robot2_pos_y), velocity=(0.0, 0.0), enemy=True)
         robot_3 = Robot(direction=(0, 1), position=(robot3_pos_x, robot3_pos_y), velocity=(0, 0), enemy=True)
         robot_4 = Robot(direction=(0, 1), position=(robot4_pos_x, robot4_pos_y), velocity=(0, 0), enemy=True)
-        ball = Ball(position=(ball_pos_x, ball_pos_y), velocity=(0, 0), in_possession=False)
+        ball = Ball(position=(ball_pos_x, ball_pos_y), velocity=(ball_velocity.x, ball_velocity.y), in_possession=False)
 
         # set the list of robots
         if robot_num is 0:
@@ -395,6 +396,67 @@ class BlockTest(BaseTest):
         self.assertEquals(Vector2D(0.01, -0.5).square_unit_vector(), Vector2D(0, -1))
         self.assertEquals(Vector2D(-0.3, 0.09).square_unit_vector(), Vector2D(-1, 0))
         self.assertEquals(Vector2D(-0.01, -0.5).square_unit_vector(), Vector2D(0, -1))
+
+    def test_fast_enemy_zone_1(self):
+        """make sure that when the ball is moving FAST in the enemy zone, open the grabber"""
+        self.world_state = self.put_robots_and_ball((5, 50), [(15.0, 50), (25, 50), (35, 0)], my_direction=(0, -1),
+                                                    ball_pos=(15, 40), robot_num=0, ball_velocity=Vector2D(100, 100))
+        self.choose_planner("left")
+        self.is_fast_enemy()
+
+    def test_fast_enemy_zone_2(self):
+        """make sure that when the ball is moving FAST in the enemy zone, open the grabber"""
+        self.world_state = self.put_robots_and_ball((35, 50), [(5, 50), (15, 50), (25, 0)], my_direction=(0, -1),
+                                                    ball_pos=(25, 40), robot_num=3, ball_velocity=Vector2D(100, 100))
+        self.choose_planner("right")
+        self.is_fast_enemy()
+
+    def is_fast_enemy(self):
+        self.planner.fetch_world_state()
+        self.assertTrue(self.planner.world.is_grabber_closed)
+        self.assertTrue(self.planner.is_at_square_angles())
+        self.assertTrue(self.planner.is_robot_in_centre_x())
+        self.assertEquals(self.planner.world.ball.velocity, Vector2D(100, 100))
+
+        self.planner.plan()
+        self.assertEquals(self.last_action(), "OPEN GRABBER")
+        self.assertFalse(self.planner.world.is_grabber_closed)
+        time.sleep(1)
+
+        self.planner.plan()
+        self.assertEquals(self.last_action(), "INTERCEPT BALL")
+        self.assertFalse(self.planner.world.is_grabber_closed)
+        time.sleep(1)
+
+    def test_slow_enemy_zone_1(self):
+        """make sure that when the ball is moving SLOW in the enemy zone, close the grabber"""
+        self.world_state = self.put_robots_and_ball((5, 50), [(15.0, 50), (25, 50), (35, 0)], my_direction=(0, -1),
+                                                    ball_pos=(15, 40), robot_num=0, ball_velocity=Vector2D(0, 0))
+        self.choose_planner("left")
+
+    def test_slow_enemy_zone_2(self):
+        """make sure that when the ball is moving SLOW in the enemy zone, close the grabber"""
+        self.world_state = self.put_robots_and_ball((35, 50), [(5.0, 50), (15, 50), (25, 0)], my_direction=(0, -1),
+                                                    ball_pos=(15, 40), robot_num=3, ball_velocity=Vector2D(0, 0))
+        self.choose_planner("right")
+
+    def is_slow_enemy(self):
+        self.planner.fetch_world_state()
+        self.planner.world.is_grabber_closed = False
+        self.assertTrue(self.planner.is_at_square_angles())
+        self.assertTrue(self.planner.is_robot_in_centre_x())
+        self.assertEquals(self.planner.world.ball.velocity, Vector2D(100, 100))
+
+        self.planner.plan()
+        self.assertEquals(self.last_action(), "CLOSE GRABBER")
+        self.assertFalse(self.planner.world.is_grabber_closed)
+        time.sleep(1)
+
+        self.planner.plan()
+        self.assertEquals(self.last_action(), "INTERCEPT BALL")
+        self.assertFalse(self.planner.world.is_grabber_closed)
+        time.sleep(1)
+
 
 
 class PassToZoneTest(BaseTest):
