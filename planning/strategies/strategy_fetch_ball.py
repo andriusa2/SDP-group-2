@@ -9,13 +9,14 @@ class FetchBall(Strategy):
         self.m.add_state("Start", self.start_trans)
         self.m.add_state("is facing ball", self.facing_ball_trans)
         self.m.add_state("not facing ball", self.not_facing_trans)
-        self.m.add_state("Grabber is Closed", self.grabber_closed_trans)
+        self.m.add_state("Grabber Closed", self.grabber_closed_trans)
 
         # End States / Actions
         self.m.add_final_state_and_action("Open Grabber", self.other.open_grabber)
+        self.m.add_final_state_and_action("Close Grabber", self.other.close_grabber)
         self.m.add_final_state_and_action("Move to Ball", self.move.move_robot_to_ball)
         self.m.add_final_state_and_action("Turn to Ball", self.turn.turn_robot_to_ball)
-        self.m.add_final_state_and_action("Move Back", self.turn.turn_robot_to_ball)
+        self.m.add_final_state_and_action("Move Back", self.move.move_back)
 
         # set start state
         self.m.set_start("Start")
