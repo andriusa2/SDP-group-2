@@ -2,6 +2,7 @@ from communication.controller import Controller
 from vision.vision_controller import VisionController
 from math import sqrt
 import time
+import json
 from multiprocessing import Value, Process
 import atexit
 
@@ -13,17 +14,23 @@ def vc_worker(my_zone, px, py):
     while True:
         state = vc.analyse_frame(state)
         try:
-            x, y = state.get_robot(vc.try_these[0]).get_position()
+            x, y = state.get_robot(vc.try_these[0]).get_position_units()
             px.value = x
             py.value = y
         except Exception as e:
             print e
 
 
+def avg(l):
+    if not l:
+        return 0
+    return sum(l) / len(l)
+
+
 class MovementCalibration(object):
     def __init__(self, my_zone=None, port='/dev/ttyACM0'):
-        self.px = Value('i', None)
-        self.py = Value('i', None)
+        self.px = Value('f', -1)
+        self.py = Value('f', -1)
         self.vc_thread = Process(target=vc_worker, args=(my_zone, self.px, self.py))
         self.vc_thread.start()
         atexit.register(self.destr)
@@ -45,7 +52,7 @@ class MovementCalibration(object):
         while not self.c.is_available():
             print 'Arduino not available, waiting 300ms'
             time.sleep(0.3)
-        time.sleep(0.3)
+        time.sleep(1)
         
     
     def get_dist(self, duration):
@@ -69,7 +76,7 @@ class MovementCalibration(object):
         return avg(pts)
         
     def gather_points(self, start_duration=10, end_duration=500):
-        while self.px.value is None:
+        while self.px.value < 0:
             print 'Vision not picking up position, waiting 300ms'
             time.sleep(0.3)
             
