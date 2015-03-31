@@ -94,8 +94,7 @@ class VisionController(object):
         try:
             if 'ball' not in self.try_these:
                 x = None
-            else:
-                self.zone_in_hits.get('ball', -1) >= 0:
+            elif self.zone_in_hits.get('ball', -1) >= 0:
                 self.zone_in_hits['ball'] -= 1
                 x = None
             else:

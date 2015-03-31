@@ -22,7 +22,7 @@ class Config(object):
 
     ZONE_CENTRE_WIDTH = 8
     PITCH_HEIGHT = 110
-    ZONE_CENTRE_OFFSET = 0.1  # a percentage of the zone width
+    ZONE_CENTRE_OFFSET = -0.1  # a percentage of the zone width
 
 class TestingConfig(Config):
 
