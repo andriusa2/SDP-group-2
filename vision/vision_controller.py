@@ -16,7 +16,7 @@ class VisionController(object):
         }
         # an iterable with any of 'pos', 'dir', 'vel'
         self.draw_debug = tuple() if not draw_debug else draw_debug
-        self.try_these = [0, 1, 2, 3]
+        self.try_these = [0, 1, 2, 3, 'ball']
         self.zone_in_hits = {}
         self.ball = ballTracker
         
@@ -92,7 +92,10 @@ class VisionController(object):
             dy = -dy
             previous_state.add_robot_direction(i, frame_time, (dx, dy))
         try:
-            if self.zone_in_hits.get('ball', -1) >= 0:
+            if 'ball' not in self.try_these:
+                x = None
+            else:
+                self.zone_in_hits.get('ball', -1) >= 0:
                 self.zone_in_hits['ball'] -= 1
                 x = None
             else:
