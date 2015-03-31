@@ -8,17 +8,17 @@ import numpy as np
 # y=np.array([0.,2.56,4.8,7.68,12.8,18.9])
 # z=np.polyfit(y, x, 3)  # as we want f: Y -> X, not f: X -> Y
 
-distance_polynomial = np.poly1d(np.array([0.00012, -0.0038, 0.0477, 0.01]))
+distance_polynomial = np.poly1d(np.array([-0.094, 11.89, 52.6]))
 
 
 def get_duration(distance, power):
     """ Calculates how long does a bot need to move at power to cover distance. """
     assert power == 1
-    if distance <= 16.8:
-        t = distance_polynomial(distance) * 1000.0
+    if distance <= 21:
+        t = distance_polynomial(distance)
     else:
-        # s = (t - 300) * 0.063 + 18.9
-        t = (distance - 16.8) / 0.063 + 300
+        # s = (t - 260) * 0.043 + 21
+        t = (distance - 21) / 0.043 + 260
     return int(t)
 
 
