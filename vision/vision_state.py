@@ -49,10 +49,10 @@ class _VisionObject(object):
     def set_scaling_factor(self, scale):
         self.pixel_scale = scale
     
-    def get_position_units(self):
+    def get_position_units(self, smoothing=None):
         assert self.pixel_scale, "No pixel scale specified"
         try:
-            x, y = self.get_position()
+            x, y = self.get_position(smoothing=smoothing)
             x *= self.pixel_scale
             y *= self.pixel_scale
             return x, y
