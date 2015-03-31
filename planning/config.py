@@ -12,13 +12,13 @@ class Config(object):
     ROBOT_WIDTH = 4
 
     SQUARE_ANGLE_THRESHOLD = 0.005
-    MOVE_DAMPENING = 0.6
-    TURN_DAMPENING = 0.7
+    MOVE_DAMPENING = 1
+    TURN_DAMPENING = 0.5
 
     MAX_MOVE = 15
     MAX_TURN = np.pi/4
 
-    BALL_VELOCITY_GRABBER_TRIGGER = 100
+    BALL_VELOCITY_GRABBER_TRIGGER = 20
 
     ###################
     # World Constants #
