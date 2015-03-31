@@ -336,14 +336,6 @@ class Strategy(object):
         rotated_v = to_move.rotate(angle)
         return rotated_v
 
-    def ball_going_quickly(self):
-        """
-        Check is ball is going quicker than a threshold velocity
-        """
-        velocity_threshold = 10
-        ball_velocity = self.world.get_ball().velocity.length()
-        return ball_velocity > velocity_threshold
-
     def predict_y(self, predict_for_x):
         """
         Predict the y coordinate the ball will have when it reaches the x coordinate of the robot.

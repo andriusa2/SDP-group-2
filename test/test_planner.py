@@ -458,7 +458,6 @@ class BlockTest(BaseTest):
         time.sleep(1)
 
 
-
 class PassToZoneTest(BaseTest):
 
     def choose_planner(self, side):
