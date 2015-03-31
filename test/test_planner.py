@@ -116,37 +116,18 @@ class FetchBallTest(BaseTest):
         # check that the ball is close
         self.assertFalse(self.attacker1.is_ball_close())
 
-    # ensure that a robot will turn towards the ball
-    """def test_robot_turns_towards_ball(self):
-        # set up the world so that the robot has to turn
-        ball = Ball(position=(15, 15), velocity=(0, 0), in_possession=False)
-        robot_2 = Robot(direction=(1, 0), position=(15, 0), velocity=(0, 0), enemy=False)
-        self.world_state.set_ball(ball)
-        self.world_state.add_robot(Zone.L_ATT, robot_2)
-        # raise cage
-        self.attacker1.act()
-        # turn
-        self.attacker1.act()
-        # refresh the robot's world
-        self.attacker1.fetch_world_state()
-        # check that robot if facing the ball
-        self.assertTrue(self.attacker1.is_robot_facing_ball())
+    def test_turn_to_ball(self):
+        self.world_state = self.put_robots_and_ball((1, 50), [(15.0, 50), (25, 50), (35, 0)], my_direction=(0, -1),
+                                                    ball_pos=(9, 40), robot_num=0)
+        self.choose_planner("left")
+        pass
 
-    # ensure that the robot will move towards the ball when facing it
-    def test_robot_moves_to_ball(self):
-        # set up the world so that the robot does not have to turn
-        ball = Ball(position=(15, 15), velocity=(0, 0), in_possession=False)
-        robot_2 = Robot(direction=(0, 1), position=(15, 0), velocity=(0, 0), enemy=False)
-        self.world_state.set_ball(ball)
-        self.world_state.add_robot(Zone.L_ATT, robot_2)
-        # raise cage
-        self.attacker1.act()
-        # move
-        self.attacker1.act()
-        # refresh the robot's world
-        self.attacker1.fetch_world_state()
-        # check that the robot has reached the ball
-        self.assertTrue(self.attacker1.is_ball_close())"""
+
+    def test_move_back(self):
+        pass
+
+    def test_move_forward(self):
+        pass
 
 
 class ShootTest(BaseTest):

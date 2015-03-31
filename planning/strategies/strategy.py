@@ -270,6 +270,17 @@ class Strategy(object):
         ball_kicker_vector = self.vector_from_kicker_to_ball()
         return ball_kicker_vector.length() < self.grab_threshold
 
+    def is_ball_close_x2(self):
+        """
+        checks whether the ball is in close proximity to the robot's kicker
+        :return:
+        """
+        self.fetch_world_state()
+
+        # check if the balls is in close enough to the robot to be grabbed
+        ball_kicker_vector = self.vector_from_kicker_to_ball()
+        return ball_kicker_vector.length() < (self.grab_threshold * 1.5)
+
     def distance_from_kicker_to_ball(self):
         """
         :return: distance from the kicker to the ball
