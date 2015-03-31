@@ -23,8 +23,7 @@ class Strategy(object):
         if config is None:
             config = Config()
 
-        self.grab_threshold_x = config.GRAB_THRESHOLD
-        self.grab_threshold_y = config.GRAB_THRESHOLD
+        self.grab_threshold = config.GRAB_THRESHOLD
         self.dist_kicker_robot = config.DIST_KICKER_ROBOT
 
         self.ROBOT_WIDTH = config.ROBOT_WIDTH
@@ -259,9 +258,7 @@ class Strategy(object):
 
         # check if the balls is in close enough to the robot to be grabbed
         ball_kicker_vector = self.vector_from_kicker_to_ball()
-        ball_close_x = abs(ball_kicker_vector.x) < self.grab_threshold_x
-        ball_close_y = abs(ball_kicker_vector.y) < self.grab_threshold_y
-        return ball_close_x and ball_close_y
+        return ball_kicker_vector.length() < self.grab_threshold
 
     def distance_from_kicker_to_ball(self):
         """
