@@ -48,7 +48,6 @@ class BlockGoal(Strategy):
 
     def in_centre_trans(self):
         should_open = self.should_open_grabber()
-        print should_open
         if should_open and self.world.is_grabber_closed:
             new_state = "Open Grabber"
         else:

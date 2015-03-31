@@ -100,12 +100,20 @@ class Strategy(object):
         return self.robot.can_see(point=ball_pos, beam_width=self.ROBOT_WIDTH/2)
 
     def is_at_square_angles(self):
+        # dir_x = self.robot.direction.x
+        # dir_y = self.robot.direction.y
+        #
+        # major_axis = max(abs(dir_x), abs(dir_y))
+        # print "Major axis is {0}, and is at square angles if > {1}".format(major_axis, 1-self.square_angle_threshold)
+        # return major_axis > 1-self.square_angle_threshold
+        """is facing direction of the goal"""
         dir_x = self.robot.direction.x
-        dir_y = self.robot.direction.y
+        my_zone = self.world.get_zone(self.robot.position)
+        if my_zone == Zone.L_ATT or my_zone == Zone.L_DEF:
+            return dir_x > 1-self.square_angle_threshold
+        else:
+            return dir_x < -1+self.square_angle_threshold
 
-        major_axis = max(abs(dir_x), abs(dir_y))
-        print "Major axis is {0}, and is at square angles if > {1}".format(major_axis, 1-self.square_angle_threshold)
-        return major_axis > 1-self.square_angle_threshold
 
     def is_robot_facing_point(self, point, beam_width=None):
         """
@@ -156,7 +164,9 @@ class Strategy(object):
         return self.world.get_zone(self.world.ball.position) == self.world.get_zone(self.get_enemy().position)
 
     def ball_is_fast(self):
-        return self.world.ball.velocity.length() > self.ball_velocity_grabber_trigger
+        is_fast = self.world.ball.velocity.length() > self.ball_velocity_grabber_trigger
+        not_too_fast = self.world.ball.velocity.length() < 150
+        return is_fast and not_too_fast
 
     """
     -------------------------------------------------------

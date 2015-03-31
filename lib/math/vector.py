@@ -61,6 +61,7 @@ class Vector2D(object):
 
     def get_angle(self, base_vector):
         angle = np.arctan2(base_vector.y, base_vector.x) - np.arctan2(self.y, self.x)
+        angle = min([angle, angle+2*np.pi, angle-2*np.pi], key=abs)
         return -angle
 
     def is_null(self):

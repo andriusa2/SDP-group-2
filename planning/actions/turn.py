@@ -1,6 +1,7 @@
 from lib.math.util import rad_to_deg, clamp
 from lib.math.vector import Vector2D
 import numpy as np
+from planning.world_state import Zone
 
 __author__ = 'Sam Davies'
 
@@ -27,15 +28,25 @@ class Turn(object):
     def turn_to_closest_square_angle(self):
 
         # angle in range 0..2pi
-        angle_to_turn = self.strategy.robot.direction.get_angle(Vector2D(1, 0)) + np.pi
-        assert 0 <= angle_to_turn <= 2 * np.pi
+        # angle_to_turn = self.strategy.robot.direction.get_angle(Vector2D(1, 0)) + np.pi
+        # assert 0 <= angle_to_turn <= 2 * np.pi
+        #
+        # while angle_to_turn > np.pi / 2:
+        #     angle_to_turn -= np.pi / 2
+        #
+        # if angle_to_turn > np.pi / 4:
+        #     angle_to_turn -= np.pi / 2
+        #
+        # to_turn = -angle_to_turn
+        # info = "turning {0} degrees)".format(rad_to_deg(to_turn))
+        # return self._turn_robot(to_turn,), info
+        my_zone = self.strategy.world.get_zone(self.strategy.robot.position)
+        if my_zone == Zone.L_ATT or my_zone == Zone.L_DEF:
+            forwards = Vector2D(1, 0)
+        else:
+            forwards = Vector2D(-1, 0)
 
-        while angle_to_turn > np.pi / 2:
-            angle_to_turn -= np.pi / 2
-
-        if angle_to_turn > np.pi / 4:
-            angle_to_turn -= np.pi / 2
-
+        angle_to_turn = self.strategy.robot.direction.get_angle(forwards)
         to_turn = -angle_to_turn
         info = "turning {0} degrees)".format(rad_to_deg(to_turn))
         return self._turn_robot(to_turn,), info
