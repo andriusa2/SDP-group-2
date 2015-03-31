@@ -40,6 +40,8 @@ class Strategy(object):
         self.square_angle_threshold = config.SQUARE_ANGLE_THRESHOLD
         self.zone_centre_offset = config.ZONE_CENTRE_OFFSET
 
+        self.ball_velocity_grabber_trigger = config.BALL_VELOCITY_GRABBER_TRIGGER
+
         # initialise state attributes
         self.robot = None
         self.ball = None
@@ -150,6 +152,12 @@ class Strategy(object):
         max_distance = max(dist_to_1, dist_to_2)
         v = v1 if max_distance == dist_to_1 else v2
         return v
+
+    def ball_in_enemy_att_zone(self):
+        return self.world.get_zone(self.world.ball.position) == self.world.get_zone(self.get_enemy().position)
+
+    def ball_is_fast(self):
+        return self.world.ball.velocity.length() > self.ball_velocity_grabber_trigger
 
     """
     -------------------------------------------------------
