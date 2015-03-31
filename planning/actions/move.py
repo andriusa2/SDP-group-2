@@ -27,7 +27,7 @@ class Move(object):
         """
         dist_to_ball = self.strategy.distance_from_kicker_to_ball()
         info = "moving {0} cm".format(dist_to_ball)
-        return self._move_robot(dist_to_ball, None, info)
+        return self._move_robot(dist_to_ball, 0, info, self.strategy.robot.direction)
 
     def move_to_centre_x(self):
         robot_y = self.strategy.robot.position.y
@@ -49,6 +49,11 @@ class Move(object):
 
         info = "moving robot ({0}, {1}) cm to ({2}, {3})".format(to_move.x, to_move.y, x, y)
         return self._move_robot(to_move.x, to_move.y, info, self.strategy.robot.direction)
+
+    def move_back(self):
+        to_move = - float(self.strategy.grab_threshold)
+        info = "moving back {0} cm".format(to_move)
+        return self._move_robot(to_move, 0, info, self.strategy.robot.direction)
 
     def _move_robot(self, x, y, info, direction=None):
         if x:

@@ -33,7 +33,7 @@ class DummyRobot(object):
         # artificially set the world state
         robot = self.world.get_robot(self.robot_tag)
 
-        print "old position {0}".format(robot.position)
+        print "y_distance {0}".format(y_distance)
         robot.position += Strategy.get_global_move(Vector2D(x_distance, y_distance), direction)
         print "new position {0}".format(robot.position)
         self.world.add_robot(self.robot_tag, robot)

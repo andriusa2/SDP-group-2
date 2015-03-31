@@ -90,41 +90,57 @@ class BaseTest(unittest.TestCase):
 
 
 class FetchBallTest(BaseTest):
-    def setUp(self):
-        self.world_state = self.put_robots_and_ball((15, 15), ([(5, 15), (25, 15), (35, 15)]), my_direction=(0, 1),
-                                                    ball_pos=(5, 5), robot_num=1)
-        # make a dummy robot which can change the world
-        actual_robot = DummyRobot(self.world_state, Zone.L_ATT)
-        # give the strategies the world the dummy and the zone of the dummy
-        self.attacker1 = FetchBall(self.world_state, Zone.L_ATT, actual_robot)
 
     # ensure that a close ball is found to be close
     def test_close_ball(self):
-        self.change_ball_location(15.0, 15.0 + self.attacker1.dist_kicker_robot)
+        self.change_ball_location(15.0, 15.0 + self.planner.dist_kicker_robot)
         # check that the ball is close
-        self.assertTrue(self.attacker1.is_ball_close())
+        self.assertTrue(self.planner.is_ball_close())
 
     def test_vector_ball_kicker(self):
-        self.change_ball_location(15.0, 15.0 + self.attacker1.dist_kicker_robot)
-        vec = self.attacker1.vector_from_kicker_to_ball()
+        self.change_ball_location(15.0, 15.0 + self.planner.dist_kicker_robot)
+        vec = self.planner.vector_from_kicker_to_ball()
         self.assertEquals(vec.x, 0.0)
         self.assertEquals(vec.y, 0.0)
 
     # ensure that a non close ball is found to be not close
     def test_non_close_ball(self):
-        self.change_ball_location(25, 15.0 + self.attacker1.dist_kicker_robot)
+        self.change_ball_location(25, 15.0 + self.planner.dist_kicker_robot)
         # check that the ball is close
-        self.assertFalse(self.attacker1.is_ball_close())
+        self.assertFalse(self.planner.is_ball_close())
 
-    def test_turn_to_ball(self):
+    def test_turn_to_ball_1(self):
         self.world_state = self.put_robots_and_ball((1, 50), [(15.0, 50), (25, 50), (35, 0)], my_direction=(0, -1),
                                                     ball_pos=(9, 40), robot_num=0)
         self.choose_planner("left")
-        pass
 
+        self.planner.plan()
+        self.assertEquals(self.last_action(), "TURN TO BALL")
+        self.assertTrue(self.planner.is_robot_facing_ball())
 
     def test_move_back(self):
-        pass
+        self.world_state = self.put_robots_and_ball((8, 50), [(15.0, 50), (25, 50), (35, 0)], my_direction=(0, 1),
+                                                    ball_pos=(9, 40), robot_num=0)
+        self.choose_planner("left")
+
+        self.planner.plan()
+        self.assertEquals(self.last_action(), "TURN TO BALL")
+        self.assertTrue(self.planner.is_robot_facing_ball())
+
+        time.sleep(1)
+        self.planner.plan()
+        self.assertEquals(self.last_action(), "MOVE BACK")
+        self.assertFalse(self.planner.is_ball_close_x2())
+
+        time.sleep(1)
+        self.planner.plan()
+        self.assertEquals(self.last_action(), "OPEN GRABBER")
+        self.assertFalse(self.planner.world.is_grabber_closed)
+
+        time.sleep(1)
+        self.planner.plan()
+        self.assertEquals(self.last_action(), "OPEN GRABBER")
+        self.assertFalse(self.planner.world.is_grabber_closed)
 
     def test_move_forward(self):
         pass
