@@ -6,7 +6,7 @@ from planning.actions.other import Other
 from planning.actions.turn import Turn
 from planning.config import Config
 from planning.strategies.state_machine import StateMachine
-from planning.world_state import Zone, Robot, Ball
+from planning.world_state import Zone, Robot
 
 
 __author__ = 'Sam'
@@ -42,8 +42,8 @@ class Strategy(object):
         self.ball_velocity_grabber_trigger = config.BALL_VELOCITY_GRABBER_TRIGGER
 
         # initialise state attributes
-        self.robot = Robot()
-        self.ball = Ball()
+        self.robot = None
+        self.ball = None
         self.own_goal = None
         self.enemy_goal = None
         self.m = StateMachine()
