@@ -94,15 +94,16 @@ class VisionController(object):
         try:
             if 'ball' not in self.try_these:
                 x = None
-            elif self.zone_in_hits.get('ball', -1) >= 0:
+            elif self.zone_in_hits.get('ball', -1) > 0:
                 self.zone_in_hits['ball'] -= 1
                 x = None
             else:
                 prev_pos = previous_state.get_ball().get_position_local(frame_hsv)
+
                 if self.zone_in_hits.get('ball', 0) < 0:
                     prev_pos = None
                 (x, y), r = self.ball.find(frame_hsv, previous_center=prev_pos, dbg=False)
-                self.zone_in_hits['ball']  = 0
+                self.zone_in_hits['ball'] = 0
                 y = frame_hsv.shape[0] - y
         except Exception as e:
             self.zone_in_hits['ball'] = 24
