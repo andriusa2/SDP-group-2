@@ -13,7 +13,7 @@ class Config(object):
 
     SQUARE_ANGLE_THRESHOLD = 0.005
     MOVE_DAMPENING = 1
-    TURN_DAMPENING = 0.3
+    TURN_DAMPENING = 0.5
 
     MAX_MOVE = 15
     MAX_TURN = np.pi/4

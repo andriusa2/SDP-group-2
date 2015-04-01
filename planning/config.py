@@ -12,7 +12,7 @@ class Config(object):
     ROBOT_WIDTH = 4
 
     SQUARE_ANGLE_THRESHOLD = 0.005
-    MOVE_DAMPENING = 1
+    MOVE_DAMPENING = 0.8
     TURN_DAMPENING = 0.5
 
     MAX_MOVE = 15
