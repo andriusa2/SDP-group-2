@@ -110,7 +110,7 @@ class VisionController(object):
             print "Error in tracking:", e
         else:
             if x is not None:
-                previous_state.add_ball_position(frame_time, (x, y), ignore_noise=False)
+                previous_state.add_ball_position(frame_time, (x, y), ignore_noise=True)
         
         self.draw_frame_details(frame, previous_state)
         return previous_state
