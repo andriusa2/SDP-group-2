@@ -24,16 +24,17 @@ class VisionController(object):
         self.zone_filter = CropZone(crop_filter=self.crop_filters[0])
         self.capture = cv2.VideoCapture(video_port) if video_port is not None else None
         self.kwargs = kwargs
-        self.demo = itertools.cycle([
-            # cv2.imread("SideArena\sample{0}\{1:08}.png".format(kwargs.get('id', 1), i), 1) for i in range(1, 11)
-            # cv2.imread("CentralArena\sample{0}\{1:08}.png".format(kwargs.get('id', 1), i), 1) for i in range(1, 11)
-            cv2.imread("tmp2\{0:08}.jpg".format(i), 1) for i in range(1, 22)
-            # cv2.imread("tmp1\{0:08}.png".format(i), 1) for i in range(1, 58)
-            # cv2.imread("tmp\{0:08}.png".format(i), 1) for i in range(1, 97)
-            # cv2.imread("tmp3\{0:08}.jpg".format(i), 1) for i in range(2, 6)
-            # cv2.imread("tmp3\{0:08}.jpg".format(i), 1) for i in range(2, 14)
-            # cv2.imread("tmp3\{0:08}.jpg".format(i), 1) for i in range(6, 10)
-        ]) if video_port is None else []
+        self.demo = itertools.cycle(itertools.chain(
+            # [cv2.imread("SideArena\sample{0}\{1:08}.png".format(kwargs.get('id', 1), i), 1) for i in range(1, 11)],
+            # [cv2.imread("SideArena\sample{0}\{1:08}.png".format(kwargs.get('id', 1) - 1, i), 1) for i in range(1, 11)],
+            # [cv2.imread("CentralArena\sample{0}\{1:08}.png".format(kwargs.get('id', 1), i), 1) for i in range(1, 11)],
+            # [cv2.imread("tmp2\{0:08}.jpg".format(i), 1) for i in range(1, 22)],
+            # [cv2.imread("tmp1\{0:08}.png".format(i), 1) for i in range(1, 58)],
+            [cv2.imread("tmp\{0:08}.png".format(i), 1) for i in range(1, 97)],
+            # [cv2.imread("tmp3\{0:08}.jpg".format(i), 1) for i in range(2, 6)],
+            # [cv2.imread("tmp3\{0:08}.jpg".format(i), 1) for i in range(2, 14)],
+            # [cv2.imread("tmp3\{0:08}.jpg".format(i), 1) for i in range(6, 10)],
+        )) if video_port is None else []
         _ = self.get_frame()
         frame = self.get_frame()
         for f in self.crop_filters:
@@ -99,17 +100,19 @@ class VisionController(object):
                 x = None
             else:
                 prev_pos = previous_state.get_ball().get_position_local(frame_hsv)
-                if self.zone_in_hits.get('ball', 0) < 0:
+
+                if self.zone_in_hits.get('ball', None) is None:
                     prev_pos = None
                 (x, y), r = self.ball.find(frame_hsv, previous_center=prev_pos, dbg=False)
-                self.zone_in_hits['ball']  = 0
+                self.zone_in_hits['ball'] = None
                 y = frame_hsv.shape[0] - y
         except Exception as e:
-            self.zone_in_hits['ball'] = 24
+            # loose the ball for five frames only
+            self.zone_in_hits['ball'] = 5
             print "Error in tracking:", e
         else:
             if x is not None:
-                previous_state.add_ball_position(frame_time, (x, y), ignore_noise=False)
+                previous_state.add_ball_position(frame_time, (x, y), ignore_noise=True)
         
         self.draw_frame_details(frame, previous_state)
         return previous_state

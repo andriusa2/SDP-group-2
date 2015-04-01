@@ -120,6 +120,15 @@ class Tracker(object):
             else:
                 mask_ = None
             ret = None
+            if dbg:
+                cv2.imshow("local view", cv2.cvtColor(local, cv2.COLOR_HSV2BGR))
+                if mask_ is not None:
+                    cv2.imshow("local mask", mask_)
+                if cv2.waitKey(0) & 0xFF == 27:
+                    exit(0)
+                cv2.destroyWindow("local view")
+                if mask_ is not None:
+                    cv2.destroyWindow("local mask")
             try:
                 ret = self.find(local, previous_center=None, origin=top_left, dbg=dbg, mask=mask_, local_hit=True)
             except TrackingException:
@@ -222,7 +231,14 @@ class CircleTracker(Tracker):
                 exit(0)
             cv2.destroyWindow("Contours")
         
-        cnt = [c for c in cnt if 3 * s2 * s2 >= cv2.contourArea(c) >= 3 * s1 * s1]
+        cnt = [(c, cv2.minEnclosingCircle(c)) for c in cnt]
+        if dbg:
+            for c, p in cnt:
+                self.my_print('-' * 10)
+                self.my_print('Cnt area:', cv2.contourArea(c))
+                self.my_print('Min enclosing circle:', p)
+                self.my_print('-' * 10)
+        cnt = [c for c, (_, r) in cnt if s2 >= r >= s1]
 
         def test(c):
             _, r = cv2.minEnclosingCircle(c)
@@ -237,7 +253,7 @@ class CircleTracker(Tracker):
         # fullest circle is the first one
         cnt = [(t, c) for t, c in cnt if t > circle_fit]
 
-        cnt.sort(key=lambda a: a[0] * cv2.contourArea(a[1]) , reverse=True)
+        cnt.sort(key=lambda a: a[0] * cv2.contourArea(a[1]), reverse=True)
         if not cnt:
             if dbg:
                 self.my_print("no hits after ecc test")
@@ -294,11 +310,11 @@ class CircleTracker(Tracker):
         
 ballTracker = CircleTracker(
     name="BallTracker",
-    tgt=((165, 185), (50, 255), (120, 255)),
-    sz_range=(2, 20),
+    tgt=((160, 185), (100, 255), (40, 255)),
+    sz_range=(2, 12),
     sz_target=7.5,
-    search_space=(range(160, 175, 7), range(50, 200, 50), range(40, 200, 60)),
-    ch_width_range=(range(11, 20, 5), (255,), (255,)),
+    search_space=(range(160, 171, 5), range(60, 200, 70), range(40, 200, 60)),
+    ch_width_range=(range(10, 20, 5), (255,), (255,)),
     circle_fit=(0.4, 0.2)
 )
 
