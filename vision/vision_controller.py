@@ -1,5 +1,6 @@
 import itertools
 import cv2
+import os
 import time
 from vision_trackers import plateTracker, ballTracker, TrackingException
 from vision_filters import CropArena, CropZone
@@ -8,6 +9,24 @@ from vision_state import VisionState
 
 class VisionController(object):
     def __init__(self, video_port=None, draw_debug=None, **kwargs):
+
+        self.save_imgs = False
+        self.last_img_id = 0
+
+        # create file dump folder, get the last ID there
+        try:
+            os.makedirs('dumps')
+        except Exception as e:
+            print repr(e)
+        try:
+            # this might not be on the machine, revert to default behavior then
+            from glob import glob
+            imgs = glob('*.png')
+            imgs = map(lambda a: int(a.rsplit('.', 1)[0]), imgs)
+            self.last_img_id = 0 if not imgs else max(imgs) + 1
+        except Exception as e:
+            print repr(e)
+
         self.robots = {
             0: plateTracker(0),
             1: plateTracker(1),
@@ -46,7 +65,12 @@ class VisionController(object):
 
     def get_frame(self):
         if self.capture:
-            return self.capture.read()[1]
+            frame = self.capture.read()[1]
+            if self.save_imgs:
+                # this one fails silently, so it should be fine
+                cv2.imwrite("dumps/{0:010}.png".format(self.last_img_id), frame)
+                self.last_img_id += 1
+            return frame
         else:
             # implement nicer file loading
             time.sleep(1.0/10.0)
@@ -176,3 +200,7 @@ class VisionController(object):
         k = cv2.waitKey(1) & 0xFF
         if k == ord('q'):
             exit(0)
+        elif k == ord('s'):
+
+            self.save_imgs = not self.save_imgs
+            print "Saving imgs: {}".format(self.save_imgs)
