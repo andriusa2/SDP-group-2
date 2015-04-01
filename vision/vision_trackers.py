@@ -313,8 +313,8 @@ ballTracker = CircleTracker(
     tgt=((160, 185), (100, 255), (40, 255)),
     sz_range=(2, 12),
     sz_target=7.5,
-    search_space=(range(160, 175, 7), range(70, 200, 50), range(40, 200, 60)),
-    ch_width_range=(range(11, 20, 5), (255,), (255,)),
+    search_space=(range(160, 171, 5), range(60, 200, 70), range(40, 200, 60)),
+    ch_width_range=(range(10, 20, 5), (255,), (255,)),
     circle_fit=(0.4, 0.2)
 )
 
