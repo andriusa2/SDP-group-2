@@ -102,8 +102,9 @@ def msg_sender(pipe, avail, port, rate, timeout, retries):
     while True:
         t, msg = pipe.recv()
         if 'HEARTBEAT' in msg:
-            # special case, try to update avail value
-            ready_waiter(s, avail, timeout, retries=10)
+            # special case, try to update avail value if it's not available
+            if avail.value == 0:
+                ready_waiter(s, avail, timeout, retries=10)
             continue
         if 'TERMINATE' in msg:
             print 'exitting...'
@@ -163,7 +164,7 @@ class Arduino(object):
         return self.available.value != 0
 
     def destr(self):
-        self.pipe.send('TERMINATE')
+        self.pipe.send((time.time(), 'TERMINATE'))
         self.serial_thread.terminate()
         self.serial_thread.join()
 
