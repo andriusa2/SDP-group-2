@@ -40,6 +40,7 @@ class Strategy(object):
         self.zone_centre_offset = config.ZONE_CENTRE_OFFSET
 
         self.ball_velocity_grabber_trigger = config.BALL_VELOCITY_GRABBER_TRIGGER
+        self.ball_distance_grabber_trigger = config.BALL_DISTANCE_GRABBER_TRIGGER
 
         # initialise state attributes
         self.robot = Robot()
@@ -164,9 +165,32 @@ class Strategy(object):
         return self.world.get_zone(self.world.ball.position) == self.world.get_zone(self.get_enemy().position)
 
     def ball_is_fast(self):
-        is_fast = self.world.ball.velocity.length() > self.ball_velocity_grabber_trigger
-        not_too_fast = self.world.ball.velocity.length() < 150
-        return is_fast and not_too_fast
+        ball_vel = self.world.ball.velocity
+
+        # is moving
+        is_fast = ball_vel.length() > self.ball_velocity_grabber_trigger
+        not_too_fast = ball_vel.length() < 150
+
+        ball_pos = self.world.ball.position
+        enemy_pos = self.get_enemy().position
+        my_zone = self.world.get_zone(self.robot.position)
+        if my_zone == Zone.L_ATT or my_zone == Zone.L_DEF:
+            # is ball direction towards us
+            is_towards = abs(ball_vel.x) > abs(ball_vel.y) and ball_vel.x < 0
+
+            # is ball X beyond enemy
+            print ball_pos.x + self.ball_distance_grabber_trigger, enemy_pos.x
+            is_beyond = ball_pos.x + self.ball_distance_grabber_trigger < enemy_pos.x
+
+        else:
+            # is ball direction towards us
+            is_towards = abs(ball_vel.x) > abs(ball_vel.y) and ball_vel.x > 0
+
+            # is ball X beyond enemy
+            is_beyond = ball_pos.x - self.ball_distance_grabber_trigger > enemy_pos.x
+
+        print is_fast, not_too_fast, is_towards, is_beyond
+        return is_fast and not_too_fast and is_towards and is_beyond
 
     """
     -------------------------------------------------------

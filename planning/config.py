@@ -19,6 +19,7 @@ class Config(object):
     MAX_TURN = np.pi/4
 
     BALL_VELOCITY_GRABBER_TRIGGER = 20
+    BALL_DISTANCE_GRABBER_TRIGGER = 4
 
     ###################
     # World Constants #
@@ -41,5 +42,6 @@ class TestingConfig(Config):
     MAX_MOVE = 1000
     MAX_TURN = 2 * np.pi
     BALL_VELOCITY_GRABBER_TRIGGER = 10
+    BALL_DISTANCE_GRABBER_TRIGGER = 1
 
     ZONE_CENTRE_OFFSET = 0.5
