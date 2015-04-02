@@ -203,4 +203,4 @@ class VisionController(object):
         elif k == ord('s'):
 
             self.save_imgs = not self.save_imgs
-            print "Saving imgs: {}".format(self.save_imgs)
+            print "Saving imgs: {0}".format(self.save_imgs)
