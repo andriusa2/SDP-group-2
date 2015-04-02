@@ -105,6 +105,10 @@ def msg_sender(pipe, avail, port, rate, timeout, retries):
             # special case, try to update avail value if it's not available
             if avail.value == 0:
                 ready_waiter(s, avail, timeout, retries=10)
+                if avail.value == 1:
+                    avail.value = 0
+                    time.sleep(1.0/8.0)
+                    avail.value = 1
             continue
         if 'TERMINATE' in msg:
             print 'exitting...'
@@ -129,7 +133,7 @@ def msg_sender(pipe, avail, port, rate, timeout, retries):
 class Arduino(object):
     """ Basic class for Arduino communications. """
 
-    def __init__(self, port='/dev/ttyUSB0', rate=115200, timeOut=0.4, comms=1, debug=False, is_dummy=False,
+    def __init__(self, port='/dev/ttyUSB0', rate=115200, timeOut=0.1, comms=1, debug=False, is_dummy=False,
                  ack_tries=4):
         self.port = port
         self.rate = rate
