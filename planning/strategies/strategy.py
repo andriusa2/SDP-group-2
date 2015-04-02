@@ -171,7 +171,7 @@ class Strategy(object):
         is_fast = ball_vel.length() > self.ball_velocity_grabber_trigger
         not_too_fast = ball_vel.length() < 150
 
-        ball_pos = self.world.ball.position
+        """ball_pos = self.world.ball.position
         enemy_pos = self.get_enemy().position
         my_zone = self.world.get_zone(self.robot.position)
         if my_zone == Zone.L_ATT or my_zone == Zone.L_DEF:
@@ -189,8 +189,8 @@ class Strategy(object):
             # is ball X beyond enemy
             is_beyond = ball_pos.x - self.ball_distance_grabber_trigger > enemy_pos.x
 
-        print is_fast, not_too_fast, is_towards, is_beyond
-        return is_fast and not_too_fast and is_towards and is_beyond
+        print is_fast, not_too_fast, is_towards, is_beyond"""
+        return is_fast and not_too_fast # and is_towards and is_beyond
 
     """
     -------------------------------------------------------

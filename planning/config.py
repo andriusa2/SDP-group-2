@@ -9,17 +9,17 @@ class Config(object):
 
     GRAB_THRESHOLD = 8  # round grab area
     DIST_KICKER_ROBOT = 12
-    ROBOT_WIDTH = 4
+    ROBOT_WIDTH = 5
 
     SQUARE_ANGLE_THRESHOLD = 0.005
-    MOVE_DAMPENING = 0.8
-    TURN_DAMPENING = 0.5
+    MOVE_DAMPENING = 0.7
+    TURN_DAMPENING = 0.4
 
     MAX_MOVE = 15
     MAX_TURN = np.pi/4
 
     BALL_VELOCITY_GRABBER_TRIGGER = 20
-    BALL_DISTANCE_GRABBER_TRIGGER = 4
+    BALL_DISTANCE_GRABBER_TRIGGER = 2
 
     ###################
     # World Constants #
